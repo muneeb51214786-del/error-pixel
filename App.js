@@ -1,10 +1,8 @@
-
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, SafeAreaView,
-  StatusBar, StyleSheet, Dimensions, Modal, Linking,
-  Animated, Easing, ActivityIndicator, TextInput,
-  useWindowDimensions
+  StatusBar, StyleSheet, Modal, Linking, Animated, Easing,
+  ActivityIndicator, TextInput, useWindowDimensions, Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,6 +24,7 @@ const SOCIAL = [
 ];
 
 const TOOLS = [
+  ['Selection','↖','Edit'],['Hand','✋','Edit'],
   ['Import','＋','Media'],['Media Library','▣','Media'],
   ['Split','✂','Edit'],['Trim','↔','Edit'],['Delete','⌫','Edit'],
   ['Duplicate','▣','Edit'],['Crop','⌗','Edit'],['Rotate','⟳','Edit'],
@@ -80,8 +79,18 @@ const PREVIEWS = [
   {name:'AUDIO STUDIO',sub:'Music and sound control',icon:'♫',color:'#65C8A9',tool:'Audio'}
 ];
 
+const SHORTCUTS = {
+  'v':'Selection','h':'Hand','i':'Import','b':'Split',
+  't':'Text','c':'Crop','r':'Rotate','s':'Speed',
+  'a':'Audio','m':'Mask','e':'Effects','f':'Filters',
+  'k':'Keyframe','g':'Graph Editor','l':'Lighting',
+  'p':'Photo Enhance','n':'Noise Removal','x':'Chroma Key',
+  'o':'Object Remove','u':'AI Upscale','j':'Tracking',
+  'w':'Reverse','q':'Freeze Frame'
+};
+
 function EPLogo({size=54}) {
-  const spin = useRef(new Animated.Value(0)).current;
+  const spin=useRef(new Animated.Value(0)).current;
   useEffect(()=>{
     const loop=Animated.loop(Animated.timing(spin,{
       toValue:1,duration:5000,easing:Easing.linear,useNativeDriver:true
@@ -187,8 +196,147 @@ export default function App() {
   const [trackCount,setTrackCount]=useState(5);
   const [category,setCategory]=useState('All');
   const [projects,setProjects]=useState([]);
+  const [keyframeActive,setKeyframeActive]=useState(false);
+  const [shortcutPanel,setShortcutPanel]=useState(false);
+
+  const historyRef=useRef([]);
+  const redoRef=useRef([]);
+  const clipboardRef=useRef(null);
 
   const today=()=>new Date().toLocaleDateString('en-CA');
+
+  const saveHistory=useCallback(()=>{
+    historyRef.current.push({clips,tool,playing});
+    if(historyRef.current.length>40)historyRef.current.shift();
+    redoRef.current=[];
+  },[clips,tool,playing]);
+
+  const undo=useCallback(()=>{
+    const previous=historyRef.current.pop();
+    if(!previous){setLastAction('Nothing to undo');return;}
+    redoRef.current.push({clips,tool,playing});
+    setClips(previous.clips);
+    setTool(previous.tool);
+    setPlaying(previous.playing);
+    setLastAction('Undo completed');
+  },[clips,tool,playing]);
+
+  const redo=useCallback(()=>{
+    const next=redoRef.current.pop();
+    if(!next){setLastAction('Nothing to redo');return;}
+    historyRef.current.push({clips,tool,playing});
+    setClips(next.clips);
+    setTool(next.tool);
+    setPlaying(next.playing);
+    setLastAction('Redo completed');
+  },[clips,tool,playing]);
+
+  const copyClip=useCallback(()=>{
+    clipboardRef.current={clips};
+    setLastAction('Clip copied');
+  },[clips]);
+
+  const pasteClip=useCallback(()=>{
+    if(!clipboardRef.current){setLastAction('Nothing copied yet');return;}
+    saveHistory();
+    setClips(v=>v+1);
+    setLastAction('Clip pasted');
+  },[saveHistory]);
+
+  const cutClip=useCallback(()=>{
+    if(clips<=0){setLastAction('No clip selected');return;}
+    saveHistory();
+    clipboardRef.current={clips:1};
+    setClips(v=>Math.max(0,v-1));
+    setLastAction('Clip cut');
+  },[clips,saveHistory]);
+
+  const duplicateClip=useCallback(()=>{
+    saveHistory();
+    setClips(v=>v+1);
+    setLastAction('Clip duplicated');
+  },[saveHistory]);
+
+  const deleteClip=useCallback(()=>{
+    if(clips<=0){setLastAction('No clip selected');return;}
+    saveHistory();
+    setClips(v=>Math.max(0,v-1));
+    setLastAction('Clip deleted');
+  },[clips,saveHistory]);
+
+  const chooseTool=name=>{
+    saveHistory();
+    setTool(name);
+    setLastAction(name+' selected');
+    if(name==='Split'){
+      setClips(v=>v+1);
+      setLastAction('Split action selected — demo timeline');
+    }
+    if(name==='Export')setModal('export');
+    if(name==='Import')setLastAction('Media picker connection required');
+    if(name==='Keyframe')setKeyframeActive(v=>!v);
+  };
+
+  const chooseOption=option=>{
+    saveHistory();
+    setLastAction(option+' selected');
+    if(tool==='Split')setClips(v=>v+1);
+    if(tool==='Export'){
+      if(option.includes('FPS'))setFps(option);
+      else setResolution(option);
+    }
+  };
+
+  const runShortcut=useCallback((key,ctrl,shift)=>{
+    const k=key.toLowerCase();
+
+    if(ctrl&&k==='c'){copyClip();return true;}
+    if(ctrl&&k==='v'){pasteClip();return true;}
+    if(ctrl&&k==='x'){cutClip();return true;}
+    if(ctrl&&k==='z'){undo();return true;}
+    if(ctrl&&k==='y'){redo();return true;}
+    if(ctrl&&k==='d'){duplicateClip();return true;}
+    if(ctrl&&k==='a'){setLastAction('All timeline clips selected');return true;}
+    if(ctrl&&k==='s'){setLastAction('Save shortcut pressed');return true;}
+
+    if(k===' '||k==='space'){
+      setPlaying(v=>!v);
+      setLastAction(playing?'Playback paused':'Playback started');
+      return true;
+    }
+    if(k==='delete'||k==='backspace'){deleteClip();return true;}
+    if(k==='escape'){setModal('');setDrawer(false);setShortcutPanel(false);return true;}
+    if(k==='enter'){setLastAction('Enter pressed');return true;}
+
+    if(!ctrl&&!shift&&SHORTCUTS[k]){
+      chooseTool(SHORTCUTS[k]);
+      return true;
+    }
+    if(!ctrl&&!shift&&k==='m'){
+      chooseTool('Mask');
+      return true;
+    }
+    return false;
+  },[copyClip,pasteClip,cutClip,undo,redo,duplicateClip,deleteClip,playing]);
+
+  useEffect(()=>{
+    if(Platform.OS!=='web')return;
+    const handler=e=>{
+      const target=e.target;
+      const tag=target?.tagName?.toLowerCase();
+      const typing=tag==='input'||tag==='textarea'||target?.isContentEditable;
+      if(typing)return;
+
+      const key=e.key;
+      const ctrl=e.ctrlKey||e.metaKey;
+      const handled=runShortcut(key,ctrl,e.shiftKey);
+      if(handled)e.preventDefault();
+    };
+    if(typeof window!=='undefined'){
+      window.addEventListener('keydown',handler);
+      return ()=>window.removeEventListener('keydown',handler);
+    }
+  },[runShortcut]);
 
   useEffect(()=>{
     let mounted=true;
@@ -239,26 +387,6 @@ export default function App() {
         ['ERROR_PIXEL_DAILY_CLAIM_DATE',date]
       ]);
     }catch(e){console.log('Save tokens:',e);}
-  };
-
-  const chooseTool=name=>{
-    setTool(name);
-    setLastAction(name+' selected');
-    if(name==='Split'){
-      setClips(v=>v+1);
-      setLastAction('Split action selected — demo timeline');
-    }
-    if(name==='Export')setModal('export');
-    if(name==='Import')setLastAction('Media picker connection required');
-  };
-
-  const chooseOption=option=>{
-    setLastAction(option+' selected');
-    if(tool==='Split')setClips(v=>v+1);
-    if(tool==='Export'){
-      if(option.includes('FPS'))setFps(option);
-      else setResolution(option);
-    }
   };
 
   const saveProject=async()=>{
@@ -329,30 +457,35 @@ export default function App() {
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View>
+        <View style={{minWidth:620}}>
           <View style={s.rulerInner}>
             {['00:00','00:03','00:06','00:09','00:12','00:15','00:18','00:21'].map(x=>(
               <Text key={x} style={s.rulerText}>{x}</Text>
             ))}
           </View>
-          {Array.from({length:trackCount},(_,i)=>({
-            name:['VIDEO 01','AUDIO','OVERLAY','EFFECTS','TEXT','VIDEO 02','VOICEOVER','MUSIC','CAPTIONS','GRAPHICS','MASK','ADJUSTMENT'][i],
-            color:['#9877F4','#39A6A8','#C17BCB','#D39A55','#5D9BD8','#8064B8','#42A8A0','#BD8C4F','#6289C7','#9E6FA9','#A17A68','#4F9D8B'][i]
-          })).map((x,i)=>(
-            <View key={x.name} style={s.track}>
-              <Text style={s.trackName}>{x.name}</Text>
-              <View style={s.trackLane}>
-                <View style={[s.clip,{
-                  width:Math.min(150+clips*24,390),
-                  backgroundColor:x.color
-                }]}>
-                  <Text style={s.clipText}>
-                    {i===0?'VIDEO CLIP '+clips:x.name+' LAYER'}
-                  </Text>
+          <ScrollView
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={true}
+            style={{maxHeight:desktop?135:190}}>
+            {Array.from({length:trackCount},(_,i)=>({
+              name:['VIDEO 01','AUDIO','OVERLAY','EFFECTS','TEXT','VIDEO 02','VOICEOVER','MUSIC','CAPTIONS','GRAPHICS','MASK','ADJUSTMENT'][i],
+              color:['#9877F4','#39A6A8','#C17BCB','#D39A55','#5D9BD8','#8064B8','#42A8A0','#BD8C4F','#6289C7','#9E6FA9','#A17A68','#4F9D8B'][i]
+            })).map((x,i)=>(
+              <View key={x.name} style={s.track}>
+                <Text style={s.trackName}>{x.name}</Text>
+                <View style={s.trackLane}>
+                  <View style={[s.clip,{
+                    width:Math.min(150+clips*24,390),
+                    backgroundColor:x.color
+                  }]}>
+                    <Text style={s.clipText}>
+                      {i===0?'VIDEO CLIP '+clips:x.name+' LAYER'}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            ))}
+          </ScrollView>
         </View>
       </ScrollView>
     </View>
@@ -365,16 +498,39 @@ export default function App() {
         <Text style={s.smallMuted}>{resolution} · {fps}</Text>
       </View>
       <View style={[s.previewCanvas,desktop&&s.desktopCanvas]}>
-        <EPLogo size={desktop?86:58}/>
+        <EPLogo size={desktop?65:58}/>
         <Text style={s.previewBrand}>ERROR PIXEL</Text>
         <Text style={s.brandSub}>VIDEO PREVIEW AREA</Text>
       </View>
-      <View style={s.playRow}>
-        <Text style={s.smallMuted}>00:00:00:00</Text>
-        <RoundButton onPress={()=>setPlaying(!playing)} active>
-          <Text style={s.buttonGlyph}>{playing?'Ⅱ':'▶'}</Text>
-        </RoundButton>
-        <Text style={s.smallMuted}>00:00:15:00</Text>
+
+      <View style={s.previewControls}>
+        <View style={s.previewTime}>
+          <Text style={s.smallMuted}>00:00:00:00</Text>
+          <Text style={s.smallMuted}>00:00:15:00</Text>
+        </View>
+        <View style={s.controlButtons}>
+          <TouchableOpacity style={s.previewControl} onPress={undo}>
+            <Text style={s.controlGlyph}>↶</Text>
+            <Text style={s.controlLabel}>UNDO</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.previewControl} onPress={redo}>
+            <Text style={s.controlGlyph}>↷</Text>
+            <Text style={s.controlLabel}>REDO</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.previewControl,keyframeActive&&s.keyframeOn]}
+            onPress={()=>{
+              setKeyframeActive(v=>!v);
+              setLastAction(keyframeActive?'Keyframe disabled':'Keyframe added');
+            }}>
+            <Text style={s.controlGlyph}>◇</Text>
+            <Text style={s.controlLabel}>KEYFRAME</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.previewControl,s.playControl]}
+            onPress={()=>setPlaying(v=>!v)}>
+            <Text style={s.controlGlyph}>{playing?'Ⅱ':'▶'}</Text>
+            <Text style={s.controlLabel}>{playing?'PAUSE':'PLAY'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -621,12 +777,9 @@ export default function App() {
               <Text style={s.eyebrow}>ERROR PIXEL / EDITOR</Text>
               <Text style={s.projectName}>{projectName}</Text>
             </View>
-            <RoundButton onPress={()=>setLastAction('Undo selected')}>
-              <Text style={s.buttonGlyph}>↶</Text>
-            </RoundButton>
-            <RoundButton onPress={()=>setLastAction('Redo selected')}>
-              <Text style={s.buttonGlyph}>↷</Text>
-            </RoundButton>
+            <TouchableOpacity style={s.shortcutTop} onPress={()=>setShortcutPanel(true)}>
+              <Text style={s.exportTopText}>⌨ SHORTCUTS</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={s.exportTop} onPress={()=>setModal('export')}>
               <Text style={s.exportTopText}>EXPORT ↑</Text>
             </TouchableOpacity>
@@ -667,12 +820,14 @@ export default function App() {
                 <Text style={s.inspectorValue}>{tool}</Text>
                 <View style={s.inspectorDivider}/>
                 <Text style={s.inspectorLabel}>AVAILABLE OPTIONS</Text>
-                {(OPTIONS[tool]||['Select','Adjust','Settings','Apply']).map(x=>(
-                  <TouchableOpacity key={x} style={s.inspectorOption} onPress={()=>chooseOption(x)}>
-                    <Text style={s.optionText}>{x}</Text>
-                    <Text style={s.link}>›</Text>
-                  </TouchableOpacity>
-                ))}
+                <ScrollView style={{flex:1}}>
+                  {(OPTIONS[tool]||['Select','Adjust','Settings','Apply']).map(x=>(
+                    <TouchableOpacity key={x} style={s.inspectorOption} onPress={()=>chooseOption(x)}>
+                      <Text style={s.optionText}>{x}</Text>
+                      <Text style={s.link}>›</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
                 <View style={s.inspectorDivider}/>
                 <Text style={s.inspectorLabel}>PROJECT SETTINGS</Text>
                 <Text style={s.smallMuted}>Resolution: {resolution}</Text>
@@ -788,6 +943,39 @@ export default function App() {
           )}
         </View>
       )}
+
+      <Modal visible={shortcutPanel} transparent animationType="fade"
+        onRequestClose={()=>setShortcutPanel(false)}>
+        <View style={s.modalCenter}>
+          <View style={s.dialog}>
+            <View style={s.dialogHead}>
+              <Text style={s.dialogTitle}>KEYBOARD SHORTCUTS</Text>
+              <RoundButton onPress={()=>setShortcutPanel(false)}>
+                <Text style={s.buttonGlyph}>×</Text>
+              </RoundButton>
+            </View>
+            <ScrollView style={{maxHeight:450}}>
+              {[
+                ['Ctrl + C','Copy clip'],['Ctrl + V','Paste clip'],
+                ['Ctrl + X','Cut clip'],['Ctrl + Z','Undo'],
+                ['Ctrl + Y','Redo'],['Ctrl + D','Duplicate clip'],
+                ['Ctrl + A','Select all clips'],['Ctrl + S','Save action'],
+                ['Space','Play / Pause'],['Delete','Delete clip'],
+                ...Object.entries(SHORTCUTS).map(([key,name])=>[key.toUpperCase(),name+' Tool']),
+                ['Esc','Close / Cancel']
+              ].map((x,i)=>(
+                <View key={i} style={s.shortcutRow}>
+                  <Text style={s.shortcutKey}>{x[0]}</Text>
+                  <Text style={s.optionText}>{x[1]}</Text>
+                </View>
+              ))}
+            </ScrollView>
+            <Text style={s.statsNote}>
+              Shortcuts work in the web editor when you are not typing inside a text field.
+            </Text>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={drawer} transparent animationType="fade" onRequestClose={()=>setDrawer(false)}>
         <View style={s.modalBackdrop}>
@@ -1010,21 +1198,29 @@ const s=StyleSheet.create({
   editorTop:{minHeight:55,flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:8,borderBottomWidth:1,borderColor:C.line},
   projectName:{color:C.white,fontSize:14,fontWeight:'900',marginTop:3},
   exportTop:{height:37,paddingHorizontal:12,borderRadius:20,alignItems:'center',justifyContent:'center',backgroundColor:'#7655C2',borderWidth:1,borderColor:'#C7B0FF'},
-  exportTopText:{color:'#fff',fontSize:9,fontWeight:'900'},
+  shortcutTop:{height:35,paddingHorizontal:9,borderRadius:18,alignItems:'center',justifyContent:'center',backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
+  exportTopText:{color:'#fff',fontSize:8,fontWeight:'900'},
   mobileEditor:{flex:1},
   preview:{margin:9,padding:8,borderRadius:15,backgroundColor:'#0E0C18',borderWidth:1,borderColor:C.line},
   previewMeta:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
   previewCanvas:{height:130,width:'82%',alignSelf:'center',alignItems:'center',justifyContent:'center',marginVertical:5,borderRadius:8,backgroundColor:'#1A1530',borderWidth:1,borderColor:'rgba(169,139,255,.5)'},
   previewBrand:{color:C.white,fontSize:11,fontWeight:'900',letterSpacing:2,marginTop:4},
-  playRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:5},
+  previewControls:{marginTop:3,paddingTop:5,borderTopWidth:1,borderColor:C.line},
+  previewTime:{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:5,marginBottom:5},
+  controlButtons:{flexDirection:'row',justifyContent:'space-around',alignItems:'center'},
+  previewControl:{minWidth:55,alignItems:'center',justifyContent:'center',paddingHorizontal:7,paddingVertical:5,borderRadius:9,backgroundColor:'rgba(169,139,255,.12)',borderWidth:1,borderColor:C.line},
+  playControl:{backgroundColor:'rgba(128,232,243,.14)',borderColor:C.cyan},
+  keyframeOn:{backgroundColor:'rgba(233,211,159,.16)',borderColor:C.gold},
+  controlGlyph:{color:C.white,fontSize:17,fontWeight:'900'},
+  controlLabel:{color:C.muted,fontSize:6,fontWeight:'900',marginTop:2},
   timelineBox:{marginHorizontal:8,marginBottom:4},
   timelineHead:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginHorizontal:3,marginTop:4,marginBottom:5},
   rulerInner:{width:620,flexDirection:'row',justifyContent:'space-between',paddingLeft:92,paddingRight:10,paddingVertical:7,borderBottomWidth:1,borderColor:C.line},
   rulerText:{color:C.muted,fontSize:8},
-  track:{height:34,flexDirection:'row',alignItems:'center',marginBottom:4,borderRadius:7,backgroundColor:'rgba(255,255,255,.035)',borderWidth:1,borderColor:'rgba(255,255,255,.07)',overflow:'hidden'},
+  track:{height:30,flexDirection:'row',alignItems:'center',marginBottom:3,borderRadius:7,backgroundColor:'rgba(255,255,255,.035)',borderWidth:1,borderColor:'rgba(255,255,255,.07)',overflow:'hidden'},
   trackName:{width:85,color:C.white,fontSize:7,fontWeight:'900',paddingHorizontal:8},
   trackLane:{flex:1,justifyContent:'center',paddingHorizontal:6},
-  clip:{height:23,borderRadius:6,justifyContent:'center',paddingHorizontal:7},
+  clip:{height:21,borderRadius:6,justifyContent:'center',paddingHorizontal:7},
   clipText:{color:'#fff',fontSize:6,fontWeight:'900'},
   toolPanel:{marginHorizontal:8,marginTop:5,padding:9,borderRadius:13,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
   toolPanelHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:7,gap:8},
@@ -1039,8 +1235,8 @@ const s=StyleSheet.create({
   toolName:{color:C.muted,fontSize:6,fontWeight:'800',marginTop:4},
   engineNote:{color:C.muted,fontSize:6,textAlign:'center',paddingVertical:4},
   landscapeWorkspace:{flex:1,flexDirection:'row',padding:7,gap:7},
-  leftLibrary:{width:190,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
-  leftLibraryWide:{width:225},
+  leftLibrary:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
+  leftLibraryWide:{width:205},
   categoryWrap:{flexDirection:'row',flexWrap:'wrap',gap:4,marginTop:9,marginBottom:8},
   categoryButton:{paddingHorizontal:8,paddingVertical:6,borderRadius:12,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
   categoryActive:{borderColor:C.cyan,backgroundColor:'rgba(128,232,243,.10)'},
@@ -1050,17 +1246,19 @@ const s=StyleSheet.create({
   desktopToolCircle:{width:35,height:35},
   desktopToolName:{fontSize:6,textAlign:'center'},
   centerWorkspace:{flex:1,minWidth:0},
-  desktopPreview:{flex:1,margin:0,marginBottom:7,minHeight:180},
-  desktopCanvas:{height:undefined,width:'75%',flex:1,minHeight:125,maxHeight:420},
-  desktopTimeline:{padding:8,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line,maxHeight:245},
-  rightProperties:{width:190,padding:10,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
-  rightPropertiesWide:{width:235},
+  desktopPreview:{height:150,flexGrow:0,margin:0,marginBottom:5,minHeight:0},
+  desktopCanvas:{height:78,width:'75%',flexGrow:1,minHeight:65,maxHeight:100,marginVertical:3},
+  desktopTimeline:{padding:6,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line,maxHeight:180},
+  rightProperties:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
+  rightPropertiesWide:{width:210},
   inspectorTitle:{color:C.white,fontSize:14,fontWeight:'900',marginTop:10},
   inspectorLabel:{color:C.cyan,fontSize:7,fontWeight:'900',letterSpacing:1,marginTop:15},
   inspectorValue:{color:C.white,fontSize:10,marginTop:6},
   inspectorDivider:{height:1,backgroundColor:C.line,marginVertical:10},
   inspectorOption:{minHeight:31,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderColor:'rgba(255,255,255,.06)'},
   inspectorNote:{color:C.muted,fontSize:7,lineHeight:12,marginTop:12},
+  shortcutRow:{minHeight:35,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderColor:C.line},
+  shortcutKey:{color:C.cyan,fontSize:9,fontWeight:'900',minWidth:105},
   modalBackdrop:{flex:1,flexDirection:'row',backgroundColor:'rgba(0,0,0,.72)'},
   drawer:{width:'82%',maxWidth:360,padding:20,paddingTop:45,backgroundColor:'#100E1A',borderRightWidth:1,borderColor:C.line},
   drawerHead:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:28},
