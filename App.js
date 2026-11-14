@@ -1,1086 +1,840 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, SafeAreaView,
-  StatusBar, StyleSheet, Modal, Linking, Animated, Easing,
-  ActivityIndicator, TextInput, useWindowDimensions, Platform
+  StatusBar, StyleSheet, Dimensions, Modal, Linking
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const { width } = Dimensions.get('window');
+
 const C = {
-  bg:'#080711', panel:'#151222', panel2:'#1C1730',
-  white:'#F8F6FF', muted:'#918BA7', violet:'#A98BFF',
-  cyan:'#80E8F3', pink:'#E3A9F2', gold:'#E9D39F',
-  line:'rgba(205,188,255,.20)', green:'#65C8A9'
+  bg: '#070711',
+  white: '#F7F5FF',
+  muted: '#88869F',
+  violet: '#A98BFF',
+  cyan: '#80E8F3',
+  pink: '#D9A8F2',
+  glass: 'rgba(255,255,255,0.055)',
+  border: 'rgba(210,195,255,0.19)',
+  gold: '#E7D2A0'
 };
 
-const DAILY_REWARD = 3;
-const TIKTOK = 'https://www.tiktok.com/@erroreditx99';
-
-const SOCIAL = [
-  {name:'TikTok',icon:'♪',color:'#80E8F3',url:TIKTOK},
-  {name:'Instagram',icon:'◎',color:'#E9A1E9',url:'https://www.instagram.com/erroreditx99'},
-  {name:'YouTube',icon:'▶',color:'#FF777D',url:'https://m.youtube.com/@erroreditx-o2t'},
-  {name:'Facebook',icon:'f',color:'#65A8FF',url:'https://www.facebook.com/share/1CF15iyNv6/'}
+const SOCIAL_LINKS = [
+  { name: 'Facebook', symbol: 'f', color: '#65A8FF', url: 'https://www.facebook.com/share/1CF15iyNv6/' },
+  { name: 'Instagram', symbol: '◎', color: '#E9A1E9', url: 'https://www.instagram.com/erroreditx99' },
+  { name: 'YouTube', symbol: '▶', color: '#FF777D', url: 'https://m.youtube.com/@erroreditx-o2t' },
+  { name: 'TikTok', symbol: '♪', color: '#80E8F3', url: 'https://www.tiktok.com/@erroreditx99' }
 ];
 
-const TOOLS = [
-  ['Selection','↖','Edit'],['Hand','✋','Edit'],
-  ['Import','＋','Media'],['Media Library','▣','Media'],
-  ['Split','✂','Edit'],['Trim','↔','Edit'],['Delete','⌫','Edit'],
-  ['Duplicate','▣','Edit'],['Crop','⌗','Edit'],['Rotate','⟳','Edit'],
-  ['Flip','⇄','Edit'],['Speed','◷','Edit'],['Speed Ramp','⌁','Motion'],
-  ['Reverse','↶','Edit'],['Freeze Frame','❄','Edit'],
-  ['Audio','♫','Sound'],['Music','♬','Sound'],
-  ['Voiceover','◉','Sound'],['Noise Removal','⁙','Sound'],
-  ['Audio Mixer','≋','Sound'],['Text','T','Overlay'],
-  ['Captions','▤','Overlay'],['Stickers','☆','Overlay'],
-  ['Subtitles','Aa','Overlay'],['Effects','✧','Visual'],
-  ['Transitions','◈','Visual'],['Filters','◐','Visual'],
-  ['Adjust','☼','Visual'],['Color Grade','◒','Visual'],
-  ['LUTs','▧','Visual'],['Keyframe','◇','Motion'],
-  ['Graph Editor','⌁','Motion'],['Motion Blur','≋','Motion'],
-  ['Tracking','◎','Advanced'],['Mask','◒','Advanced'],
-  ['Chroma Key','▧','Advanced'],['Blend','◈','Advanced'],
-  ['3D','⬡','3D'],['Camera','◉','3D'],['Lighting','☼','3D'],
-  ['AI Enhance','✦','AI'],['AI Upscale','⤢','AI'],
-  ['AI Stabilize','⌖','AI'],['AI Denoise','⁙','AI'],
-  ['Background Remove','◌','AI'],['Object Remove','⌫','AI'],
-  ['Frame Interpolation','⏩','AI'],['Optical Flow','⌁','AI'],
-  ['AI Captions','▤','AI'],['AI Voice','◉','AI'],
-  ['Photo Enhance','✧','Photo'],['Photo Crop','⌗','Photo'],
-  ['Background Blur','◌','Photo'],['3D Photo','⬡','Photo'],
-  ['Export','⇧','Output']
-];
-
-const OPTIONS = {
-  Import:['Choose video','Choose audio','Choose image','Import folder'],
-  Split:['Split at playhead','Split all tracks','Split selected track'],
-  Trim:['Trim start','Trim end','Trim both sides'],
-  Speed:['0.25×','0.5×','0.75×','1×','1.5×','2×','4×','Speed curve'],
-  'Speed Ramp':['Montage','Hero','Bullet time','Custom curve'],
-  Crop:['Original','16:9','9:16','1:1','4:5','Custom'],
-  Adjust:['Exposure','Contrast','Saturation','Temperature','Tint','Highlights','Shadows','HSL','Curves'],
-  Effects:['Video effects','Light effects','Glow','Glitch','Blur','Distortion'],
-  Filters:['Cinema','Vintage','Portrait','Film','Moody','Warm'],
-  Audio:['Music','Sound effects','Voiceover','Audio mixer'],
-  Text:['Add text','Fonts','Text animation','3D text','Subtitles'],
-  'Color Grade':['Basic correction','Color wheels','HSL','Curves','LUT library'],
-  'Frame Interpolation':['Frame Blending','Optical Flow','AI Frame Generation'],
-  'AI Enhance':['Enhance details','Reduce noise','Improve clarity'],
-  Export:['720p','1080p','2K','4K','24 FPS','30 FPS','60 FPS','90 FPS','120 FPS','144 FPS','160 FPS','180 FPS','200 FPS','240 FPS']
-};
-
-const PREVIEWS = [
-  {name:'AI ENHANCE',sub:'Improve video clarity',icon:'✦',color:'#9C79F5',tool:'AI Enhance'},
-  {name:'FPS CONTROL',sub:'24 to 240 FPS options',icon:'◷',color:'#54C9D7',tool:'Export'},
-  {name:'SMART CUTTER',sub:'Split and trim clips',icon:'✂',color:'#E2A2E8',tool:'Split'},
-  {name:'COLOR STUDIO',sub:'Professional color tools',icon:'◐',color:'#D9B56C',tool:'Color Grade'},
-  {name:'MOTION DESIGN',sub:'Keyframes and graphs',icon:'◇',color:'#6EA7E8',tool:'Keyframe'},
-  {name:'AUDIO STUDIO',sub:'Music and sound control',icon:'♫',color:'#65C8A9',tool:'Audio'}
-];
-
-const SHORTCUTS = {
-  'v':'Selection','h':'Hand','i':'Import','b':'Split',
-  't':'Text','c':'Crop','r':'Rotate','s':'Speed',
-  'a':'Audio','m':'Mask','e':'Effects','f':'Filters',
-  'k':'Keyframe','g':'Graph Editor','l':'Lighting',
-  'p':'Photo Enhance','n':'Noise Removal','x':'Chroma Key',
-  'o':'Object Remove','u':'AI Upscale','j':'Tracking',
-  'w':'Reverse','q':'Freeze Frame'
-};
-
-function EPLogo({size=54}) {
-  const spin=useRef(new Animated.Value(0)).current;
-  useEffect(()=>{
-    const loop=Animated.loop(Animated.timing(spin,{
-      toValue:1,duration:5000,easing:Easing.linear,useNativeDriver:true
-    }));
-    loop.start();
-    return ()=>loop.stop();
-  },[spin]);
-  const rotate=spin.interpolate({inputRange:[0,1],outputRange:['0deg','360deg']});
+function CrystalLogo({ size = 110 }) {
   return (
-    <View style={[s.logo,{width:size,height:size,borderRadius:size/2}]}>
-      <Animated.View style={[s.logoRing,{
-        width:size*.88,height:size*.88,borderRadius:size,
-        transform:[{rotate}]
-      }]}/>
-      <Animated.View style={[s.logoRing2,{
-        width:size*.70,height:size*.70,borderRadius:size,
-        transform:[{rotate}]
-      }]}/>
-      <Text style={{color:'#fff',fontWeight:'900',fontSize:size*.34,
-        textShadowColor:C.violet,textShadowRadius:12}}>EP</Text>
-      <View style={[s.logoGlint,{width:size*.19}]}/>
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{
+        position: 'absolute',
+        width: size * .77,
+        height: size * .77,
+        borderWidth: 1.5,
+        borderColor: 'rgba(189,157,255,0.8)',
+        transform: [{ rotate: '45deg' }],
+        backgroundColor: 'rgba(117,78,190,0.12)'
+      }} />
+      <View style={{
+        position: 'absolute',
+        width: size * .63,
+        height: size * .63,
+        borderWidth: 1,
+        borderColor: 'rgba(128,232,243,0.6)',
+        transform: [{ rotate: '45deg' }]
+      }} />
+      <View style={{
+        position: 'absolute',
+        width: size * .48,
+        height: size * .48,
+        backgroundColor: 'rgba(151,117,226,0.17)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.35)',
+        transform: [{ rotate: '45deg' }]
+      }} />
+      <Text style={{
+        color: '#FFFFFF',
+        fontSize: size * .31,
+        fontWeight: '900',
+        letterSpacing: -size * .055,
+        textShadowColor: '#B49AFF',
+        textShadowRadius: 16
+      }}>EP</Text>
+      <View style={{
+        position: 'absolute',
+        width: size * .13,
+        height: 2,
+        backgroundColor: C.cyan,
+        top: size * .12,
+        right: size * .13,
+        transform: [{ rotate: '-45deg' }]
+      }} />
     </View>
   );
 }
 
-function RoundButton({children,onPress,active=false,style}) {
-  return (
-    <TouchableOpacity activeOpacity={.78} onPress={onPress}
-      style={[s.roundButton,active&&s.roundActive,style]}>
-      {children}
-    </TouchableOpacity>
-  );
+function GlassCard({ children, style }) {
+  return <View style={[s.glassCard, style]}>{children}</View>;
 }
 
-function SocialDock({onOpen}) {
+function FloatingSocialDock({ onOpen }) {
   return (
     <View style={s.socialDock}>
-      {SOCIAL.map(x=>(
-        <TouchableOpacity key={x.name} onPress={()=>onOpen(x.url)} style={s.socialButton}>
-          <Text style={[s.socialIcon,{color:x.color}]}>{x.icon}</Text>
+      {SOCIAL_LINKS.map(item => (
+        <TouchableOpacity
+          key={item.name}
+          activeOpacity={0.76}
+          accessibilityRole="button"
+          accessibilityLabel={`Open ${item.name}`}
+          onPress={() => onOpen(item.url)}
+          style={s.socialCrystal}
+        >
+          <View style={s.socialInner}>
+            <Text style={[
+              s.socialSymbol,
+              { color: item.color, textShadowColor: item.color }
+            ]}>{item.symbol}</Text>
+          </View>
+          <View pointerEvents="none" style={s.socialShine} />
         </TouchableOpacity>
       ))}
     </View>
   );
 }
 
-function PreviewCard({item,onPress}) {
-  const pulse=useRef(new Animated.Value(.78)).current;
-  useEffect(()=>{
-    const loop=Animated.loop(Animated.sequence([
-      Animated.timing(pulse,{toValue:1,duration:900,useNativeDriver:true}),
-      Animated.timing(pulse,{toValue:.78,duration:900,useNativeDriver:true})
-    ]));
-    loop.start();
-    return ()=>loop.stop();
-  },[pulse]);
-  return (
-    <TouchableOpacity style={s.previewCard} onPress={onPress}>
-      <View style={[s.previewVisual,{borderColor:item.color+'66'}]}>
-        <Animated.View style={{opacity:pulse,transform:[{scale:pulse}]}}>
-          <Text style={[s.previewIcon,{color:item.color}]}>{item.icon}</Text>
-        </Animated.View>
-        <Text style={s.previewPlay}>▶ FEATURE PREVIEW</Text>
-      </View>
-      <Text style={s.previewName}>{item.name}</Text>
-      <Text style={s.previewSub}>{item.sub}</Text>
-    </TouchableOpacity>
-  );
-}
-
-function ToolButton({item,active,onPress,compact=false}) {
-  return (
-    <TouchableOpacity style={compact?s.desktopTool:s.toolItem} onPress={onPress}>
-      <View style={[s.toolCircle,active&&s.toolCircleActive,compact&&s.desktopToolCircle]}>
-        <Text style={[s.toolGlyph,active&&{color:C.cyan}]}>{item[1]}</Text>
-      </View>
-      <Text style={[s.toolName,active&&{color:C.white},compact&&s.desktopToolName]}>
-        {item[0]}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
 export default function App() {
-  const {width,height}=useWindowDimensions();
-  const landscape=width>height;
-  const wide=width>=900;
+  const [page, setPage] = useState('loading');
+  const [drawer, setDrawer] = useState(false);
+  const [category, setCategory] = useState('ALL');
+  const [appReady, setAppReady] = useState(false);
+  const [activeTool, setActiveTool] = useState('Basic');
+  const [selectedAction, setSelectedAction] = useState('Trim');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedLayer, setSelectedLayer] = useState('Original Video');
+  const [clipCount, setClipCount] = useState(1);
+  const [projectName, setProjectName] = useState('Untitled Project');
 
-  const [page,setPage]=useState('welcome');
-  const [drawer,setDrawer]=useState(false);
-  const [tokens,setTokens]=useState(0);
-  const [claimDate,setClaimDate]=useState('');
-  const [claimStep,setClaimStep]=useState('idle');
-  const [tool,setTool]=useState('Split');
-  const [lastAction,setLastAction]=useState('Ready to edit');
-  const [clips,setClips]=useState(1);
-  const [playing,setPlaying]=useState(false);
-  const [fps,setFps]=useState('60 FPS');
-  const [resolution,setResolution]=useState('1080p');
-  const [modal,setModal]=useState('');
-  const [helpQuestion,setHelpQuestion]=useState('');
-  const [projectName,setProjectName]=useState('Untitled Project');
-  const [trackCount,setTrackCount]=useState(5);
-  const [category,setCategory]=useState('All');
-  const [projects,setProjects]=useState([]);
-  const [keyframeActive,setKeyframeActive]=useState(false);
-  const [shortcutPanel,setShortcutPanel]=useState(false);
-
-  const historyRef=useRef([]);
-  const redoRef=useRef([]);
-  const clipboardRef=useRef(null);
-
-  const today=()=>new Date().toLocaleDateString('en-CA');
-
-  const saveHistory=useCallback(()=>{
-    historyRef.current.push({clips,tool,playing});
-    if(historyRef.current.length>40)historyRef.current.shift();
-    redoRef.current=[];
-  },[clips,tool,playing]);
-
-  const undo=useCallback(()=>{
-    const previous=historyRef.current.pop();
-    if(!previous){setLastAction('Nothing to undo');return;}
-    redoRef.current.push({clips,tool,playing});
-    setClips(previous.clips);
-    setTool(previous.tool);
-    setPlaying(previous.playing);
-    setLastAction('Undo completed');
-  },[clips,tool,playing]);
-
-  const redo=useCallback(()=>{
-    const next=redoRef.current.pop();
-    if(!next){setLastAction('Nothing to redo');return;}
-    historyRef.current.push({clips,tool,playing});
-    setClips(next.clips);
-    setTool(next.tool);
-    setPlaying(next.playing);
-    setLastAction('Redo completed');
-  },[clips,tool,playing]);
-
-  const copyClip=useCallback(()=>{
-    clipboardRef.current={clips};
-    setLastAction('Clip copied');
-  },[clips]);
-
-  const pasteClip=useCallback(()=>{
-    if(!clipboardRef.current){setLastAction('Nothing copied yet');return;}
-    saveHistory();
-    setClips(v=>v+1);
-    setLastAction('Clip pasted');
-  },[saveHistory]);
-
-  const cutClip=useCallback(()=>{
-    if(clips<=0){setLastAction('No clip selected');return;}
-    saveHistory();
-    clipboardRef.current={clips:1};
-    setClips(v=>Math.max(0,v-1));
-    setLastAction('Clip cut');
-  },[clips,saveHistory]);
-
-  const duplicateClip=useCallback(()=>{
-    saveHistory();
-    setClips(v=>v+1);
-    setLastAction('Clip duplicated');
-  },[saveHistory]);
-
-  const deleteClip=useCallback(()=>{
-    if(clips<=0){setLastAction('No clip selected');return;}
-    saveHistory();
-    setClips(v=>Math.max(0,v-1));
-    setLastAction('Clip deleted');
-  },[clips,saveHistory]);
-
-  const chooseTool=name=>{
-    saveHistory();
-    setTool(name);
-    setLastAction(name+' selected');
-    if(name==='Split'){
-      setClips(v=>v+1);
-      setLastAction('Split action selected — demo timeline');
-    }
-    if(name==='Export')setModal('export');
-    if(name==='Import')setLastAction('Media picker connection required');
-    if(name==='Keyframe')setKeyframeActive(v=>!v);
+  const toolGroups = {
+    Basic: ['Split', 'Delete', 'Duplicate', 'Trim', 'Crop', 'Speed', 'Rotate', 'Canvas', 'Opacity'],
+    Animation: ['Keyframes', 'Graph Editor', 'Motion Blur', 'Velocity'],
+    '3D Studio': ['3D Text', '3D Objects', 'Camera', 'Lighting', 'Position', 'Rotation', 'Scale'],
+    Effects: ['Glow', 'Blur', 'Shake', 'RGB', 'Glitch', 'Particles', 'Transitions'],
+    'AI Studio': ['Enhance', 'Upscale', 'Stabilization', 'Noise Reduction', 'Green Screen', 'AI Voice', 'Video Creator', 'Auto Captions', 'Background Remove'],
+    Advanced: ['Masking', 'Motion Tracking', 'Blend Modes', 'Color Grading', 'LUTs', 'FPS Booster']
   };
 
-  const chooseOption=option=>{
-    saveHistory();
-    setLastAction(option+' selected');
-    if(tool==='Split')setClips(v=>v+1);
-    if(tool==='Export'){
-      if(option.includes('FPS'))setFps(option);
-      else setResolution(option);
-    }
-  };
+  useEffect(() => {
+    let timer;
+    let cancelled = false;
 
-  const runShortcut=useCallback((key,ctrl,shift)=>{
-    const k=key.toLowerCase();
-
-    if(ctrl&&k==='c'){copyClip();return true;}
-    if(ctrl&&k==='v'){pasteClip();return true;}
-    if(ctrl&&k==='x'){cutClip();return true;}
-    if(ctrl&&k==='z'){undo();return true;}
-    if(ctrl&&k==='y'){redo();return true;}
-    if(ctrl&&k==='d'){duplicateClip();return true;}
-    if(ctrl&&k==='a'){setLastAction('All timeline clips selected');return true;}
-    if(ctrl&&k==='s'){setLastAction('Save shortcut pressed');return true;}
-
-    if(k===' '||k==='space'){
-      setPlaying(v=>!v);
-      setLastAction(playing?'Playback paused':'Playback started');
-      return true;
-    }
-    if(k==='delete'||k==='backspace'){deleteClip();return true;}
-    if(k==='escape'){setModal('');setDrawer(false);setShortcutPanel(false);return true;}
-    if(k==='enter'){setLastAction('Enter pressed');return true;}
-
-    if(!ctrl&&!shift&&SHORTCUTS[k]){
-      chooseTool(SHORTCUTS[k]);
-      return true;
-    }
-    if(!ctrl&&!shift&&k==='m'){
-      chooseTool('Mask');
-      return true;
-    }
-    return false;
-  },[copyClip,pasteClip,cutClip,undo,redo,duplicateClip,deleteClip,playing]);
-
-  useEffect(()=>{
-    if(Platform.OS!=='web')return;
-    const handler=e=>{
-      const target=e.target;
-      const tag=target?.tagName?.toLowerCase();
-      const typing=tag==='input'||tag==='textarea'||target?.isContentEditable;
-      if(typing)return;
-
-      const key=e.key;
-      const ctrl=e.ctrlKey||e.metaKey;
-      const handled=runShortcut(key,ctrl,e.shiftKey);
-      if(handled)e.preventDefault();
-    };
-    if(typeof window!=='undefined'){
-      window.addEventListener('keydown',handler);
-      return ()=>window.removeEventListener('keydown',handler);
-    }
-  },[runShortcut]);
-
-  useEffect(()=>{
-    let mounted=true;
-    const init=async()=>{
+    const initializeApp = async () => {
       try {
-        const [b,d,p]=await Promise.all([
-          AsyncStorage.getItem('ERROR_PIXEL_BALANCE'),
-          AsyncStorage.getItem('ERROR_PIXEL_DAILY_CLAIM_DATE'),
-          AsyncStorage.getItem('ERROR_PIXEL_PROJECTS')
-        ]);
-        if(!mounted)return;
-        if(b!==null)setTokens(Number(b)||0);
-        if(d){
-          setClaimDate(d);
-          if(d===today())setClaimStep('claimed');
+        const completed = await AsyncStorage.getItem('ERROR_PIXEL_STARTED');
+
+        if (cancelled) return;
+
+        if (completed === 'true') {
+          setPage('home');
+        } else {
+          setPage('intro');
+          timer = setTimeout(() => {
+            if (!cancelled) setPage('welcome');
+          }, 2800);
         }
-        if(p)setProjects(JSON.parse(p));
-      } catch(e){console.log('Storage init:',e);}
+      } catch (error) {
+        if (!cancelled) {
+          setPage('intro');
+          timer = setTimeout(() => {
+            if (!cancelled) setPage('welcome');
+          }, 2800);
+        }
+      } finally {
+        if (!cancelled) setAppReady(true);
+      }
     };
-    init();
-    const timer=setTimeout(()=>{
-      if(mounted)setPage('home');
-    },2400);
-    return ()=>{mounted=false;clearTimeout(timer);};
-  },[]);
 
-  const openSocial=async url=>{
-    try{await Linking.openURL(url);}
-    catch(e){console.log('Open link failed:',e);}
+    initializeApp();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  const enterStudio = async () => {
+    try {
+      await AsyncStorage.setItem('ERROR_PIXEL_STARTED', 'true');
+    } catch (error) {
+      console.log('Could not save first-launch preference:', error);
+    }
+    setPage('home');
   };
 
-  const claimDaily=async()=>{
-    if(claimDate===today())return;
-    setClaimStep('visited');
-    await openSocial(TIKTOK);
+  const openSocial = async (url) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.log('Could not open social link:', error);
+    }
   };
 
-  const collectTokens=async()=>{
-    if(claimDate===today())return;
-    const balance=tokens+DAILY_REWARD;
-    const date=today();
-    setTokens(balance);
-    setClaimDate(date);
-    setClaimStep('claimed');
-    try{
-      await AsyncStorage.multiSet([
-        ['ERROR_PIXEL_BALANCE',String(balance)],
-        ['ERROR_PIXEL_DAILY_CLAIM_DATE',date]
-      ]);
-    }catch(e){console.log('Save tokens:',e);}
+  const openPage = target => {
+    setDrawer(false);
+    setPage(target);
   };
 
-  const saveProject=async()=>{
-    const next=[...projects,{name:projectName,date:new Date().toLocaleDateString()}];
-    setProjects(next);
-    try{await AsyncStorage.setItem('ERROR_PIXEL_PROJECTS',JSON.stringify(next));}
-    catch(e){console.log(e);}
-    setLastAction('Project saved locally');
-  };
-
-  const menu=[
-    ['Dashboard','home'],['Video Editor','editor'],
-    ['Photo Studio','photo'],['My Projects','projects'],
-    ['Membership','membership'],['Help Center','help']
+  const menu = [
+    ['Dashboard', 'home'],
+    ['Video Editor', 'editor'],
+    ['Photo Studio', 'photo'],
+    ['My Projects', 'projects'],
+    ['Membership', 'membership'],
+    ['Settings', 'settings']
   ];
 
-  const visibleTools=category==='All'?TOOLS:
-    TOOLS.filter(x=>x[2]===category);
+  const categories = ['ALL', 'VIDEO', 'PHOTO', 'AUDIO', 'DRAFTS'];
 
-  if(page==='welcome'){
+  if (!appReady) {
     return (
       <SafeAreaView style={s.safe}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg}/>
-        <View style={s.welcome}>
-          <View style={s.ambient}/>
-          <EPLogo size={166}/>
-          <Text style={s.welcomeBrand}>ERROR <Text style={{color:C.violet}}>PIXEL</Text></Text>
-          <Text style={s.tag}>PROFESSIONAL CREATIVE STUDIO</Text>
-          <View style={s.loadingLine}>
-            <ActivityIndicator color={C.cyan}/>
-            <Text style={s.loadingText}>INITIALIZING CREATIVE STUDIO</Text>
-          </View>
-          <Text style={s.powered}>POWERED BY MUNEEB HASSAN</Text>
-          <Text style={s.channel}>ERROR EDITX99</Text>
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+        <View style={s.loadingScreen}>
+          <CrystalLogo size={90} />
+          <Text style={s.loadingBrand}>ERROR PIXEL</Text>
+          <Text style={s.loadingCaption}>PREPARING YOUR CREATIVE STUDIO</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  const EditorTools=()=>(
-    <View style={s.toolPanel}>
-      <View style={s.toolPanelHead}>
-        <View style={{flex:1}}>
-          <Text style={s.eyebrow}>{TOOLS.find(x=>x[0]===tool)?.[2]?.toUpperCase()} TOOL</Text>
-          <Text style={s.toolTitle}>{tool}</Text>
-        </View>
-        <Text style={s.smallMuted} numberOfLines={1}>{lastAction}</Text>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {(OPTIONS[tool]||['Select','Adjust','Settings','Apply']).map(x=>(
-          <TouchableOpacity key={x} style={s.option} onPress={()=>chooseOption(x)}>
-            <Text style={s.optionText}>{x}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  );
-
-  const Timeline=({desktop=false})=>(
-    <View style={[s.timelineBox,desktop&&s.desktopTimeline]}>
-      <View style={s.timelineHead}>
-        <View>
-          <Text style={s.eyebrow}>MULTI-TRACK SEQUENCE</Text>
-          <Text style={s.sectionTitle}>Timeline</Text>
-        </View>
-        <TouchableOpacity onPress={()=>setTrackCount(v=>Math.min(v+1,12))}>
-          <Text style={s.link}>＋ TRACK</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{minWidth:620}}>
-          <View style={s.rulerInner}>
-            {['00:00','00:03','00:06','00:09','00:12','00:15','00:18','00:21'].map(x=>(
-              <Text key={x} style={s.rulerText}>{x}</Text>
-            ))}
-          </View>
-          <ScrollView
-            nestedScrollEnabled
-            showsVerticalScrollIndicator={true}
-            style={{maxHeight:desktop?135:190}}>
-            {Array.from({length:trackCount},(_,i)=>({
-              name:['VIDEO 01','AUDIO','OVERLAY','EFFECTS','TEXT','VIDEO 02','VOICEOVER','MUSIC','CAPTIONS','GRAPHICS','MASK','ADJUSTMENT'][i],
-              color:['#9877F4','#39A6A8','#C17BCB','#D39A55','#5D9BD8','#8064B8','#42A8A0','#BD8C4F','#6289C7','#9E6FA9','#A17A68','#4F9D8B'][i]
-            })).map((x,i)=>(
-              <View key={x.name} style={s.track}>
-                <Text style={s.trackName}>{x.name}</Text>
-                <View style={s.trackLane}>
-                  <View style={[s.clip,{
-                    width:Math.min(150+clips*24,390),
-                    backgroundColor:x.color
-                  }]}>
-                    <Text style={s.clipText}>
-                      {i===0?'VIDEO CLIP '+clips:x.name+' LAYER'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      </ScrollView>
-    </View>
-  );
-
-  const PreviewMonitor=({desktop=false})=>(
-    <View style={[s.preview,desktop&&s.desktopPreview]}>
-      <View style={s.previewMeta}>
-        <Text style={s.eyebrow}>PREVIEW MONITOR</Text>
-        <Text style={s.smallMuted}>{resolution} · {fps}</Text>
-      </View>
-      <View style={[s.previewCanvas,desktop&&s.desktopCanvas]}>
-        <EPLogo size={desktop?65:58}/>
-        <Text style={s.previewBrand}>ERROR PIXEL</Text>
-        <Text style={s.brandSub}>VIDEO PREVIEW AREA</Text>
-      </View>
-
-      <View style={s.previewControls}>
-        <View style={s.previewTime}>
-          <Text style={s.smallMuted}>00:00:00:00</Text>
-          <Text style={s.smallMuted}>00:00:15:00</Text>
-        </View>
-        <View style={s.controlButtons}>
-          <TouchableOpacity style={s.previewControl} onPress={undo}>
-            <Text style={s.controlGlyph}>↶</Text>
-            <Text style={s.controlLabel}>UNDO</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.previewControl} onPress={redo}>
-            <Text style={s.controlGlyph}>↷</Text>
-            <Text style={s.controlLabel}>REDO</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.previewControl,keyframeActive&&s.keyframeOn]}
-            onPress={()=>{
-              setKeyframeActive(v=>!v);
-              setLastAction(keyframeActive?'Keyframe disabled':'Keyframe added');
-            }}>
-            <Text style={s.controlGlyph}>◇</Text>
-            <Text style={s.controlLabel}>KEYFRAME</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.previewControl,s.playControl]}
-            onPress={()=>setPlaying(v=>!v)}>
-            <Text style={s.controlGlyph}>{playing?'Ⅱ':'▶'}</Text>
-            <Text style={s.controlLabel}>{playing?'PAUSE':'PLAY'}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg}/>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      {page==='home'&&(
+      {page === 'intro' && (
+        <View style={s.intro}>
+          <View style={s.ambientOne} />
+          <View style={s.ambientTwo} />
+          <CrystalLogo size={145} />
+          <Text style={s.introBrand}>
+            ERROR <Text style={s.violet}>PIXEL</Text>
+          </Text>
+          <Text style={s.introTag}>DIAMOND AI CREATIVE STUDIO</Text>
+          <View style={s.introLine} />
+          <Text style={s.introPowered}>POWERED BY MUNEEB HASSAN</Text>
+        </View>
+      )}
+
+      {page === 'welcome' && (
+        <View style={s.welcome}>
+          <View style={s.ambientOne} />
+          <View style={s.ambientTwo} />
+
+          <View style={s.welcomeTop}>
+            <Text style={s.miniBrand}>ERROR PIXEL</Text>
+            <Text style={s.version}>CREATOR STUDIO / 01</Text>
+          </View>
+
+          <View style={s.welcomeCenter}>
+            <View style={s.logoAura} />
+            <CrystalLogo size={190} />
+            <Text style={s.welcomeBrand}>
+              ERROR <Text style={s.violet}>PIXEL</Text>
+            </Text>
+            <Text style={s.welcomeTag}>DIAMOND AI CREATIVE STUDIO</Text>
+            <Text style={s.welcomeDescription}>
+              Your vision. Your creativity. One powerful studio.
+            </Text>
+          </View>
+
+          <View style={s.welcomeBottom}>
+            <TouchableOpacity style={s.enterButton} onPress={enterStudio}>
+              <Text style={s.enterText}>ENTER THE STUDIO</Text>
+              <Text style={s.enterArrow}>→</Text>
+            </TouchableOpacity>
+            <Text style={s.bottomNote}>CREATE WITHOUT LIMITS</Text>
+            <Text style={s.introPowered}>POWERED BY MUNEEB HASSAN</Text>
+          </View>
+        </View>
+      )}
+
+      {page === 'home' && (
         <View style={s.main}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.homeContent}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={s.homeContent}
+          >
             <View style={s.topBar}>
               <View style={s.brandRow}>
-                <EPLogo size={48}/>
+                <CrystalLogo size={43} />
                 <View>
-                  <Text style={s.brand}>ERROR <Text style={{color:C.violet}}>PIXEL</Text></Text>
-                  <Text style={s.brandSub}>PRO CREATIVE WORKSPACE</Text>
+                  <Text style={s.topBrand}>
+                    ERROR <Text style={s.violet}>PIXEL</Text>
+                  </Text>
+                  <Text style={s.topCaption}>DIAMOND CREATIVE STUDIO</Text>
                 </View>
               </View>
-              <View style={s.topActions}>
-                <RoundButton onPress={()=>setPage('editor')}>
-                  <Text style={s.buttonGlyph}>＋</Text>
-                </RoundButton>
-                <RoundButton onPress={()=>setDrawer(true)}>
-                  <Text style={s.buttonGlyph}>☰</Text>
-                </RoundButton>
-              </View>
-            </View>
 
-            <View style={s.notification}>
-              <Text style={s.notificationGlyph}>◉</Text>
-              <View style={{flex:1}}>
-                <Text style={s.notificationHead}>STUDIO NOTIFICATION</Text>
-                <Text style={s.notificationText}>
-                  {claimStep==='claimed'?'Your daily Error Tokens have been collected.':
-                  claimStep==='visited'?'TikTok opened. Return and collect your tokens.':
-                  'Your daily creator reward is ready.'}
-                </Text>
-              </View>
-            </View>
-
-            <View style={s.tokenCard}>
-              <View style={{flex:1}}>
-                <Text style={s.eyebrow}>DAILY CREATOR REWARD</Text>
-                <Text style={s.tokenHeading}>ERROR TOKENS</Text>
-                <Text style={s.tokenCount}>{tokens} <Text style={s.tokenUnit}>TOKENS</Text></Text>
-                <Text style={s.smallMuted}>Daily reward · +{DAILY_REWARD} tokens</Text>
-              </View>
-              <View style={s.tokenRight}>
-                <View style={s.tokenCoin}><Text style={s.coinGlyph}>E</Text></View>
-                <TouchableOpacity disabled={claimStep==='claimed'}
-                  style={[s.claimButton,claimStep==='claimed'&&s.claimDisabled]}
-                  onPress={claimStep==='visited'?collectTokens:claimDaily}>
-                  <Text style={s.claimText}>
-                    {claimStep==='claimed'?'CLAIMED':claimStep==='visited'?'COLLECT':'CLAIM'}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={s.claimHint}>{claimStep==='claimed'?'NEXT CLAIM TOMORROW':'VISIT TIKTOK FIRST'}</Text>
-              </View>
-            </View>
-
-            <View style={s.welcomeText}>
-              <Text style={s.eyebrow}>WELCOME TO YOUR STUDIO</Text>
-              <Text style={s.heading}>Your Studio.</Text>
-              <Text style={s.body}>Professional tools. One creative environment.</Text>
+              <TouchableOpacity
+                onPress={() => setDrawer(true)}
+                style={s.menuButton}
+              >
+                <View style={s.menuLine} />
+                <View style={[s.menuLine, { width: 15 }]} />
+                <View style={s.menuLine} />
+              </TouchableOpacity>
             </View>
 
             <View style={s.hero}>
+              <View style={s.heroGlow} />
+
               <View style={s.heroTop}>
-                <Text style={s.eyebrow}>ERROR PIXEL PRESENTS</Text>
-                <Text style={s.proBadge}>✦ CREATOR</Text>
-              </View>
-              <View style={s.heroCenter}>
-                <EPLogo size={100}/>
-                <Text style={s.heroTitle}>MAKE EVERY</Text>
-                <Text style={s.heroAccent}>FRAME COUNT.</Text>
-                <Text style={s.heroCopy}>Edit videos, design visuals and explore advanced creative tools.</Text>
-              </View>
-              <TouchableOpacity style={s.newProject} onPress={()=>setPage('editor')}>
-                <RoundButton onPress={()=>setPage('editor')}>
-                  <Text style={s.buttonGlyph}>＋</Text>
-                </RoundButton>
-                <View style={{flex:1,marginLeft:12}}>
-                  <Text style={s.newProjectTitle}>CREATE NEW PROJECT</Text>
-                  <Text style={s.smallMuted}>Open professional editing workspace</Text>
-                </View>
-                <Text style={s.arrow}>↗</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>CHOOSE YOUR WORKSPACE</Text>
-                <Text style={s.sectionTitle}>Creative Studio</Text>
-              </View>
-              <Text style={s.counter}>01 / 03</Text>
-            </View>
-            <View style={s.workspaceGrid}>
-              <TouchableOpacity style={s.videoCard} onPress={()=>setPage('editor')}>
-                <Text style={s.cardIcon}>▣</Text>
                 <View>
-                  <Text style={s.cardTitle}>VIDEO</Text>
-                  <Text style={s.cardTitle}>EDITOR</Text>
-                  <Text style={s.cardSub}>EDIT · EFFECTS · EXPORT</Text>
+                  <Text style={s.heroEyebrow}>THE NEXT GENERATION</Text>
+                  <Text style={s.heroEyebrow2}>OF CREATIVE EDITING</Text>
                 </View>
-                <Text style={s.cardArrow}>↗</Text>
+                <View style={s.proBadge}>
+                  <Text style={s.proBadgeText}>✦ STUDIO</Text>
+                </View>
+              </View>
+
+              <View style={s.heroCenter}>
+                <CrystalLogo size={125} />
+                <Text style={s.heroHeadline}>CREATE BEYOND</Text>
+                <Text style={s.heroHeadlineAccent}>LIMITS.</Text>
+                <Text style={s.heroDescription}>
+                  An elevated space for your video, photo and motion creativity.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={s.newProject}
+                onPress={() => setPage('editor')}
+              >
+                <View style={s.newProjectIcon}>
+                  <Text style={s.plus}>＋</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.newProjectTitle}>NEW PROJECT</Text>
+                  <Text style={s.newProjectSub}>
+                    Start creating something extraordinary
+                  </Text>
+                </View>
+                <Text style={s.newProjectArrow}>↗</Text>
               </TouchableOpacity>
-              <View style={s.sideCards}>
-                <TouchableOpacity style={s.smallCard} onPress={()=>setPage('photo')}>
-                  <Text style={s.cardIcon}>◇</Text>
-                  <Text style={s.smallCardTitle}>PHOTO STUDIO</Text>
+
+              <Text style={s.heroFooter}>
+                ERROR EDITX / CREATOR EDITION
+              </Text>
+            </View>
+
+            <View style={s.statsRow}>
+              <GlassCard style={s.statCard}>
+                <Text style={s.statIcon}>✦</Text>
+                <Text style={s.statValue}>3</Text>
+                <Text style={s.statCaption}>FREE VIDEO CREDITS</Text>
+              </GlassCard>
+
+              <GlassCard style={s.statCard}>
+                <Text style={s.statIcon}>◇</Text>
+                <Text style={s.statValue}>FREE</Text>
+                <Text style={s.statCaption}>MEMBERSHIP</Text>
+              </GlassCard>
+
+              <GlassCard style={s.statCard}>
+                <Text style={s.statIcon}>∞</Text>
+                <Text style={s.statValue}>STUDIO</Text>
+                <Text style={s.statCaption}>WORKSPACE</Text>
+              </GlassCard>
+            </View>
+
+            <View style={s.sectionHeader}>
+              <View>
+                <Text style={s.sectionEyebrow}>YOUR CREATIVE SPACE</Text>
+                <Text style={s.sectionTitle}>Explore Studio</Text>
+              </View>
+              <Text style={s.sectionNumber}>01 / 04</Text>
+            </View>
+
+            <View style={s.workspaceGrid}>
+              <TouchableOpacity
+                style={s.workspaceLarge}
+                onPress={() => setPage('editor')}
+              >
+                <View style={s.workspaceOrb} />
+                <Text style={s.workspaceSymbol}>▣</Text>
+                <View>
+                  <Text style={s.workspaceTitle}>VIDEO</Text>
+                  <Text style={s.workspaceTitle}>STUDIO</Text>
+                  <Text style={s.workspaceSub}>PROFESSIONAL EDITING</Text>
+                </View>
+                <Text style={s.workspaceArrow}>↗</Text>
+              </TouchableOpacity>
+
+              <View style={s.workspaceRight}>
+                <TouchableOpacity
+                  style={s.workspaceSmall}
+                  onPress={() => setPage('photo')}
+                >
+                  <Text style={s.smallSymbol}>◇</Text>
+                  <Text style={s.workspaceSmallTitle}>PHOTO</Text>
+                  <Text style={s.workspaceSmallSub}>CANVAS & DESIGN</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[s.smallCard,{borderColor:'rgba(227,169,242,.4)'}]}
-                  onPress={()=>{setPage('editor');setTool('AI Enhance');}}>
-                  <Text style={[s.cardIcon,{color:C.pink}]}>✦</Text>
-                  <Text style={s.smallCardTitle}>AI STUDIO</Text>
+
+                <TouchableOpacity
+                  style={[s.workspaceSmall, s.aiWorkspace]}
+                  onPress={() => setPage('editor')}
+                >
+                  <Text style={s.smallSymbol}>✧</Text>
+                  <Text style={s.workspaceSmallTitle}>AI STUDIO</Text>
+                  <Text style={s.workspaceSmallSub}>INTELLIGENT TOOLS</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <View style={s.sectionRow}>
+            <View style={s.sectionHeader}>
               <View>
-                <Text style={s.eyebrow}>FEATURE SHOWCASE</Text>
-                <Text style={s.sectionTitle}>Explore Features</Text>
+                <Text style={s.sectionEyebrow}>POWERFUL CREATIVE TOOLS</Text>
+                <Text style={s.sectionTitle}>Studio Collection</Text>
               </View>
-              <Text style={s.link}>FEATURE PREVIEWS</Text>
-            </View>
-            <View style={s.previewGrid}>
-              {PREVIEWS.map(item=>(
-                <PreviewCard key={item.name} item={item} onPress={()=>{
-                  setPage('editor');setTool(item.tool);
-                }}/>
-              ))}
+              <Text style={s.viewAll}>VIEW ALL ↗</Text>
             </View>
 
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>CREATIVE TOOLKIT</Text>
-                <Text style={s.sectionTitle}>Quick Tools</Text>
-              </View>
-              <TouchableOpacity onPress={()=>setPage('editor')}>
-                <Text style={s.link}>OPEN EDITOR ↗</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={s.quickGrid}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {[
-                ['✦','AI ENHANCE'],['⤢','4K UPSCALE'],['⌁','MOTION BLUR'],
-                ['T','3D TEXT'],['◐','COLOR GRADE'],['◎','TRACKING']
-              ].map(x=>(
-                <TouchableOpacity key={x[1]} style={s.quickTool} onPress={()=>{
-                  setPage('editor');
-                  setTool(x[1]==='AI ENHANCE'?'AI Enhance':x[1]==='COLOR GRADE'?'Color Grade':x[1]==='TRACKING'?'Tracking':'Effects');
-                }}>
-                  <Text style={s.quickIcon}>{x[0]}</Text>
-                  <Text style={s.quickLabel}>{x[1]}</Text>
+                ['MOTION', '◌', 'Motion Blur'],
+                ['ENHANCE', '✦', 'AI Enhance'],
+                ['FRAME RATE', '▤', 'FPS Booster'],
+                ['GENERATE', '◇', 'AI Creator']
+              ].map(item => (
+                <TouchableOpacity
+                  key={item[0]}
+                  style={s.collectionCard}
+                  onPress={() => setPage('editor')}
+                >
+                  <Text style={s.collectionIcon}>{item[1]}</Text>
+                  <Text style={s.collectionType}>{item[0]}</Text>
+                  <Text style={s.collectionName}>{item[2]}</Text>
+                  <Text style={s.collectionArrow}>↗</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
 
-            <View style={s.sectionRow}>
+            <View style={s.sectionHeader}>
               <View>
-                <Text style={s.eyebrow}>SUPPORT</Text>
-                <Text style={s.sectionTitle}>Need Help?</Text>
-              </View>
-            </View>
-            <View style={s.helpRow}>
-              <TouchableOpacity style={s.helpCard} onPress={()=>setPage('help')}>
-                <Text style={s.helpIcon}>ⓘ</Text>
-                <Text style={s.helpTitle}>HELP CENTER</Text>
-                <Text style={s.smallMuted}>Guides and support</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.helpCard} onPress={()=>setModal('aihelp')}>
-                <Text style={[s.helpIcon,{color:C.pink}]}>✦</Text>
-                <Text style={s.helpTitle}>AI HELP</Text>
-                <Text style={s.smallMuted}>Ask editing questions</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>YOUR WORKSPACE</Text>
+                <Text style={s.sectionEyebrow}>YOUR CREATIVE JOURNEY</Text>
                 <Text style={s.sectionTitle}>Recent Projects</Text>
               </View>
-              <TouchableOpacity onPress={()=>setPage('projects')}>
-                <Text style={s.link}>SEE ALL ↗</Text>
-              </TouchableOpacity>
-            </View>
-            {projects.length===0?(
-              <View style={s.emptyCard}>
-                <EPLogo size={54}/>
-                <Text style={s.emptyTitle}>Your next masterpiece starts here.</Text>
-                <Text style={s.smallMuted}>Your saved projects will appear here.</Text>
-              </View>
-            ):projects.slice(-3).reverse().map((p,i)=>(
-              <TouchableOpacity key={i} style={s.projectRow} onPress={()=>setPage('editor')}>
-                <EPLogo size={38}/>
-                <View style={{flex:1}}>
-                  <Text style={s.helpTitle}>{p.name}</Text>
-                  <Text style={s.smallMuted}>{p.date}</Text>
-                </View>
-                <Text style={s.link}>OPEN ↗</Text>
-              </TouchableOpacity>
-            ))}
-
-            <View style={s.tiktokStats}>
-              <View style={s.tiktokHead}>
-                <View>
-                  <Text style={s.eyebrow}>CREATOR SOCIAL DASHBOARD</Text>
-                  <Text style={s.tiktokTitle}>TikTok Live Stats</Text>
-                </View>
-                <Text style={s.tiktokLogo}>♪</Text>
-              </View>
-              <View style={s.statsGrid}>
-                {['FOLLOWERS','TOTAL LIKES','LIVE STATUS'].map(x=>(
-                  <View key={x} style={s.statBox}>
-                    <Text style={s.statNumber}>—</Text>
-                    <Text style={s.statLabel}>{x}</Text>
-                  </View>
-                ))}
-              </View>
-              <Text style={s.statsNote}>Real-time account statistics and live streaming require an authorized TikTok integration.</Text>
-              <TouchableOpacity style={s.connectButton} onPress={()=>openSocial(TIKTOK)}>
-                <Text style={s.claimText}>OPEN TIKTOK PROFILE ↗</Text>
+              <TouchableOpacity onPress={() => setPage('projects')}>
+                <Text style={s.viewAll}>SEE ALL ↗</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={s.footer}>
-              <Text style={s.brand}>ERROR PIXEL</Text>
-              <Text style={s.brandSub}>POWERED BY MUNEEB HASSAN</Text>
-              <Text style={s.channel}>ERROR EDITX99</Text>
+            <GlassCard style={s.emptyProjects}>
+              <View style={s.emptyCrystal}>
+                <CrystalLogo size={62} />
+              </View>
+              <Text style={s.emptyTitle}>A blank canvas awaits.</Text>
+              <Text style={s.emptyDescription}>
+                Your projects will appear here once you start creating.
+              </Text>
+              <TouchableOpacity onPress={() => setPage('editor')}>
+                <Text style={s.emptyLink}>
+                  CREATE YOUR FIRST PROJECT ↗
+                </Text>
+              </TouchableOpacity>
+            </GlassCard>
+
+            <View style={s.membershipBanner}>
+              <Text style={s.memberEyebrow}>UNLOCK YOUR CREATIVE POTENTIAL</Text>
+              <Text style={s.memberTitle}>THE PREMIUM EXPERIENCE.</Text>
+              <Text style={s.memberDescription}>
+                Discover advanced creative tools and premium studio access.
+              </Text>
+              <TouchableOpacity
+                onPress={() => setPage('membership')}
+                style={s.memberButton}
+              >
+                <Text style={s.memberButtonText}>
+                  EXPLORE MEMBERSHIP →
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={s.socialFooter}>
+              <Text style={s.footerBrand}>ERROR PIXEL</Text>
+              <Text style={s.footerTag}>DESIGNED TO CREATE DIFFERENTLY.</Text>
+              <Text style={s.footerCopyright}>POWERED BY MUNEEB HASSAN</Text>
             </View>
           </ScrollView>
-          <SocialDock onOpen={openSocial}/>
+
+          <FloatingSocialDock onOpen={openSocial} />
         </View>
       )}
 
-      {page==='editor'&&(
-        <View style={s.main}>
-          <View style={s.editorTop}>
-            <RoundButton onPress={()=>setPage('home')}>
-              <Text style={s.buttonGlyph}>‹</Text>
-            </RoundButton>
-            <View style={{flex:1}}>
-              <Text style={s.eyebrow}>ERROR PIXEL / EDITOR</Text>
-              <Text style={s.projectName}>{projectName}</Text>
-            </View>
-            <TouchableOpacity style={s.shortcutTop} onPress={()=>setShortcutPanel(true)}>
-              <Text style={s.exportTopText}>⌨ SHORTCUTS</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={s.exportTop} onPress={()=>setModal('export')}>
-              <Text style={s.exportTopText}>EXPORT ↑</Text>
-            </TouchableOpacity>
-          </View>
-
-          {landscape?(
-            <View style={s.landscapeWorkspace}>
-              <View style={[s.leftLibrary,wide&&s.leftLibraryWide]}>
-                <Text style={s.eyebrow}>TOOL LIBRARY</Text>
-                <ScrollView horizontal={false} showsVerticalScrollIndicator={false}>
-                  <View style={s.categoryWrap}>
-                    {['All','Media','Edit','Motion','Sound','Overlay','Visual','Advanced','3D','AI','Photo','Output'].map(x=>(
-                      <TouchableOpacity key={x} onPress={()=>setCategory(x)}
-                        style={[s.categoryButton,category===x&&s.categoryActive]}>
-                        <Text style={[s.categoryText,category===x&&{color:C.cyan}]}>{x}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <View style={s.desktopToolsGrid}>
-                    {visibleTools.map(x=>(
-                      <ToolButton key={x[0]} item={x} active={tool===x[0]}
-                        compact onPress={()=>chooseTool(x[0])}/>
-                    ))}
-                  </View>
-                </ScrollView>
-              </View>
-
-              <View style={s.centerWorkspace}>
-                <PreviewMonitor desktop/>
-                <Timeline desktop/>
-                <EditorTools/>
-              </View>
-
-              <View style={[s.rightProperties,wide&&s.rightPropertiesWide]}>
-                <Text style={s.eyebrow}>INSPECTOR</Text>
-                <Text style={s.inspectorTitle}>{tool.toUpperCase()}</Text>
-                <Text style={s.inspectorLabel}>SELECTED TOOL</Text>
-                <Text style={s.inspectorValue}>{tool}</Text>
-                <View style={s.inspectorDivider}/>
-                <Text style={s.inspectorLabel}>AVAILABLE OPTIONS</Text>
-                <ScrollView style={{flex:1}}>
-                  {(OPTIONS[tool]||['Select','Adjust','Settings','Apply']).map(x=>(
-                    <TouchableOpacity key={x} style={s.inspectorOption} onPress={()=>chooseOption(x)}>
-                      <Text style={s.optionText}>{x}</Text>
-                      <Text style={s.link}>›</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-                <View style={s.inspectorDivider}/>
-                <Text style={s.inspectorLabel}>PROJECT SETTINGS</Text>
-                <Text style={s.smallMuted}>Resolution: {resolution}</Text>
-                <Text style={s.smallMuted}>Frame rate: {fps}</Text>
-                <TouchableOpacity style={s.connectButton} onPress={()=>setModal('export')}>
-                  <Text style={s.claimText}>EXPORT SETTINGS</Text>
-                </TouchableOpacity>
-                <Text style={s.inspectorNote}>Processing engine required for final video rendering.</Text>
-              </View>
-            </View>
-          ):(
-            <View style={s.mobileEditor}>
-              <PreviewMonitor/>
-              <Timeline/>
-              <EditorTools/>
-              <View style={s.toolDock}>
-                <Text style={s.dockCaption}>PRO TOOLS · SWIPE TO EXPLORE</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.toolList}>
-                  {TOOLS.map(x=>(
-                    <ToolButton key={x[0]} item={x} active={tool===x[0]}
-                      onPress={()=>chooseTool(x[0])}/>
-                  ))}
-                </ScrollView>
-              </View>
-              <Text style={s.engineNote}>VIDEO PROCESSING ENGINE CONNECTION REQUIRED FOR FINAL EXPORT</Text>
-            </View>
-          )}
-        </View>
-      )}
-
-      {page!=='home'&&page!=='editor'&&(
+      {page !== 'intro' && page !== 'welcome' && page !== 'home' && (
         <View style={s.main}>
           <View style={s.subHeader}>
-            <RoundButton onPress={()=>setPage('home')}>
-              <Text style={s.buttonGlyph}>‹</Text>
-            </RoundButton>
-            <Text style={s.subTitle}>{menu.find(x=>x[1]===page)?.[0]?.toUpperCase()||page.toUpperCase()}</Text>
-            <RoundButton onPress={()=>setDrawer(true)}>
-              <Text style={s.buttonGlyph}>•••</Text>
-            </RoundButton>
+            <TouchableOpacity onPress={() => setPage('home')}>
+              <Text style={s.back}>‹</Text>
+            </TouchableOpacity>
+
+            <Text style={s.subHeaderTitle}>
+              {page === 'editor' ? 'EDIT STUDIO'
+                : page === 'photo' ? 'PHOTO STUDIO'
+                : page === 'projects' ? 'MY PROJECTS'
+                : page === 'membership' ? 'MEMBERSHIP'
+                : 'SETTINGS'}
+            </Text>
+
+            <TouchableOpacity onPress={() => setDrawer(true)}>
+              <Text style={s.more}>•••</Text>
+            </TouchableOpacity>
           </View>
 
-          {page==='photo'&&(
-            <ScrollView contentContainerStyle={s.subContent}>
-              <View style={s.photoCanvas}>
-                <EPLogo size={80}/>
-                <Text style={s.projectName}>PHOTO STUDIO</Text>
-                <Text style={s.smallMuted}>Professional visual workspace</Text>
+          {page === 'editor' && (
+            <ScrollView
+              style={s.editorScroll}
+              contentContainerStyle={s.editorPage}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={s.editorProjectBar}>
+                <View>
+                  <Text style={s.editorEyebrow}>CREATIVE WORKSPACE</Text>
+                  <Text style={s.editorProjectName}>{projectName}</Text>
+                </View>
+                <TouchableOpacity
+                  style={s.editorSaveButton}
+                  onPress={() => setProjectName('Project Saved')}
+                >
+                  <Text style={s.editorSaveText}>SAVE</Text>
+                </TouchableOpacity>
               </View>
-              <View style={s.quickGrid}>
-                {['Canvas','Crop','Background Blur','3D Photo','3D Text','Image Shadow','AI Image','Stickers','Filters','Color Grade','Upscale','Remove Background'].map(x=>(
-                  <TouchableOpacity key={x} style={s.option} onPress={()=>setLastAction(x+' selected')}>
-                    <Text style={s.optionText}>{x}</Text>
+
+              <View style={s.editorPreview}>
+                <View style={s.previewTopLine}>
+                  <Text style={s.previewTopText}>PREVIEW MONITOR</Text>
+                  <Text style={s.previewTopText}>16:9 • 00:00</Text>
+                </View>
+
+                <View style={s.previewCenter}>
+                  <View style={s.previewFrame}>
+                    <CrystalLogo size={74} />
+                    <Text style={s.previewBrand}>ERROR PIXEL</Text>
+                    <Text style={s.previewSubBrand}>YOUR CREATIVE TIMELINE</Text>
+                  </View>
+                </View>
+
+                <View style={s.previewControls}>
+                  <Text style={s.timeCode}>00:00:00:00</Text>
+                  <TouchableOpacity
+                    style={s.playButton}
+                    onPress={() => setIsPlaying(!isPlaying)}
+                  >
+                    <Text style={s.playButtonText}>
+                      {isPlaying ? 'Ⅱ' : '▶'}
+                    </Text>
+                  </TouchableOpacity>
+                  <Text style={s.timeCode}>00:00:15:00</Text>
+                </View>
+              </View>
+
+              <View style={s.quickActions}>
+                {['＋ Import', '↶ Undo', '↷ Redo', '⇧ Export'].map(a => (
+                  <TouchableOpacity
+                    key={a}
+                    style={s.quickAction}
+                    onPress={() => setSelectedAction(a.replace('＋ ', ''))}
+                  >
+                    <Text style={s.quickActionText}>{a}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={s.timelineTitleRow}>
+                <View>
+                  <Text style={s.sectionEyebrow}>MULTI-TRACK EDITOR</Text>
+                  <Text style={s.sectionTitle}>Timeline</Text>
+                </View>
+                <Text style={s.timelineDuration}>00:15:00</Text>
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={s.rulerScroll}
+              >
+                <View style={s.ruler}>
+                  {['00:00', '00:03', '00:06', '00:09', '00:12', '00:15'].map(t => (
+                    <Text key={t} style={s.rulerText}>{t}</Text>
+                  ))}
+                </View>
+              </ScrollView>
+
+              {[
+                { name: 'Original Video', color: '#8D72D8', symbol: '▣' },
+                { name: 'Audio / Sound', color: '#397E91', symbol: '♫' },
+                { name: 'Overlay', color: '#9B659F', symbol: '◇' },
+                { name: 'Effects', color: '#A47B4E', symbol: '✦' },
+                { name: 'Stickers', color: '#4C927D', symbol: '☆' },
+                { name: 'Text', color: '#547CB4', symbol: 'T' }
+              ].map((track, i) => (
+                <TouchableOpacity
+                  key={track.name}
+                  activeOpacity={0.9}
+                  onPress={() => setSelectedLayer(track.name)}
+                  style={[
+                    s.trackRow,
+                    selectedLayer === track.name && s.trackRowSelected
+                  ]}
+                >
+                  <View style={s.trackLabel}>
+                    <Text style={[s.trackSymbol, { color: track.color }]}>
+                      {track.symbol}
+                    </Text>
+                    <Text style={s.trackName}>{track.name}</Text>
+                  </View>
+
+                  <View style={s.trackLane}>
+                    <View style={[
+                      s.trackClipBlock,
+                      {
+                        backgroundColor: track.color,
+                        width: i === 0
+                          ? 184 + Math.min(clipCount - 1, 3) * 22
+                          : [0, 145, 105, 125, 85, 115][i]
+                      }
+                    ]}>
+                      <Text style={s.trackClipText}>
+                        {i === 0 ? `Video Clip ${clipCount}` : track.name}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+
+              <View style={s.timelineActionRow}>
+                {['＋ Add Track', 'Split', 'Duplicate', 'Delete'].map(a => (
+                  <TouchableOpacity
+                    key={a}
+                    style={s.timelineAction}
+                    onPress={() => {
+                      setSelectedAction(a);
+                      if (a === 'Duplicate') setClipCount(v => v + 1);
+                      if (a === 'Delete') setClipCount(v => Math.max(0, v - 1));
+                    }}
+                  >
+                    <Text style={s.timelineActionText}>{a}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={s.sectionTitle}>Editing Tools</Text>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={s.toolCategoryScroll}
+              >
+                {Object.keys(toolGroups).map(group => (
+                  <TouchableOpacity
+                    key={group}
+                    onPress={() => {
+                      setActiveTool(group);
+                      setSelectedAction(toolGroups[group][0]);
+                    }}
+                    style={[
+                      s.toolCategory,
+                      activeTool === group && s.toolCategoryActive
+                    ]}
+                  >
+                    <Text style={[
+                      s.toolCategoryText,
+                      activeTool === group && s.toolCategoryTextActive
+                    ]}>{group}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <View style={s.toolPanel}>
+                <View style={s.toolPanelHeader}>
+                  <Text style={s.toolPanelTitle}>
+                    {activeTool.toUpperCase()} TOOLS
+                  </Text>
+                  <Text style={s.toolPanelHint}>SELECT A TOOL</Text>
+                </View>
+
+                <View style={s.toolGrid}>
+                  {toolGroups[activeTool].map((tool, index) => (
+                    <TouchableOpacity
+                      key={tool}
+                      onPress={() => setSelectedAction(tool)}
+                      style={[
+                        s.toolTile,
+                        selectedAction === tool && s.toolTileActive
+                      ]}
+                    >
+                      <Text style={[
+                        s.toolTileIcon,
+                        selectedAction === tool && s.toolTileIconActive
+                      ]}>
+                        {['✦', '◇', '◌', '▣', '⌁', 'T', '◈', '↗', '◎'][index % 9]}
+                      </Text>
+                      <Text style={[
+                        s.toolTileText,
+                        selectedAction === tool && s.toolTileTextActive
+                      ]}>{tool}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View style={s.toolSettings}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.toolSettingsTitle}>{selectedAction}</Text>
+                    <Text style={s.toolSettingsCaption}>
+                      Selected tool • {selectedLayer}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={s.applyToolButton}
+                    onPress={() => setSelectedAction(`${selectedAction} ✓`)}
+                  >
+                    <Text style={s.applyToolText}>APPLY</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <Text style={s.engineNotice}>
+                INTERFACE PREVIEW · Media import, rendering, AI processing and export engines still need to be integrated.
+              </Text>
+            </ScrollView>
+          )}
+
+          {page === 'photo' && (
+            <ScrollView contentContainerStyle={s.subContent}>
+              <View style={s.mediaPreview}>
+                <CrystalLogo size={85} />
+                <Text style={s.previewLabel}>CREATIVE CANVAS</Text>
+                <Text style={s.previewHint}>Your design workspace</Text>
+              </View>
+
+              <View style={s.editorTools}>
+                {[
+                  'Canvas', 'Crop', 'Background Blur', '3D Photo',
+                  '3D Text', 'Image Shadow', 'Text Shadow',
+                  'AI Image Create', 'Stickers', 'Filters',
+                  'Color Grading', 'Upscale'
+                ].map(name => (
+                  <TouchableOpacity key={name} style={s.editorTool}>
+                    <Text style={s.editorToolText}>{name}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
           )}
 
-          {page==='projects'&&(
-            <ScrollView contentContainerStyle={s.subContent}>
-              {projects.length===0?(
-                <View style={s.emptyCard}>
-                  <EPLogo size={60}/>
-                  <Text style={s.emptyTitle}>No saved projects yet</Text>
-                  <Text style={s.smallMuted}>Create a project to see it here.</Text>
-                  <TouchableOpacity style={s.connectButton} onPress={()=>setPage('editor')}>
-                    <Text style={s.claimText}>CREATE PROJECT</Text>
-                  </TouchableOpacity>
-                </View>
-              ):projects.map((p,i)=>(
-                <TouchableOpacity key={i} style={s.projectRow} onPress={()=>setPage('editor')}>
-                  <EPLogo size={42}/>
-                  <View style={{flex:1}}>
-                    <Text style={s.helpTitle}>{p.name}</Text>
-                    <Text style={s.smallMuted}>{p.date}</Text>
-                  </View>
-                  <Text style={s.link}>OPEN ↗</Text>
+          {page === 'projects' && (
+            <View style={s.subContent}>
+              {categories.map(item => (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() => setCategory(item)}
+                  style={[
+                    s.category,
+                    category === item && s.categoryActive
+                  ]}
+                >
+                  <Text style={s.categoryText}>{item} PROJECTS</Text>
+                  <Text style={s.arrow}>↗</Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
+              <Text style={s.previewHint}>
+                Your saved projects will appear here.
+              </Text>
+            </View>
           )}
 
-          {page==='membership'&&(
+          {page === 'membership' && (
             <ScrollView contentContainerStyle={s.subContent}>
               {[
-                ['WEEKLY','Rs. 350','150 Error Tokens'],
-                ['MONTHLY','Rs. 1,200','800 Error Tokens'],
-                ['YEARLY','Rs. 9,000','10,000 Error Tokens'],
-                ['LIFETIME','Rs. 30,000','Premium access']
-              ].map(x=>(
-                <View key={x[0]} style={s.plan}>
-                  <Text style={s.eyebrow}>{x[0]}</Text>
-                  <Text style={s.planPrice}>{x[1]}</Text>
-                  <Text style={s.smallMuted}>{x[2]}</Text>
-                  <Text style={s.link}>PAYMENT GATEWAY REQUIRED</Text>
-                </View>
+                { name: 'STANDARD WEEKLY', price: 'Rs. 350', detail: 'Standard membership' },
+                { name: 'PRO WEEKLY', price: 'Rs. 550', detail: 'Pro membership' },
+                { name: 'STANDARD MONTHLY', price: 'Rs. 1,000', detail: 'Standard membership' },
+                { name: 'PRO MONTHLY', price: 'Rs. 1,500', detail: 'Pro membership' },
+                { name: 'STANDARD YEARLY', price: 'Rs. 9,000', detail: 'Standard membership' },
+                { name: 'PRO YEARLY', price: 'Rs. 11,499', detail: 'Pro membership' },
+                { name: 'STANDARD LIFETIME', price: 'Rs. 20,000', detail: 'Lifetime membership' }
+              ].map(item => (
+                <GlassCard key={item.name} style={s.plan}>
+                  <Text style={s.planName}>{item.name}</Text>
+                  <Text style={s.planPrice}>{item.price}</Text>
+                  <Text style={s.planCredits}>{item.detail}</Text>
+                  <Text style={s.planAction}>PAYMENT SETUP PENDING</Text>
+                </GlassCard>
               ))}
+              <Text style={s.previewHint}>
+                Payment integration is not connected yet. No payment will be taken from this screen.
+              </Text>
             </ScrollView>
           )}
 
-          {page==='help'&&(
+          {page === 'settings' && (
             <View style={s.subContent}>
-              <View style={s.emptyCard}>
-                <EPLogo size={65}/>
-                <Text style={s.emptyTitle}>ERROR PIXEL HELP CENTER</Text>
-                <Text style={s.smallMuted}>Choose AI Help to ask a question. Help articles can be added here.</Text>
-                <TouchableOpacity style={s.connectButton} onPress={()=>setModal('aihelp')}>
-                  <Text style={s.claimText}>OPEN AI HELP</Text>
-                </TouchableOpacity>
-              </View>
+              {[
+                'Language', 'Appearance', 'Editor Preferences',
+                'Auto Save', 'Notifications', 'Storage', 'Support'
+              ].map(name => (
+                <View key={name} style={s.category}>
+                  <Text style={s.categoryText}>{name}</Text>
+                  <Text style={s.arrow}>›</Text>
+                </View>
+              ))}
             </View>
           )}
         </View>
       )}
 
-      <Modal visible={shortcutPanel} transparent animationType="fade"
-        onRequestClose={()=>setShortcutPanel(false)}>
-        <View style={s.modalCenter}>
-          <View style={s.dialog}>
-            <View style={s.dialogHead}>
-              <Text style={s.dialogTitle}>KEYBOARD SHORTCUTS</Text>
-              <RoundButton onPress={()=>setShortcutPanel(false)}>
-                <Text style={s.buttonGlyph}>×</Text>
-              </RoundButton>
-            </View>
-            <ScrollView style={{maxHeight:450}}>
-              {[
-                ['Ctrl + C','Copy clip'],['Ctrl + V','Paste clip'],
-                ['Ctrl + X','Cut clip'],['Ctrl + Z','Undo'],
-                ['Ctrl + Y','Redo'],['Ctrl + D','Duplicate clip'],
-                ['Ctrl + A','Select all clips'],['Ctrl + S','Save action'],
-                ['Space','Play / Pause'],['Delete','Delete clip'],
-                ...Object.entries(SHORTCUTS).map(([key,name])=>[key.toUpperCase(),name+' Tool']),
-                ['Esc','Close / Cancel']
-              ].map((x,i)=>(
-                <View key={i} style={s.shortcutRow}>
-                  <Text style={s.shortcutKey}>{x[0]}</Text>
-                  <Text style={s.optionText}>{x[1]}</Text>
-                </View>
-              ))}
-            </ScrollView>
-            <Text style={s.statsNote}>
-              Shortcuts work in the web editor when you are not typing inside a text field.
-            </Text>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={drawer} transparent animationType="fade" onRequestClose={()=>setDrawer(false)}>
-        <View style={s.modalBackdrop}>
-          <TouchableOpacity style={{flex:1}} onPress={()=>setDrawer(false)}/>
+      <Modal
+        visible={drawer}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDrawer(false)}
+      >
+        <View style={s.drawerBackdrop}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            onPress={() => setDrawer(false)}
+          />
           <View style={s.drawer}>
-            <View style={s.drawerHead}>
-              <EPLogo size={64}/>
+            <View style={s.drawerLogo}>
+              <CrystalLogo size={65} />
               <View>
-                <Text style={s.brand}>ERROR PIXEL</Text>
-                <Text style={s.brandSub}>PRO CREATIVE STUDIO</Text>
+                <Text style={s.drawerBrand}>ERROR PIXEL</Text>
+                <Text style={s.drawerSub}>CREATIVE STUDIO</Text>
               </View>
             </View>
-            {menu.map(x=>(
-              <TouchableOpacity key={x[1]} style={s.drawerItem} onPress={()=>{
-                setDrawer(false);setPage(x[1]);
-              }}>
-                <Text style={s.optionText}>{x[0]}</Text>
-                <Text style={s.link}>↗</Text>
+
+            <View style={s.drawerDivider} />
+
+            {menu.map(item => (
+              <TouchableOpacity
+                key={item[1]}
+                style={s.drawerItem}
+                onPress={() => openPage(item[1])}
+              >
+                <Text style={s.drawerItemText}>{item[0]}</Text>
+                <Text style={s.drawerArrow}>↗</Text>
               </TouchableOpacity>
             ))}
-            <Text style={s.powered}>POWERED BY MUNEEB HASSAN</Text>
-          </View>
-        </View>
-      </Modal>
 
-      <Modal visible={!!modal} transparent animationType="fade" onRequestClose={()=>setModal('')}>
-        <View style={s.modalCenter}>
-          <View style={s.dialog}>
-            <View style={s.dialogHead}>
-              <EPLogo size={43}/>
-              <View style={{flex:1}}>
-                <Text style={s.dialogTitle}>
-                  {modal==='export'?'EXPORT SETTINGS':modal==='aihelp'?'ERROR PIXEL AI HELP':'HELP CENTER'}
-                </Text>
-                <Text style={s.brandSub}>ERROR PIXEL STUDIO</Text>
-              </View>
-              <RoundButton onPress={()=>setModal('')}>
-                <Text style={s.buttonGlyph}>×</Text>
-              </RoundButton>
+            <View style={s.drawerBottom}>
+              <Text style={s.drawerSub}>ERROR EDITX</Text>
+              <Text style={s.drawerSub}>VERSION 01.0</Text>
             </View>
-
-            {modal==='export'&&(
-              <ScrollView style={{maxHeight:420}}>
-                <Text style={s.eyebrow}>PROJECT NAME</Text>
-                <TextInput value={projectName} onChangeText={setProjectName}
-                  placeholder="Project name" placeholderTextColor={C.muted}
-                  style={s.nameInput}/>
-                <Text style={s.eyebrow}>RESOLUTION</Text>
-                <View style={s.choiceRow}>
-                  {['720p','1080p','2K','4K'].map(x=>(
-                    <TouchableOpacity key={x} onPress={()=>setResolution(x)}
-                      style={[s.choice,resolution===x&&s.choiceActive]}>
-                      <Text style={s.optionText}>{x}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <Text style={[s.eyebrow,{marginTop:15}]}>FRAME RATE</Text>
-                <View style={s.choiceGrid}>
-                  {['24 FPS','30 FPS','60 FPS','90 FPS','120 FPS','144 FPS','160 FPS','180 FPS','200 FPS','240 FPS'].map(x=>(
-                    <TouchableOpacity key={x} onPress={()=>setFps(x)}
-                      style={[s.choice,s.choiceHalf,fps===x&&s.choiceActive]}>
-                      <Text style={s.optionText}>{x}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <Text style={s.eyebrow}>SLOW MOTION FRAME GENERATION</Text>
-                <View style={s.option}>
-                  <Text style={s.optionText}>Frame Blending · Optical Flow · AI Frame Generation</Text>
-                </View>
-                <Text style={s.statsNote}>
-                  These are export settings only. Actual rendering, frame interpolation and AI processing require a connected video-processing engine. Output FPS also depends on the source footage and encoder.
-                </Text>
-                <TouchableOpacity style={s.connectButton} onPress={()=>{
-                  setLastAction('Export settings saved: '+resolution+' · '+fps);
-                  saveProject();
-                  setModal('');
-                }}>
-                  <Text style={s.claimText}>SAVE PROJECT SETTINGS</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            )}
-
-            {modal==='aihelp'&&(
-              <View>
-                <Text style={s.body}>AI Help requires a secure AI service connection before it can answer questions.</Text>
-                <TextInput value={helpQuestion} onChangeText={setHelpQuestion}
-                  placeholder="Type your editing question..."
-                  placeholderTextColor={C.muted} style={s.nameInput}/>
-                <TouchableOpacity style={s.connectButton} onPress={()=>{
-                  setLastAction('AI service connection required for: '+helpQuestion);
-                  setModal('');
-                }}>
-                  <Text style={s.claimText}>SUBMIT QUESTION</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {modal==='help'&&(
-              <View>
-                <Text style={s.body}>Select a tool in the editor to view its available options. Export settings can be opened from the top-right Export button.</Text>
-                <TouchableOpacity style={s.connectButton} onPress={()=>setModal('aihelp')}>
-                  <Text style={s.claimText}>OPEN AI HELP</Text>
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
         </View>
       </Modal>
@@ -1088,189 +842,1169 @@ export default function App() {
   );
 }
 
-const s=StyleSheet.create({
-  safe:{flex:1,backgroundColor:C.bg},
-  main:{flex:1,backgroundColor:C.bg},
-  welcome:{flex:1,alignItems:'center',justifyContent:'center',padding:28,backgroundColor:C.bg},
-  ambient:{position:'absolute',width:320,height:320,borderRadius:160,backgroundColor:'rgba(140,99,220,.10)'},
-  logo:{alignItems:'center',justifyContent:'center',backgroundColor:'#19132B',borderWidth:2,borderColor:'rgba(193,166,255,.85)',shadowColor:C.violet,shadowOpacity:.6,shadowRadius:16,elevation:12,overflow:'hidden'},
-  logoRing:{position:'absolute',borderWidth:2,borderColor:'rgba(128,232,243,.8)',borderTopColor:C.pink},
-  logoRing2:{position:'absolute',borderWidth:1.5,borderColor:'rgba(227,169,242,.7)',borderLeftColor:C.gold},
-  logoGlint:{position:'absolute',height:3,borderRadius:4,top:'22%',right:'18%',backgroundColor:C.cyan,transform:[{rotate:'-35deg'}]},
-  welcomeBrand:{color:C.white,fontSize:31,fontWeight:'900',letterSpacing:2,marginTop:28},
-  tag:{color:C.cyan,fontSize:8,letterSpacing:2.4,marginTop:10},
-  loadingLine:{flexDirection:'row',alignItems:'center',gap:9,marginTop:42},
-  loadingText:{color:C.cyan,fontSize:8,letterSpacing:1.4},
-  powered:{color:C.muted,fontSize:8,letterSpacing:1.5,marginTop:24},
-  channel:{color:C.violet,fontSize:10,fontWeight:'900',letterSpacing:2,marginTop:8},
-  homeContent:{padding:17,paddingBottom:45},
-  topBar:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:18},
-  topActions:{flexDirection:'row',gap:8},
-  brandRow:{flexDirection:'row',alignItems:'center',gap:10},
-  brand:{color:C.white,fontSize:16,fontWeight:'900',letterSpacing:1.2},
-  brandSub:{color:C.cyan,fontSize:6,letterSpacing:1.4,marginTop:4},
-  roundButton:{width:40,height:40,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(169,139,255,.13)',borderWidth:1,borderColor:'rgba(205,188,255,.38)'},
-  roundActive:{backgroundColor:'rgba(128,232,243,.15)',borderColor:C.cyan},
-  buttonGlyph:{color:C.white,fontSize:17,fontWeight:'800'},
-  notification:{flexDirection:'row',alignItems:'center',gap:10,padding:12,marginBottom:10,borderRadius:15,backgroundColor:'rgba(128,232,243,.07)',borderWidth:1,borderColor:'rgba(128,232,243,.27)'},
-  notificationGlyph:{color:C.cyan,fontSize:19},
-  notificationHead:{color:C.cyan,fontSize:7,fontWeight:'900',letterSpacing:1.2},
-  notificationText:{color:C.white,fontSize:9,marginTop:4},
-  tokenCard:{flexDirection:'row',alignItems:'center',padding:16,marginBottom:22,borderRadius:21,backgroundColor:'#19142A',borderWidth:1,borderColor:'rgba(169,139,255,.48)'},
-  eyebrow:{color:C.cyan,fontSize:7,letterSpacing:1.4,fontWeight:'800'},
-  tokenHeading:{color:C.white,fontSize:13,fontWeight:'900',letterSpacing:1.2,marginTop:5},
-  tokenCount:{color:'#fff',fontSize:26,fontWeight:'900',marginTop:4},
-  tokenUnit:{color:C.violet,fontSize:8,letterSpacing:1},
-  smallMuted:{color:C.muted,fontSize:8,marginTop:5},
-  tokenRight:{alignItems:'center',marginLeft:8},
-  tokenCoin:{width:39,height:39,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'#44336D',borderWidth:1,borderColor:C.gold,marginBottom:8},
-  coinGlyph:{color:C.gold,fontSize:21,fontWeight:'900'},
-  claimButton:{minWidth:92,height:38,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'#8060C7',borderWidth:1,borderColor:'#C9B4FF'},
-  claimDisabled:{backgroundColor:'#383146',borderColor:'#665D77'},
-  claimText:{color:'#fff',fontSize:9,fontWeight:'900',letterSpacing:1},
-  claimHint:{color:C.muted,fontSize:6,marginTop:6},
-  welcomeText:{marginBottom:16},
-  heading:{color:C.white,fontSize:25,fontWeight:'900',marginTop:5},
-  body:{color:C.muted,fontSize:10,marginTop:8,lineHeight:17},
-  hero:{padding:17,borderRadius:24,backgroundColor:'#171326',borderWidth:1,borderColor:'rgba(193,163,255,.35)'},
-  heroTop:{flexDirection:'row',justifyContent:'space-between'},
-  proBadge:{color:C.gold,fontSize:7,borderWidth:1,borderColor:'rgba(233,211,159,.4)',borderRadius:20,padding:7,overflow:'hidden'},
-  heroCenter:{alignItems:'center',paddingVertical:20},
-  heroTitle:{color:C.white,fontSize:22,fontWeight:'900',letterSpacing:1.5,marginTop:12},
-  heroAccent:{color:C.violet,fontSize:24,fontWeight:'900',letterSpacing:2},
-  heroCopy:{color:C.muted,fontSize:9,textAlign:'center',lineHeight:15,maxWidth:250,marginTop:9},
-  newProject:{flexDirection:'row',alignItems:'center',padding:10,borderRadius:30,backgroundColor:'rgba(255,255,255,.06)',borderWidth:1,borderColor:C.line},
-  newProjectTitle:{color:C.white,fontSize:9,fontWeight:'900',letterSpacing:.8},
-  arrow:{color:C.cyan,fontSize:20},
-  sectionRow:{flexDirection:'row',alignItems:'flex-end',justifyContent:'space-between',marginTop:25,marginBottom:12},
-  sectionTitle:{color:C.white,fontSize:18,fontWeight:'900',marginTop:5},
-  counter:{color:C.muted,fontSize:8},
-  workspaceGrid:{flexDirection:'row',gap:9},
-  videoCard:{width:'49%',minHeight:170,padding:14,borderRadius:19,justifyContent:'space-between',backgroundColor:'#1B1530',borderWidth:1,borderColor:'rgba(169,139,255,.45)'},
-  cardIcon:{color:C.violet,fontSize:28},
-  cardTitle:{color:C.white,fontSize:18,fontWeight:'900'},
-  cardSub:{color:C.cyan,fontSize:6,letterSpacing:1,marginTop:7},
-  cardArrow:{color:C.white,fontSize:20,position:'absolute',right:13,bottom:12},
-  sideCards:{flex:1,gap:9},
-  smallCard:{flex:1,padding:12,borderRadius:17,justifyContent:'center',backgroundColor:'#13212A',borderWidth:1,borderColor:'rgba(128,232,243,.3)'},
-  smallCardTitle:{color:C.white,fontSize:9,fontWeight:'900',marginTop:7},
-  link:{color:C.cyan,fontSize:8,fontWeight:'900',letterSpacing:.7},
-  previewGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:10},
-  previewCard:{width:'48%',padding:9,borderRadius:16,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
-  previewVisual:{height:91,borderRadius:11,backgroundColor:'#1B1630',borderWidth:1,alignItems:'center',justifyContent:'center'},
-  previewIcon:{fontSize:35,fontWeight:'900'},
-  previewPlay:{color:C.cyan,fontSize:6,letterSpacing:1,marginTop:6},
-  previewName:{color:C.white,fontSize:9,fontWeight:'900',marginTop:9},
-  previewSub:{color:C.muted,fontSize:7,marginTop:4},
-  quickGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:10},
-  quickTool:{width:'30%',alignItems:'center',paddingVertical:14,borderRadius:16,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
-  quickIcon:{color:C.cyan,fontSize:22},
-  quickLabel:{color:C.white,fontSize:7,fontWeight:'800',marginTop:7},
-  helpRow:{flexDirection:'row',gap:10},
-  helpCard:{flex:1,padding:15,borderRadius:16,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
-  helpIcon:{color:C.cyan,fontSize:25},
-  helpTitle:{color:C.white,fontSize:9,fontWeight:'900',marginTop:8},
-  emptyCard:{alignItems:'center',padding:22,borderRadius:19,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
-  emptyTitle:{color:C.white,fontSize:11,fontWeight:'800',marginTop:12},
-  projectRow:{flexDirection:'row',alignItems:'center',gap:12,padding:13,marginBottom:9,borderRadius:15,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
-  tiktokStats:{marginTop:25,padding:15,borderRadius:18,backgroundColor:'#151321',borderWidth:1,borderColor:'rgba(128,232,243,.35)'},
-  tiktokHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
-  tiktokTitle:{color:C.white,fontSize:15,fontWeight:'900',marginTop:5},
-  tiktokLogo:{color:C.cyan,fontSize:29,fontWeight:'900'},
-  statsGrid:{flexDirection:'row',gap:7,marginTop:14},
-  statBox:{flex:1,paddingVertical:13,alignItems:'center',borderRadius:11,backgroundColor:'rgba(255,255,255,.045)'},
-  statNumber:{color:C.white,fontSize:19,fontWeight:'900'},
-  statLabel:{color:C.muted,fontSize:6,fontWeight:'800',marginTop:5},
-  statsNote:{color:C.muted,fontSize:8,lineHeight:14,marginTop:11},
-  connectButton:{height:40,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'#7254B4',marginTop:13,borderWidth:1,borderColor:'#BDA5FF'},
-  footer:{alignItems:'center',paddingVertical:27},
-  socialDock:{position:'absolute',right:7,top:'34%',alignItems:'center',gap:10,padding:7,borderRadius:28,backgroundColor:'rgba(18,14,31,.95)',borderWidth:1,borderColor:'rgba(200,180,255,.45)',elevation:12},
-  socialButton:{width:42,height:42,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(169,139,255,.18)',borderWidth:1,borderColor:'rgba(220,205,255,.65)'},
-  socialIcon:{fontSize:21,fontWeight:'900'},
-  subHeader:{height:58,flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:14,borderBottomWidth:1,borderColor:C.line},
-  subTitle:{color:C.white,fontSize:11,fontWeight:'900',letterSpacing:1.4},
-  subContent:{padding:17},
-  photoCanvas:{height:240,alignItems:'center',justifyContent:'center',gap:10,borderRadius:18,backgroundColor:C.panel,borderWidth:1,borderColor:C.line,marginBottom:16},
-  option:{paddingHorizontal:12,paddingVertical:9,borderRadius:20,marginRight:6,marginBottom:7,backgroundColor:'rgba(169,139,255,.12)',borderWidth:1,borderColor:C.line},
-  optionText:{color:C.white,fontSize:8,fontWeight:'800'},
-  plan:{padding:18,borderRadius:17,backgroundColor:C.panel,borderWidth:1,borderColor:C.line,marginBottom:12},
-  planPrice:{color:C.white,fontSize:25,fontWeight:'900',marginVertical:9},
-  editorTop:{minHeight:55,flexDirection:'row',alignItems:'center',gap:6,paddingHorizontal:8,borderBottomWidth:1,borderColor:C.line},
-  projectName:{color:C.white,fontSize:14,fontWeight:'900',marginTop:3},
-  exportTop:{height:37,paddingHorizontal:12,borderRadius:20,alignItems:'center',justifyContent:'center',backgroundColor:'#7655C2',borderWidth:1,borderColor:'#C7B0FF'},
-  shortcutTop:{height:35,paddingHorizontal:9,borderRadius:18,alignItems:'center',justifyContent:'center',backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
-  exportTopText:{color:'#fff',fontSize:8,fontWeight:'900'},
-  mobileEditor:{flex:1},
-  preview:{margin:9,padding:8,borderRadius:15,backgroundColor:'#0E0C18',borderWidth:1,borderColor:C.line},
-  previewMeta:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
-  previewCanvas:{height:130,width:'82%',alignSelf:'center',alignItems:'center',justifyContent:'center',marginVertical:5,borderRadius:8,backgroundColor:'#1A1530',borderWidth:1,borderColor:'rgba(169,139,255,.5)'},
-  previewBrand:{color:C.white,fontSize:11,fontWeight:'900',letterSpacing:2,marginTop:4},
-  previewControls:{marginTop:3,paddingTop:5,borderTopWidth:1,borderColor:C.line},
-  previewTime:{flexDirection:'row',justifyContent:'space-between',paddingHorizontal:5,marginBottom:5},
-  controlButtons:{flexDirection:'row',justifyContent:'space-around',alignItems:'center'},
-  previewControl:{minWidth:55,alignItems:'center',justifyContent:'center',paddingHorizontal:7,paddingVertical:5,borderRadius:9,backgroundColor:'rgba(169,139,255,.12)',borderWidth:1,borderColor:C.line},
-  playControl:{backgroundColor:'rgba(128,232,243,.14)',borderColor:C.cyan},
-  keyframeOn:{backgroundColor:'rgba(233,211,159,.16)',borderColor:C.gold},
-  controlGlyph:{color:C.white,fontSize:17,fontWeight:'900'},
-  controlLabel:{color:C.muted,fontSize:6,fontWeight:'900',marginTop:2},
-  timelineBox:{marginHorizontal:8,marginBottom:4},
-  timelineHead:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginHorizontal:3,marginTop:4,marginBottom:5},
-  rulerInner:{width:620,flexDirection:'row',justifyContent:'space-between',paddingLeft:92,paddingRight:10,paddingVertical:7,borderBottomWidth:1,borderColor:C.line},
-  rulerText:{color:C.muted,fontSize:8},
-  track:{height:30,flexDirection:'row',alignItems:'center',marginBottom:3,borderRadius:7,backgroundColor:'rgba(255,255,255,.035)',borderWidth:1,borderColor:'rgba(255,255,255,.07)',overflow:'hidden'},
-  trackName:{width:85,color:C.white,fontSize:7,fontWeight:'900',paddingHorizontal:8},
-  trackLane:{flex:1,justifyContent:'center',paddingHorizontal:6},
-  clip:{height:21,borderRadius:6,justifyContent:'center',paddingHorizontal:7},
-  clipText:{color:'#fff',fontSize:6,fontWeight:'900'},
-  toolPanel:{marginHorizontal:8,marginTop:5,padding:9,borderRadius:13,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
-  toolPanelHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:7,gap:8},
-  toolTitle:{color:C.white,fontSize:11,fontWeight:'900',marginTop:3},
-  toolDock:{marginTop:'auto',marginHorizontal:8,marginBottom:4,paddingTop:7,paddingBottom:5,borderRadius:15,backgroundColor:'#12101D',borderWidth:1,borderColor:'rgba(200,180,255,.3)'},
-  dockCaption:{color:C.muted,fontSize:6,letterSpacing:1.2,paddingHorizontal:9,paddingBottom:5},
-  toolList:{alignItems:'center',paddingHorizontal:4},
-  toolItem:{width:61,alignItems:'center',justifyContent:'center'},
-  toolCircle:{width:39,height:39,borderRadius:21,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,.055)',borderWidth:1,borderColor:'rgba(205,188,255,.17)'},
-  toolCircleActive:{backgroundColor:'rgba(128,232,243,.12)',borderColor:C.cyan},
-  toolGlyph:{color:'#B9B2C9',fontSize:17,fontWeight:'800'},
-  toolName:{color:C.muted,fontSize:6,fontWeight:'800',marginTop:4},
-  engineNote:{color:C.muted,fontSize:6,textAlign:'center',paddingVertical:4},
-  landscapeWorkspace:{flex:1,flexDirection:'row',padding:7,gap:7},
-  leftLibrary:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
-  leftLibraryWide:{width:205},
-  categoryWrap:{flexDirection:'row',flexWrap:'wrap',gap:4,marginTop:9,marginBottom:8},
-  categoryButton:{paddingHorizontal:8,paddingVertical:6,borderRadius:12,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
-  categoryActive:{borderColor:C.cyan,backgroundColor:'rgba(128,232,243,.10)'},
-  categoryText:{color:C.muted,fontSize:8,fontWeight:'800'},
-  desktopToolsGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between'},
-  desktopTool:{width:'31%',alignItems:'center',marginBottom:10},
-  desktopToolCircle:{width:35,height:35},
-  desktopToolName:{fontSize:6,textAlign:'center'},
-  centerWorkspace:{flex:1,minWidth:0},
-  desktopPreview:{height:150,flexGrow:0,margin:0,marginBottom:5,minHeight:0},
-  desktopCanvas:{height:78,width:'75%',flexGrow:1,minHeight:65,maxHeight:100,marginVertical:3},
-  desktopTimeline:{padding:6,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line,maxHeight:180},
-  rightProperties:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
-  rightPropertiesWide:{width:210},
-  inspectorTitle:{color:C.white,fontSize:14,fontWeight:'900',marginTop:10},
-  inspectorLabel:{color:C.cyan,fontSize:7,fontWeight:'900',letterSpacing:1,marginTop:15},
-  inspectorValue:{color:C.white,fontSize:10,marginTop:6},
-  inspectorDivider:{height:1,backgroundColor:C.line,marginVertical:10},
-  inspectorOption:{minHeight:31,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderColor:'rgba(255,255,255,.06)'},
-  inspectorNote:{color:C.muted,fontSize:7,lineHeight:12,marginTop:12},
-  shortcutRow:{minHeight:35,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderColor:C.line},
-  shortcutKey:{color:C.cyan,fontSize:9,fontWeight:'900',minWidth:105},
-  modalBackdrop:{flex:1,flexDirection:'row',backgroundColor:'rgba(0,0,0,.72)'},
-  drawer:{width:'82%',maxWidth:360,padding:20,paddingTop:45,backgroundColor:'#100E1A',borderRightWidth:1,borderColor:C.line},
-  drawerHead:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:28},
-  drawerItem:{height:54,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderColor:'rgba(255,255,255,.07)'},
-  modalCenter:{flex:1,justifyContent:'center',alignItems:'center',padding:20,backgroundColor:'rgba(0,0,0,.78)'},
-  dialog:{width:'100%',maxWidth:440,padding:17,borderRadius:20,backgroundColor:'#171326',borderWidth:1,borderColor:'rgba(193,163,255,.5)'},
-  dialogHead:{flexDirection:'row',alignItems:'center',gap:10,marginBottom:18},
-  dialogTitle:{color:C.white,fontSize:12,fontWeight:'900',letterSpacing:1},
-  choiceRow:{flexDirection:'row',flexWrap:'wrap',gap:7,marginTop:9},
-  choiceGrid:{flexDirection:'row',flexWrap:'wrap',gap:7,marginTop:9},
-  choice:{paddingHorizontal:13,paddingVertical:10,borderRadius:20,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
-  choiceHalf:{width:'22%',alignItems:'center',paddingHorizontal:2},
-  choiceActive:{backgroundColor:'rgba(128,232,243,.17)',borderColor:C.cyan},
-  nameInput:{color:C.white,fontSize:11,padding:12,marginTop:8,marginBottom:15,borderRadius:10,backgroundColor:C.panel,borderWidth:1,borderColor:C.line}
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: C.bg },
+  main: { flex: 1, backgroundColor: C.bg },
+
+  loadingScreen: {
+    flex: 1,
+    backgroundColor: C.bg,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  loadingBrand: {
+    color: C.white,
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 3,
+    marginTop: 22
+  },
+  loadingCaption: {
+    color: C.cyan,
+    fontSize: 7,
+    letterSpacing: 2,
+    marginTop: 10
+  },
+
+  intro: {
+    flex: 1,
+    backgroundColor: C.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden'
+  },
+  ambientOne: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(117,75,205,0.13)',
+    top: '17%',
+    left: -150
+  },
+  ambientTwo: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(55,163,190,0.09)',
+    bottom: '12%',
+    right: -145
+  },
+  introBrand: {
+    color: C.white,
+    fontSize: 29,
+    fontWeight: '900',
+    letterSpacing: 3,
+    marginTop: 37
+  },
+  violet: { color: C.violet },
+  introTag: {
+    color: C.cyan,
+    fontSize: 9,
+    letterSpacing: 3,
+    marginTop: 12
+  },
+  introLine: {
+    width: 65,
+    height: 1,
+    backgroundColor: C.violet,
+    marginTop: 30
+  },
+  introPowered: {
+    color: C.muted,
+    fontSize: 8,
+    letterSpacing: 2,
+    marginTop: 20
+  },
+
+  welcome: {
+    flex: 1,
+    backgroundColor: C.bg,
+    paddingHorizontal: 25,
+    justifyContent: 'space-between',
+    overflow: 'hidden'
+  },
+  welcomeTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 24
+  },
+  miniBrand: {
+    color: C.white,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 2
+  },
+  version: { color: C.muted, fontSize: 7, letterSpacing: 1 },
+  welcomeCenter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1
+  },
+  logoAura: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(137,95,220,0.08)'
+  },
+  welcomeBrand: {
+    color: C.white,
+    fontSize: 30,
+    fontWeight: '900',
+    letterSpacing: 2,
+    marginTop: 30
+  },
+  welcomeTag: {
+    color: C.cyan,
+    fontSize: 8,
+    letterSpacing: 2.5,
+    marginTop: 12
+  },
+  welcomeDescription: {
+    color: C.muted,
+    fontSize: 11,
+    marginTop: 24,
+    textAlign: 'center',
+    letterSpacing: .5
+  },
+  welcomeBottom: {
+    paddingBottom: 30,
+    alignItems: 'center'
+  },
+  enterButton: {
+    width: '100%',
+    height: 58,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(207,184,255,0.55)',
+    backgroundColor: 'rgba(139,103,209,0.22)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden'
+  },
+  enterText: {
+    color: C.white,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 2
+  },
+  enterArrow: {
+    color: C.cyan,
+    fontSize: 20,
+    marginLeft: 14
+  },
+  bottomNote: {
+    color: C.violet,
+    fontSize: 8,
+    letterSpacing: 2,
+    marginTop: 22
+  },
+
+  homeContent: {
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 115
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 22
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: -4
+  },
+  topBrand: {
+    color: C.white,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 1.5
+  },
+  topCaption: {
+    color: C.cyan,
+    fontSize: 6,
+    letterSpacing: 1.5,
+    marginTop: 4
+  },
+  menuButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.055)',
+    borderWidth: 1,
+    borderColor: C.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4
+  },
+  menuLine: {
+    height: 1.5,
+    width: 19,
+    backgroundColor: C.white
+  },
+
+  hero: {
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(193,163,255,0.36)',
+    backgroundColor: '#141121',
+    padding: 19,
+    overflow: 'hidden'
+  },
+  heroGlow: {
+    position: 'absolute',
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(135,89,220,0.13)',
+    top: 35,
+    left: (width - 250) / 2 - 18
+  },
+  heroTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  heroEyebrow: {
+    color: C.cyan,
+    fontSize: 8,
+    letterSpacing: 1.7,
+    fontWeight: '800'
+  },
+  heroEyebrow2: {
+    color: C.muted,
+    fontSize: 7,
+    letterSpacing: 1.5,
+    marginTop: 5
+  },
+  proBadge: {
+    borderWidth: 1,
+    borderColor: 'rgba(231,210,160,0.5)',
+    backgroundColor: 'rgba(231,210,160,0.09)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20
+  },
+  proBadgeText: {
+    color: C.gold,
+    fontSize: 7,
+    letterSpacing: 1
+  },
+  heroCenter: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 22
+  },
+  heroHeadline: {
+    color: C.white,
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+    marginTop: 15
+  },
+  heroHeadlineAccent: {
+    color: C.violet,
+    fontSize: 25,
+    fontWeight: '900',
+    letterSpacing: 3
+  },
+  heroDescription: {
+    color: C.muted,
+    fontSize: 10,
+    lineHeight: 17,
+    textAlign: 'center',
+    marginTop: 12,
+    maxWidth: 250
+  },
+  newProject: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 15,
+    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.075)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.19)'
+  },
+  newProjectIcon: {
+    width: 39,
+    height: 39,
+    borderRadius: 12,
+    backgroundColor: 'rgba(169,139,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 11
+  },
+  plus: { color: C.white, fontSize: 24 },
+  newProjectTitle: {
+    color: C.white,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  newProjectSub: {
+    color: C.muted,
+    fontSize: 8,
+    marginTop: 4
+  },
+  newProjectArrow: {
+    color: C.cyan,
+    fontSize: 20,
+    paddingHorizontal: 5
+  },
+  heroFooter: {
+    color: '#827A9B',
+    fontSize: 7,
+    textAlign: 'center',
+    letterSpacing: 1.5,
+    marginTop: 16
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 13
+  },
+  glassCard: {
+    backgroundColor: 'rgba(255,255,255,0.045)',
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 16
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 13
+  },
+  statIcon: { color: C.cyan, fontSize: 15 },
+  statValue: {
+    color: C.white,
+    fontSize: 13,
+    fontWeight: '900',
+    marginTop: 7
+  },
+  statCaption: {
+    color: C.muted,
+    fontSize: 6,
+    letterSpacing: 1,
+    marginTop: 5
+  },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 29,
+    marginBottom: 13
+  },
+  sectionEyebrow: {
+    color: C.cyan,
+    fontSize: 7,
+    letterSpacing: 1.7
+  },
+  sectionTitle: {
+    color: C.white,
+    fontSize: 19,
+    fontWeight: '800',
+    marginTop: 5
+  },
+  sectionNumber: {
+    color: C.muted,
+    fontSize: 8,
+    letterSpacing: 1
+  },
+
+  workspaceGrid: {
+    flexDirection: 'row',
+    gap: 10
+  },
+  workspaceLarge: {
+    width: '49%',
+    minHeight: 210,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(169,139,255,0.45)',
+    backgroundColor: '#19152A',
+    padding: 14,
+    justifyContent: 'space-between',
+    overflow: 'hidden'
+  },
+  workspaceOrb: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(143,105,220,0.16)',
+    top: -45,
+    right: -55
+  },
+  workspaceSymbol: { color: C.violet, fontSize: 31 },
+  workspaceTitle: {
+    color: C.white,
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  workspaceSub: {
+    color: C.cyan,
+    fontSize: 6,
+    letterSpacing: 1,
+    marginTop: 8
+  },
+  workspaceArrow: {
+    color: C.white,
+    fontSize: 19,
+    position: 'absolute',
+    bottom: 12,
+    right: 14
+  },
+  workspaceRight: { flex: 1, gap: 10 },
+  workspaceSmall: {
+    flex: 1,
+    borderRadius: 17,
+    padding: 12,
+    backgroundColor: '#13202A',
+    borderWidth: 1,
+    borderColor: 'rgba(128,232,243,0.28)',
+    justifyContent: 'center'
+  },
+  aiWorkspace: {
+    backgroundColor: '#21182B',
+    borderColor: 'rgba(217,168,242,0.32)'
+  },
+  smallSymbol: {
+    color: C.cyan,
+    fontSize: 23,
+    marginBottom: 5
+  },
+  workspaceSmallTitle: {
+    color: C.white,
+    fontSize: 12,
+    fontWeight: '900'
+  },
+  workspaceSmallSub: {
+    color: C.muted,
+    fontSize: 6,
+    marginTop: 4,
+    letterSpacing: .8
+  },
+  viewAll: {
+    color: C.cyan,
+    fontSize: 8,
+    letterSpacing: 1
+  },
+
+  collectionCard: {
+    width: 132,
+    height: 125,
+    marginRight: 10,
+    borderRadius: 17,
+    padding: 13,
+    backgroundColor: '#171424',
+    borderWidth: 1,
+    borderColor: C.border,
+    justifyContent: 'space-between'
+  },
+  collectionIcon: { color: C.violet, fontSize: 23 },
+  collectionType: {
+    color: C.cyan,
+    fontSize: 7,
+    letterSpacing: 1
+  },
+  collectionName: {
+    color: C.white,
+    fontSize: 11,
+    fontWeight: '800'
+  },
+  collectionArrow: {
+    color: C.muted,
+    position: 'absolute',
+    right: 12,
+    top: 12
+  },
+
+  emptyProjects: {
+    padding: 18,
+    alignItems: 'center'
+  },
+  emptyCrystal: { marginVertical: 7 },
+  emptyTitle: {
+    color: C.white,
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 12
+  },
+  emptyDescription: {
+    color: C.muted,
+    fontSize: 9,
+    lineHeight: 15,
+    textAlign: 'center',
+    marginTop: 7
+  },
+  emptyLink: {
+    color: C.cyan,
+    fontSize: 8,
+    letterSpacing: 1,
+    marginTop: 16
+  },
+
+  membershipBanner: {
+    marginTop: 25,
+    borderRadius: 20,
+    padding: 19,
+    backgroundColor: '#211B2D',
+    borderWidth: 1,
+    borderColor: 'rgba(231,210,160,0.34)'
+  },
+  memberEyebrow: {
+    color: C.gold,
+    fontSize: 7,
+    letterSpacing: 1.5
+  },
+  memberTitle: {
+    color: C.white,
+    fontSize: 19,
+    fontWeight: '900',
+    marginTop: 12
+  },
+  memberDescription: {
+    color: C.muted,
+    fontSize: 9,
+    lineHeight: 16,
+    marginTop: 8
+  },
+  memberButton: {
+    alignSelf: 'flex-start',
+    padding: 12,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    backgroundColor: 'rgba(231,210,160,0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(231,210,160,0.4)',
+    marginTop: 15
+  },
+  memberButtonText: {
+    color: C.gold,
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+
+  socialFooter: {
+    alignItems: 'center',
+    paddingVertical: 30
+  },
+  footerBrand: {
+    color: C.white,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 3
+  },
+  footerTag: {
+    color: C.cyan,
+    fontSize: 7,
+    letterSpacing: 1.5,
+    marginTop: 8
+  },
+  footerCopyright: {
+    color: C.muted,
+    fontSize: 7,
+    marginTop: 14
+  },
+
+  socialDock: {
+    position: 'absolute',
+    bottom: 12,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 15,
+    paddingHorizontal: 17,
+    paddingVertical: 10,
+    borderRadius: 24,
+    backgroundColor: 'rgba(19,15,34,0.94)',
+    borderWidth: 1,
+    borderColor: 'rgba(200,180,255,0.42)',
+    shadowColor: '#A98BFF',
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 14
+  },
+  socialCrystal: {
+    width: 47,
+    height: 47,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(169,139,255,0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(220,205,255,0.62)',
+    transform: [{ rotate: '45deg' }],
+    overflow: 'hidden'
+  },
+  socialInner: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '-45deg' }]
+  },
+  socialSymbol: {
+    fontSize: 23,
+    fontWeight: '900',
+    textShadowRadius: 12
+  },
+  socialShine: {
+    position: 'absolute',
+    top: 3,
+    left: 7,
+    width: 19,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    transform: [{ rotate: '-45deg' }]
+  },
+
+  subHeader: {
+    height: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderColor: C.border
+  },
+  back: { color: C.white, fontSize: 29 },
+  more: {
+    color: C.white,
+    fontSize: 17,
+    letterSpacing: 2
+  },
+  subHeaderTitle: {
+    color: C.white,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1.5
+  },
+
+  subContent: {
+    padding: 18,
+    paddingBottom: 40
+  },
+  mediaPreview: {
+    height: 220,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#151222',
+    borderWidth: 1,
+    borderColor: C.border,
+    marginBottom: 22
+  },
+  previewLabel: {
+    color: C.white,
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 12
+  },
+  previewHint: {
+    color: C.muted,
+    fontSize: 9,
+    marginTop: 8,
+    lineHeight: 15
+  },
+  timelineHeading: { marginBottom: 15 },
+
+  layer: {
+    height: 53,
+    marginBottom: 7,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.045)',
+    borderWidth: 1,
+    borderColor: C.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    overflow: 'hidden'
+  },
+  layerName: {
+    color: C.white,
+    fontSize: 9,
+    width: 105,
+    fontWeight: '700'
+  },
+  layerClip: {
+    height: 29,
+    borderRadius: 6,
+    backgroundColor: 'rgba(169,139,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(169,139,255,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: 7
+  },
+  layerClipText: { color: C.white, fontSize: 8 },
+
+  editorTools: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 15
+  },
+  editorTool: {
+    padding: 12,
+    borderRadius: 11,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: C.border
+  },
+  editorToolText: { color: C.white, fontSize: 9 },
+
+  category: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 17,
+    borderRadius: 13,
+    marginBottom: 9,
+    backgroundColor: C.glass,
+    borderWidth: 1,
+    borderColor: C.border
+  },
+  categoryActive: {
+    borderColor: C.violet,
+    backgroundColor: 'rgba(169,139,255,0.13)'
+  },
+  categoryText: {
+    color: C.white,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1
+  },
+  arrow: { color: C.cyan, fontSize: 17 },
+
+  plan: {
+    padding: 18,
+    marginBottom: 12
+  },
+  planName: {
+    color: C.cyan,
+    fontSize: 10,
+    letterSpacing: 2,
+    fontWeight: '900'
+  },
+  planPrice: {
+    color: C.white,
+    fontSize: 26,
+    fontWeight: '900',
+    marginTop: 12
+  },
+  planCredits: {
+    color: C.muted,
+    fontSize: 10,
+    marginTop: 5
+  },
+  planAction: {
+    color: C.gold,
+    fontSize: 9,
+    letterSpacing: 1,
+    marginTop: 20
+  },
+
+  drawerBackdrop: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.72)'
+  },
+  drawer: {
+    width: '82%',
+    backgroundColor: '#100E1A',
+    padding: 20,
+    paddingTop: 45,
+    borderRightWidth: 1,
+    borderColor: C.border
+  },
+  drawerLogo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 28
+  },
+  drawerBrand: {
+    color: C.white,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  drawerSub: {
+    color: C.cyan,
+    fontSize: 7,
+    letterSpacing: 1.5,
+    marginTop: 5
+  },
+  drawerDivider: {
+    height: 1,
+    backgroundColor: C.border,
+    marginBottom: 15
+  },
+  drawerItem: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)'
+  },
+  drawerItemText: {
+    color: C.white,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1
+  },
+  drawerArrow: {
+    color: C.violet,
+    fontSize: 17
+  },
+  drawerBottom: {
+    marginTop: 'auto',
+    paddingTop: 25
+  },
+
+  editorScroll: { flex: 1 },
+  editorPage: {
+    padding: 15,
+    paddingBottom: 42
+  },
+  editorProjectBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 13
+  },
+  editorEyebrow: {
+    color: C.cyan,
+    fontSize: 7,
+    letterSpacing: 1.7
+  },
+  editorProjectName: {
+    color: C.white,
+    fontSize: 16,
+    fontWeight: '900',
+    marginTop: 5
+  },
+  editorSaveButton: {
+    paddingHorizontal: 17,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(169,139,255,0.18)',
+    borderWidth: 1,
+    borderColor: C.violet
+  },
+  editorSaveText: {
+    color: C.white,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+
+  editorPreview: {
+    backgroundColor: '#0D0C17',
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 10,
+    marginBottom: 11
+  },
+  previewTopLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 3
+  },
+  previewTopText: {
+    color: C.muted,
+    fontSize: 7,
+    letterSpacing: 1
+  },
+  previewCenter: {
+    height: 205,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  previewFrame: {
+    width: '83%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#171326',
+    borderWidth: 1,
+    borderColor: 'rgba(169,139,255,0.42)',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  previewBrand: {
+    color: C.white,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 2,
+    marginTop: 4
+  },
+  previewSubBrand: {
+    color: C.cyan,
+    fontSize: 6,
+    letterSpacing: 1.5,
+    marginTop: 5
+  },
+  previewControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8
+  },
+  timeCode: {
+    color: C.muted,
+    fontSize: 9,
+    fontVariant: ['tabular-nums']
+  },
+  playButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(169,139,255,0.22)',
+    borderWidth: 1,
+    borderColor: C.violet,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  playButtonText: { color: C.white, fontSize: 14 },
+
+  quickActions: {
+    flexDirection: 'row',
+    gap: 7,
+    marginBottom: 22
+  },
+  quickAction: {
+    flex: 1,
+    paddingVertical: 11,
+    borderRadius: 9,
+    alignItems: 'center',
+    backgroundColor: C.glass,
+    borderWidth: 1,
+    borderColor: C.border
+  },
+  quickActionText: {
+    color: C.white,
+    fontSize: 8,
+    fontWeight: '800'
+  },
+  timelineTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginBottom: 10
+  },
+  timelineDuration: {
+    color: C.cyan,
+    fontSize: 9,
+    marginBottom: 4
+  },
+  rulerScroll: { marginBottom: 5 },
+  ruler: {
+    width: 520,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 112,
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+    borderColor: C.border
+  },
+  rulerText: { color: C.muted, fontSize: 7 },
+
+  trackRow: {
+    minHeight: 48,
+    flexDirection: 'row',
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.025)',
+    marginBottom: 5,
+    overflow: 'hidden'
+  },
+  trackRowSelected: {
+    borderColor: 'rgba(169,139,255,0.7)',
+    backgroundColor: 'rgba(169,139,255,0.07)'
+  },
+  trackLabel: {
+    width: 108,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    borderRightWidth: 1,
+    borderColor: C.border
+  },
+  trackSymbol: {
+    fontSize: 13,
+    marginRight: 6
+  },
+  trackName: {
+    color: C.white,
+    fontSize: 8,
+    fontWeight: '700'
+  },
+  trackLane: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 7
+  },
+  trackClipBlock: {
+    height: 29,
+    borderRadius: 6,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    opacity: 0.88
+  },
+  trackClipText: {
+    color: '#FFFFFF',
+    fontSize: 7,
+    fontWeight: '800'
+  },
+  timelineActionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7,
+    marginTop: 7,
+    marginBottom: 22
+  },
+  timelineAction: {
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: 'rgba(169,139,255,0.10)',
+    borderWidth: 1,
+    borderColor: C.border
+  },
+  timelineActionText: {
+    color: C.white,
+    fontSize: 8,
+    fontWeight: '700'
+  },
+
+  toolCategoryScroll: {
+    marginTop: 12,
+    marginBottom: 11
+  },
+  toolCategory: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 7,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.glass
+  },
+  toolCategoryActive: {
+    backgroundColor: 'rgba(169,139,255,0.22)',
+    borderColor: C.violet
+  },
+  toolCategoryText: {
+    color: C.muted,
+    fontSize: 8,
+    fontWeight: '800'
+  },
+  toolCategoryTextActive: { color: C.white },
+  toolPanel: {
+    padding: 12,
+    borderRadius: 15,
+    backgroundColor: '#12101E',
+    borderWidth: 1,
+    borderColor: C.border
+  },
+  toolPanelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 11
+  },
+  toolPanelTitle: {
+    color: C.white,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.2
+  },
+  toolPanelHint: {
+    color: C.muted,
+    fontSize: 7,
+    letterSpacing: 1
+  },
+  toolGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7
+  },
+  toolTile: {
+    width: '31.5%',
+    minHeight: 68,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
+    padding: 7
+  },
+  toolTileActive: {
+    backgroundColor: 'rgba(169,139,255,0.16)',
+    borderColor: C.violet
+  },
+  toolTileIcon: {
+    color: C.muted,
+    fontSize: 17,
+    marginBottom: 5
+  },
+  toolTileIconActive: { color: C.cyan },
+  toolTileText: {
+    color: C.white,
+    fontSize: 8,
+    textAlign: 'center',
+    fontWeight: '700'
+  },
+  toolTileTextActive: { color: C.cyan },
+  toolSettings: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 13,
+    padding: 11,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.045)'
+  },
+  toolSettingsTitle: {
+    color: C.white,
+    fontSize: 10,
+    fontWeight: '900'
+  },
+  toolSettingsCaption: {
+    color: C.muted,
+    fontSize: 7,
+    marginTop: 4
+  },
+  applyToolButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: 'rgba(128,232,243,0.13)',
+    borderWidth: 1,
+    borderColor: 'rgba(128,232,243,0.45)'
+  },
+  applyToolText: {
+    color: C.cyan,
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  engineNotice: {
+    color: C.muted,
+    fontSize: 7,
+    lineHeight: 13,
+    textAlign: 'center',
+    marginTop: 14,
+    letterSpacing: 0.4
+  }
 });
