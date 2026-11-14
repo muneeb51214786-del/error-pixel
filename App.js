@@ -45,7 +45,7 @@ const TOOLS = [
   ['AI Enhance','✦','AI'],['AI Upscale','⤢','AI'],
   ['AI Stabilize','⌖','AI'],['AI Denoise','⁙','AI'],
   ['Background Remove','◌','AI'],['Object Remove','⌫','AI'],
-  ['Frame Interpolation','⏩','AI'],['Optical Flow','⌁','AI'],
+  ['Optical Flow','⌁','AI'],
   ['AI Captions','▤','AI'],['AI Voice','◉','AI'],
   ['Photo Enhance','✧','Photo'],['Photo Crop','⌗','Photo'],
   ['Background Blur','◌','Photo'],['3D Photo','⬡','Photo'],
@@ -56,7 +56,12 @@ const OPTIONS = {
   Import:['Choose video','Choose audio','Choose image','Import folder'],
   Split:['Split at playhead','Split all tracks','Split selected track'],
   Trim:['Trim start','Trim end','Trim both sides'],
-  Speed:['0.25×','0.5×','0.75×','1×','1.5×','2×','4×','Speed curve'],
+  Speed:[
+    '0.25×','0.5×','0.75×','1×','1.5×','2×','4×',
+    'Speed curve','Frame Interpolation: OFF',
+    'Frame Interpolation: ON','Frame Blending',
+    'Optical Flow','AI Frame Generation'
+  ],
   'Speed Ramp':['Montage','Hero','Bullet time','Custom curve'],
   Crop:['Original','16:9','9:16','1:1','4:5','Custom'],
   Adjust:['Exposure','Contrast','Saturation','Temperature','Tint','Highlights','Shadows','HSL','Curves'],
@@ -65,9 +70,16 @@ const OPTIONS = {
   Audio:['Music','Sound effects','Voiceover','Audio mixer'],
   Text:['Add text','Fonts','Text animation','3D text','Subtitles'],
   'Color Grade':['Basic correction','Color wheels','HSL','Curves','LUT library'],
-  'Frame Interpolation':['Frame Blending','Optical Flow','AI Frame Generation'],
-  'AI Enhance':['Enhance details','Reduce noise','Improve clarity'],
-  Export:['720p','1080p','2K','4K','24 FPS','30 FPS','60 FPS','90 FPS','120 FPS','144 FPS','160 FPS','180 FPS','200 FPS','240 FPS']
+  'AI Enhance':['AI Enhance: ON','AI Enhance: OFF','Enhance details','Reduce noise','Improve clarity','AI Upscale','4K Upscale','8K Upscale'],
+  'AI Upscale':['2K Upscale','4K Upscale','5K Upscale','6K Upscale','8K Upscale'],
+  Keyframe:['Add Keyframe','Speed','Effects','Adjust','Opacity','Position','Scale','Rotation'],
+  'Graph Editor':['Add Keyframe','Linear','Ease In','Ease Out','Ease In-Out','Bezier','Reset Curve'],
+  Export:[
+    '360p','480p','720p','1080p','1440p','2K',
+    '4K Ultra HD','5K','6K','8K',
+    '24 FPS','30 FPS','60 FPS','90 FPS',
+    '120 FPS','144 FPS','160 FPS','180 FPS','200 FPS','240 FPS'
+  ]
 };
 
 const PREVIEWS = [
@@ -199,6 +211,14 @@ export default function App() {
   const [keyframeActive,setKeyframeActive]=useState(false);
   const [shortcutPanel,setShortcutPanel]=useState(false);
 
+  const [speed,setSpeed]=useState('1×');
+  const [frameInterpolation,setFrameInterpolation]=useState(false);
+  const [interpolationMode,setInterpolationMode]=useState('Optical Flow');
+  const [aiEnhance,setAiEnhance]=useState(false);
+  const [keyframeProperty,setKeyframeProperty]=useState('Speed');
+  const [keyframes,setKeyframes]=useState([]);
+  const [graphCurve,setGraphCurve]=useState('Ease In-Out');
+
   const historyRef=useRef([]);
   const redoRef=useRef([]);
   const clipboardRef=useRef(null);
@@ -264,6 +284,18 @@ export default function App() {
     setLastAction('Clip deleted');
   },[clips,saveHistory]);
 
+  const addKeyframe=()=>{
+    const next={
+      id:Date.now(),
+      property:keyframeProperty,
+      position:`00:${String(keyframes.length*3).padStart(2,'0')}`,
+      curve:graphCurve
+    };
+    setKeyframes(v=>[...v,next]);
+    setKeyframeActive(true);
+    setLastAction(`${keyframeProperty} keyframe added`);
+  };
+
   const chooseTool=name=>{
     saveHistory();
     setTool(name);
@@ -274,16 +306,64 @@ export default function App() {
     }
     if(name==='Export')setModal('export');
     if(name==='Import')setLastAction('Media picker connection required');
-    if(name==='Keyframe')setKeyframeActive(v=>!v);
+    if(name==='Keyframe')setKeyframeActive(true);
   };
 
   const chooseOption=option=>{
     saveHistory();
     setLastAction(option+' selected');
+
     if(tool==='Split')setClips(v=>v+1);
+
     if(tool==='Export'){
       if(option.includes('FPS'))setFps(option);
       else setResolution(option);
+    }
+
+    if(tool==='Speed'){
+      if(['0.25×','0.5×','0.75×','1×','1.5×','2×','4×'].includes(option)){
+        setSpeed(option);
+      } else if(option==='Frame Interpolation: ON'){
+        setFrameInterpolation(true);
+      } else if(option==='Frame Interpolation: OFF'){
+        setFrameInterpolation(false);
+      } else if(['Frame Blending','Optical Flow','AI Frame Generation'].includes(option)){
+        setInterpolationMode(option);
+        setFrameInterpolation(true);
+      } else if(option==='Speed curve'){
+        setTool('Graph Editor');
+      }
+    }
+
+    if(tool==='Keyframe'){
+      if(option==='Add Keyframe'){
+        addKeyframe();
+      } else {
+        setKeyframeProperty(option);
+        setLastAction('Keyframe property: '+option);
+      }
+    }
+
+    if(tool==='Graph Editor'){
+      if(option==='Add Keyframe'){
+        addKeyframe();
+      } else if(option==='Reset Curve'){
+        setGraphCurve('Linear');
+        setLastAction('Graph curve reset');
+      } else {
+        setGraphCurve(option);
+        setLastAction('Graph curve: '+option);
+      }
+    }
+
+    if(tool==='AI Enhance'){
+      if(option==='AI Enhance: ON')setAiEnhance(true);
+      if(option==='AI Enhance: OFF')setAiEnhance(false);
+      if(option.includes('Upscale'))setResolution(option.replace(' Upscale',''));
+    }
+
+    if(tool==='AI Upscale'&&option.includes('Upscale')){
+      setResolution(option.replace(' Upscale',''));
     }
   };
 
@@ -312,10 +392,6 @@ export default function App() {
       chooseTool(SHORTCUTS[k]);
       return true;
     }
-    if(!ctrl&&!shift&&k==='m'){
-      chooseTool('Mask');
-      return true;
-    }
     return false;
   },[copyClip,pasteClip,cutClip,undo,redo,duplicateClip,deleteClip,playing]);
 
@@ -326,7 +402,6 @@ export default function App() {
       const tag=target?.tagName?.toLowerCase();
       const typing=tag==='input'||tag==='textarea'||target?.isContentEditable;
       if(typing)return;
-
       const key=e.key;
       const ctrl=e.ctrlKey||e.metaKey;
       const handled=runShortcut(key,ctrl,e.shiftKey);
@@ -456,17 +531,22 @@ export default function App() {
           <Text style={s.link}>＋ TRACK</Text>
         </TouchableOpacity>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={desktop?{flex:1,minHeight:0}:undefined}>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={desktop?{flex:1,minHeight:0}:{}}>
         <View style={{minWidth:620,flex:1}}>
           <View style={[s.rulerInner,desktop&&s.desktopRuler]}>
             {['00:00','00:03','00:06','00:09','00:12','00:15','00:18','00:21'].map(x=>(
               <Text key={x} style={s.rulerText}>{x}</Text>
             ))}
           </View>
+
           <ScrollView
             nestedScrollEnabled
-            showsVerticalScrollIndicator={desktop}
-            style={desktop?{height:84,maxHeight:84,flexGrow:0}:{maxHeight:190}}>
+            showsVerticalScrollIndicator={true}
+            style={desktop?{flex:1,minHeight:0}:{maxHeight:190}}>
             {Array.from({length:trackCount},(_,i)=>({
               name:['VIDEO','AUDIO','TEXT','EFFECTS','OVERLAY','VIDEO 02','VOICEOVER','MUSIC','CAPTIONS','GRAPHICS','MASK','ADJUSTMENT'][i],
               color:['#9877F4','#39A6A8','#5D9BD8','#D39A55','#C17BCB','#8064B8','#42A8A0','#BD8C4F','#6289C7','#9E6FA9','#A17A68','#4F9D8B'][i]
@@ -482,12 +562,18 @@ export default function App() {
                       {i===0?'VIDEO CLIP '+clips:x.name+' LAYER'}
                     </Text>
                   </View>
+                  {keyframes.filter(k=>k.property===x.name||k.property==='Effects').map(k=>(
+                    <View key={k.id} style={s.keyframeMarker}/>
+                  ))}
                 </View>
               </View>
             ))}
           </ScrollView>
         </View>
       </ScrollView>
+      <Text style={s.timelineInfo}>
+        {trackCount} TRACKS · {keyframes.length} KEYFRAMES
+      </Text>
     </View>
   );
 
@@ -502,7 +588,6 @@ export default function App() {
         <Text style={s.previewBrand}>ERROR PIXEL</Text>
         <Text style={s.brandSub}>VIDEO PREVIEW AREA</Text>
       </View>
-
       <View style={s.previewControls}>
         <View style={s.previewTime}>
           <Text style={s.smallMuted}>00:00:00:00</Text>
@@ -518,12 +603,9 @@ export default function App() {
             <Text style={s.controlLabel}>REDO</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[s.previewControl,keyframeActive&&s.keyframeOn]}
-            onPress={()=>{
-              setKeyframeActive(v=>!v);
-              setLastAction(keyframeActive?'Keyframe disabled':'Keyframe added');
-            }}>
+            onPress={addKeyframe}>
             <Text style={s.controlGlyph}>◇</Text>
-            <Text style={s.controlLabel}>KEYFRAME</Text>
+            <Text style={s.controlLabel}>ADD KEYFRAME</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[s.previewControl,s.playControl]}
             onPress={()=>setPlaying(v=>!v)}>
@@ -623,6 +705,41 @@ export default function App() {
 
             <View style={s.sectionRow}>
               <View>
+                <Text style={s.eyebrow}>PROJECT FRAME RATE</Text>
+                <Text style={s.sectionTitle}>FPS CONTROL</Text>
+              </View>
+              <Text style={s.counter}>SELECT FPS</Text>
+            </View>
+            <View style={s.fpsDashboard}>
+              {['60 FPS','120 FPS','240 FPS'].map(x=>(
+                <TouchableOpacity key={x}
+                  onPress={()=>{setFps(x);setLastAction('Project FPS set to '+x);}}
+                  style={[s.fpsButton,fps===x&&s.fpsButtonActive]}>
+                  <Text style={[s.fpsButtonText,fps===x&&{color:C.cyan}]}>{x}</Text>
+                  <Text style={s.fpsButtonSub}>{fps===x?'SELECTED':'SET PROJECT FPS'}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={s.aiDashboard}>
+              <View style={{flex:1}}>
+                <Text style={s.eyebrow}>AI VIDEO PROCESSING</Text>
+                <Text style={s.sectionTitle}>AI Enhance</Text>
+                <Text style={s.smallMuted}>Improve details, clarity and video quality</Text>
+              </View>
+              <TouchableOpacity
+                style={[s.aiToggle,aiEnhance&&s.aiToggleActive]}
+                onPress={()=>setAiEnhance(v=>!v)}>
+                <Text style={s.claimText}>{aiEnhance?'AI ON':'AI OFF'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.aiOpen}
+                onPress={()=>{setPage('editor');setTool('AI Enhance');}}>
+                <Text style={s.link}>OPEN ↗</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={s.sectionRow}>
+              <View>
                 <Text style={s.eyebrow}>CHOOSE YOUR WORKSPACE</Text>
                 <Text style={s.sectionTitle}>Creative Studio</Text>
               </View>
@@ -682,7 +799,7 @@ export default function App() {
               ].map(x=>(
                 <TouchableOpacity key={x[1]} style={s.quickTool} onPress={()=>{
                   setPage('editor');
-                  setTool(x[1]==='AI ENHANCE'?'AI Enhance':x[1]==='COLOR GRADE'?'Color Grade':x[1]==='TRACKING'?'Tracking':'Effects');
+                  setTool(x[1]==='AI ENHANCE'?'AI Enhance':x[1]==='COLOR GRADE'?'Color Grade':x[1]==='TRACKING'?'Tracking':x[1]==='4K UPSCALE'?'AI Upscale':'Effects');
                 }}>
                   <Text style={s.quickIcon}>{x[0]}</Text>
                   <Text style={s.quickLabel}>{x[1]}</Text>
@@ -832,6 +949,9 @@ export default function App() {
                 <Text style={s.inspectorLabel}>PROJECT SETTINGS</Text>
                 <Text style={s.smallMuted}>Resolution: {resolution}</Text>
                 <Text style={s.smallMuted}>Frame rate: {fps}</Text>
+                <Text style={s.smallMuted}>Speed: {speed}</Text>
+                <Text style={s.smallMuted}>Interpolation: {frameInterpolation?'ON':'OFF'}</Text>
+                <Text style={s.smallMuted}>AI Enhance: {aiEnhance?'ON':'OFF'}</Text>
                 <TouchableOpacity style={s.connectButton} onPress={()=>setModal('export')}>
                   <Text style={s.claimText}>EXPORT SETTINGS</Text>
                 </TouchableOpacity>
@@ -1018,20 +1138,22 @@ export default function App() {
             </View>
 
             {modal==='export'&&(
-              <ScrollView style={{maxHeight:420}}>
+              <ScrollView style={{maxHeight:470}}>
                 <Text style={s.eyebrow}>PROJECT NAME</Text>
                 <TextInput value={projectName} onChangeText={setProjectName}
                   placeholder="Project name" placeholderTextColor={C.muted}
                   style={s.nameInput}/>
+
                 <Text style={s.eyebrow}>RESOLUTION</Text>
-                <View style={s.choiceRow}>
-                  {['720p','1080p','2K','4K'].map(x=>(
+                <View style={s.choiceGrid}>
+                  {['360p','480p','720p','1080p','1440p','2K','4K Ultra HD','5K','6K','8K'].map(x=>(
                     <TouchableOpacity key={x} onPress={()=>setResolution(x)}
-                      style={[s.choice,resolution===x&&s.choiceActive]}>
+                      style={[s.choice,s.choiceHalf,resolution===x&&s.choiceActive]}>
                       <Text style={s.optionText}>{x}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
+
                 <Text style={[s.eyebrow,{marginTop:15}]}>FRAME RATE</Text>
                 <View style={s.choiceGrid}>
                   {['24 FPS','30 FPS','60 FPS','90 FPS','120 FPS','144 FPS','160 FPS','180 FPS','200 FPS','240 FPS'].map(x=>(
@@ -1041,13 +1163,47 @@ export default function App() {
                     </TouchableOpacity>
                   ))}
                 </View>
-                <Text style={s.eyebrow}>SLOW MOTION FRAME GENERATION</Text>
-                <View style={s.option}>
-                  <Text style={s.optionText}>Frame Blending · Optical Flow · AI Frame Generation</Text>
+
+                <Text style={[s.eyebrow,{marginTop:15}]}>AI ENHANCEMENT</Text>
+                <TouchableOpacity
+                  style={[s.exportFeature,aiEnhance&&s.exportFeatureActive]}
+                  onPress={()=>setAiEnhance(v=>!v)}>
+                  <View style={{flex:1}}>
+                    <Text style={s.optionText}>AI Video Enhancement</Text>
+                    <Text style={s.smallMuted}>Enhance clarity and details</Text>
+                  </View>
+                  <Text style={[s.featureStatus,aiEnhance&&{color:C.cyan}]}>
+                    {aiEnhance?'ON':'OFF'}
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={[s.eyebrow,{marginTop:14}]}>FRAME INTERPOLATION</Text>
+                <TouchableOpacity
+                  style={[s.exportFeature,frameInterpolation&&s.exportFeatureActive]}
+                  onPress={()=>setFrameInterpolation(v=>!v)}>
+                  <View style={{flex:1}}>
+                    <Text style={s.optionText}>Frame Interpolation</Text>
+                    <Text style={s.smallMuted}>Generate intermediate frames</Text>
+                  </View>
+                  <Text style={[s.featureStatus,frameInterpolation&&{color:C.cyan}]}>
+                    {frameInterpolation?'ON':'OFF'}
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={s.choiceGrid}>
+                  {['Frame Blending','Optical Flow','AI Frame Generation'].map(x=>(
+                    <TouchableOpacity key={x}
+                      onPress={()=>{setInterpolationMode(x);setFrameInterpolation(true);}}
+                      style={[s.choice,s.choiceHalf,interpolationMode===x&&s.choiceActive]}>
+                      <Text style={s.optionText}>{x}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
+
                 <Text style={s.statsNote}>
-                  These are export settings only. Actual rendering, frame interpolation and AI processing require a connected video-processing engine. Output FPS also depends on the source footage and encoder.
+                  Settings are saved locally. Actual video rendering, true 4K/8K upscaling, AI enhancement and frame interpolation require a connected processing engine. Export FPS also depends on source footage and encoder support.
                 </Text>
+
                 <TouchableOpacity style={s.connectButton} onPress={()=>{
                   setLastAction('Export settings saved: '+resolution+' · '+fps);
                   saveProject();
@@ -1145,6 +1301,15 @@ const s=StyleSheet.create({
   sectionRow:{flexDirection:'row',alignItems:'flex-end',justifyContent:'space-between',marginTop:25,marginBottom:12},
   sectionTitle:{color:C.white,fontSize:18,fontWeight:'900',marginTop:5},
   counter:{color:C.muted,fontSize:8},
+  fpsDashboard:{flexDirection:'row',gap:7,marginBottom:5},
+  fpsButton:{flex:1,paddingVertical:13,alignItems:'center',borderRadius:13,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
+  fpsButtonActive:{backgroundColor:'rgba(128,232,243,.12)',borderColor:C.cyan},
+  fpsButtonText:{color:C.white,fontSize:12,fontWeight:'900'},
+  fpsButtonSub:{color:C.muted,fontSize:6,marginTop:5},
+  aiDashboard:{flexDirection:'row',alignItems:'center',gap:9,padding:13,marginTop:12,borderRadius:15,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
+  aiToggle:{paddingHorizontal:13,paddingVertical:10,borderRadius:20,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
+  aiToggleActive:{backgroundColor:'rgba(128,232,243,.16)',borderColor:C.cyan},
+  aiOpen:{paddingHorizontal:4},
   workspaceGrid:{flexDirection:'row',gap:9},
   videoCard:{width:'49%',minHeight:170,padding:14,borderRadius:19,justifyContent:'space-between',backgroundColor:'#1B1530',borderWidth:1,borderColor:'rgba(169,139,255,.45)'},
   cardIcon:{color:C.violet,fontSize:28},
@@ -1219,9 +1384,11 @@ const s=StyleSheet.create({
   rulerText:{color:C.muted,fontSize:8},
   track:{height:30,flexDirection:'row',alignItems:'center',marginBottom:3,borderRadius:7,backgroundColor:'rgba(255,255,255,.035)',borderWidth:1,borderColor:'rgba(255,255,255,.07)',overflow:'hidden'},
   trackName:{width:85,color:C.white,fontSize:7,fontWeight:'900',paddingHorizontal:8},
-  trackLane:{flex:1,justifyContent:'center',paddingHorizontal:6},
+  trackLane:{flex:1,flexDirection:'row',alignItems:'center',justifyContent:'flex-start',paddingHorizontal:6},
   clip:{height:21,borderRadius:6,justifyContent:'center',paddingHorizontal:7},
   clipText:{color:'#fff',fontSize:6,fontWeight:'900'},
+  keyframeMarker:{width:9,height:9,marginLeft:9,backgroundColor:C.gold,borderWidth:1,borderColor:'#fff',transform:[{rotate:'45deg'}]},
+  timelineInfo:{color:C.muted,fontSize:6,marginTop:3,marginLeft:5},
   toolPanel:{marginHorizontal:8,marginTop:5,padding:9,borderRadius:13,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
   toolPanelHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:7,gap:8},
   toolTitle:{color:C.white,fontSize:11,fontWeight:'900',marginTop:3},
@@ -1248,10 +1415,10 @@ const s=StyleSheet.create({
   centerWorkspace:{flex:1,minWidth:0,minHeight:0,flexDirection:'column'},
   desktopPreview:{height:90,flexGrow:0,flexShrink:1,margin:0,marginBottom:3,padding:5,minHeight:75},
   desktopCanvas:{height:43,width:'75%',flexGrow:1,minHeight:34,maxHeight:52,marginVertical:1},
-  desktopTimeline:{height:140,flexGrow:0,flexShrink:0,padding:4,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line,overflow:'hidden'},
+  desktopTimeline:{height:220,flexGrow:1,flexShrink:1,minHeight:125,padding:4,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line,overflow:'hidden'},
   desktopTimelineHead:{marginTop:1,marginBottom:2},
   desktopRuler:{paddingVertical:4},
-  desktopTrack:{height:20,marginBottom:1},
+  desktopTrack:{height:23,marginBottom:2},
   desktopTrackName:{width:82,fontSize:7},
   desktopToolPanel:{flexShrink:0,maxHeight:68,marginTop:3,padding:6},
   rightProperties:{width:150,minHeight:0,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
@@ -1277,5 +1444,8 @@ const s=StyleSheet.create({
   choice:{paddingHorizontal:13,paddingVertical:10,borderRadius:20,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
   choiceHalf:{width:'22%',alignItems:'center',paddingHorizontal:2},
   choiceActive:{backgroundColor:'rgba(128,232,243,.17)',borderColor:C.cyan},
+  exportFeature:{flexDirection:'row',alignItems:'center',padding:12,marginTop:8,borderRadius:12,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
+  exportFeatureActive:{borderColor:C.cyan,backgroundColor:'rgba(128,232,243,.10)'},
+  featureStatus:{color:C.muted,fontSize:9,fontWeight:'900'},
   nameInput:{color:C.white,fontSize:11,padding:12,marginTop:8,marginBottom:15,borderRadius:10,backgroundColor:C.panel,borderWidth:1,borderColor:C.line}
 });
