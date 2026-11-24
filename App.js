@@ -827,36 +827,40 @@ function AppContent() {
 
           {landscape?(
             <View style={s.landscapeWorkspace}>
-              <View style={[s.leftLibrary,wide&&s.leftLibraryWide]}>
-                <Text style={s.eyebrow}>TOOL LIBRARY</Text>
-                <TextInput value={toolSearch} onChangeText={setToolSearch} placeholder="Search every editing tool..." placeholderTextColor={C.muted} style={s.nameInput}/>
-                <ScrollView horizontal={false} showsVerticalScrollIndicator={false}>
-                  <View style={s.categoryWrap}>
-                    {['All','Edit','Motion','Color','Audio','Effects','Transitions','Text','Advanced','AI','Photo','Output'].map(x=>(
-                      <TouchableOpacity key={x} onPress={()=>setCategory(x)}
-                        style={[s.categoryButton,category===x&&s.categoryActive]}>
-                        <Text style={[s.categoryText,category===x&&{color:C.cyan}]}>{x}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <View style={s.desktopToolsGrid}>
-                    {visibleTools.map(x=>(
-                      <ToolButton key={x[0]} item={x} active={tool===x[0]}
-                        compact onPress={()=>chooseTool(x[0])}/>
-                    ))}
-                  </View>
-                </ScrollView>
+              <View style={[s.leftLibrary,s.leftLibraryPremium]}>
+                <View style={s.sideBrand}>
+                  <EPLogo size={35}/>
+                  <View><Text style={s.sideBrandTitle}>ERROR PIXEL</Text><Text style={s.sideBrandSub}>CREATIVE SUITE</Text></View>
+                </View>
+                <Text style={s.sideSection}>WORKSPACE</Text>
+                {[
+                  ['⌂','Home','home'],['✂','Edit','edit'],['▣','Projects','projects'],
+                  ['◇','Templates','templates'],['✧','AI Tools','aimodels'],['▤','Library','media'],['•••','More','more']
+                ].map(([glyph,label,target])=>(
+                  <TouchableOpacity key={label} style={[s.sideNavItem,(target==='edit'&&page==='editor')&&s.sideNavActive]}
+                    onPress={()=>target==='edit'?setCategory('Edit'):target==='home'?setPage('home'):target==='projects'?setPage('projects'):target==='templates'?setPage('templates'):target==='aimodels'?setPage('aimodels'):target==='media'?setPage('media'):setDrawer(true)}>
+                    <Text style={s.sideNavGlyph}>{glyph}</Text><Text style={s.sideNavText}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+                <View style={s.sideSpacer}/>
+                <View style={s.tokenCard}><Text style={s.tokenLabel}>PIXEL CREDITS</Text><Text style={s.tokenValue}>03 <Text style={s.tokenUnit}>FREE</Text></Text><Text style={s.tokenHint}>Processing credits</Text></View>
+                <Text style={s.sideVersion}>ERROR PIXEL · STUDIO</Text>
               </View>
 
               <View style={s.centerWorkspace}>
+                <View style={s.workspaceBar}>
+                  <View><Text style={s.workspaceTitle}>Composition</Text><Text style={s.workspaceSub}>MAIN SEQUENCE · {projectName}</Text></View>
+                  <View style={s.workspaceMeta}><Text style={s.workspaceMetaText}>● AUTO SAVED</Text><Text style={s.workspaceMetaText}>1080P · 60 FPS</Text></View>
+                </View>
                 <TurboEngine/>
                 <PreviewMonitor desktop/>
                 <EditorTools/>
                 <Timeline desktop/>
               </View>
 
-              <View style={[s.rightProperties,wide&&s.rightPropertiesWide]}>
-                <Text style={s.eyebrow}>INSPECTOR</Text>
+              <View style={[s.rightProperties,s.rightPropertiesPremium,wide&&s.rightPropertiesWide]}>
+                <View style={s.inspectorTabs}><Text style={s.inspectorTabActive}>PROPERTIES</Text><Text style={s.inspectorTab}>EFFECTS</Text></View>
+                <Text style={s.eyebrow}>INSPECTOR / CONTROLS</Text>
                 <Text style={s.inspectorTitle}>{tool.toUpperCase()}</Text>
                 <Text style={s.inspectorLabel}>SELECTED TOOL</Text>
                 <Text style={s.inspectorValue}>{tool}</Text>
@@ -879,6 +883,17 @@ function AppContent() {
                 </TouchableOpacity>
                 <Text style={s.inspectorNote}>Processing engine required for final video rendering.</Text>
               </View>
+            </View>
+            <View style={s.desktopCommandBar}>
+              {[
+                ['✂','Split','Split'],['▧','Crop','Crop'],['↻','Rotate','Rotate'],['T','Text','Text'],
+                ['✧','Effects','Effects'],['◐','Filters','Color Grading'],['♫','Audio','Audio'],
+                ['◉','Adjust','Color Correction'],['◇','Keyframe','Keyframe'],['⇧','Export','Export']
+              ].map(([glyph,label,name])=>(
+                <TouchableOpacity key={label} style={[s.commandItem,tool===name&&s.commandItemActive]} onPress={()=>chooseTool(name)}>
+                  <Text style={s.commandGlyph}>{glyph}</Text><Text style={s.commandLabel}>{label}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           ):(
             <View style={s.mobileEditor}>
@@ -1366,8 +1381,39 @@ const s=StyleSheet.create({
   toolGlyph:{color:'#D5D1EB',fontSize:17,fontWeight:'900',textShadowColor:'rgba(255,255,255,.35)',textShadowRadius:3},
   toolName:{color:C.muted,fontSize:6,fontWeight:'800',marginTop:4},
   engineNote:{color:C.muted,fontSize:6,textAlign:'center',paddingVertical:4},
-  landscapeWorkspace:{flex:1,flexDirection:'row',padding:7,gap:7},
+  landscapeWorkspace:{flex:1,minHeight:0,flexDirection:'row',padding:7,gap:7},
   leftLibrary:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
+  leftLibraryPremium:{width:142,padding:8,borderRadius:13,backgroundColor:'#0B1020',borderColor:'rgba(132,151,255,.28)'},
+  sideBrand:{flexDirection:'row',alignItems:'center',gap:7,paddingBottom:13,borderBottomWidth:1,borderColor:C.line},
+  sideBrandTitle:{color:C.white,fontSize:10,fontWeight:'900',letterSpacing:.7},
+  sideBrandSub:{color:C.cyan,fontSize:6,fontWeight:'800',letterSpacing:1.1,marginTop:3},
+  sideSection:{color:'#6F7E9F',fontSize:7,fontWeight:'900',letterSpacing:1.3,marginTop:15,marginBottom:7},
+  sideNavItem:{height:35,flexDirection:'row',alignItems:'center',gap:9,paddingHorizontal:8,borderRadius:8,marginBottom:4},
+  sideNavActive:{backgroundColor:'rgba(118,92,205,.2)',borderWidth:1,borderColor:'rgba(126,221,255,.38)'},
+  sideNavGlyph:{width:17,color:C.cyan,fontSize:14,textAlign:'center'},
+  sideNavText:{color:'#C4CDE2',fontSize:9,fontWeight:'800'},
+  sideSpacer:{flex:1,minHeight:10},
+  tokenCard:{padding:9,borderRadius:9,backgroundColor:'#151A30',borderWidth:1,borderColor:'rgba(122,220,255,.28)'},
+  tokenLabel:{color:'#8795B4',fontSize:6,fontWeight:'900',letterSpacing:1},
+  tokenValue:{color:C.white,fontSize:19,fontWeight:'900',marginTop:4},
+  tokenUnit:{color:C.cyan,fontSize:7},
+  tokenHint:{color:C.muted,fontSize:6,marginTop:2},
+  sideVersion:{color:'#65728F',fontSize:5,fontWeight:'800',textAlign:'center',marginTop:9},
+  workspaceBar:{height:36,flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:9,marginBottom:5,borderRadius:9,backgroundColor:'#10162A',borderWidth:1,borderColor:C.line},
+  workspaceTitle:{color:C.white,fontSize:10,fontWeight:'900'},
+  workspaceSub:{color:'#8390AD',fontSize:6,letterSpacing:.7,marginTop:2},
+  workspaceMeta:{alignItems:'flex-end',gap:3},
+  workspaceMetaText:{color:C.cyan,fontSize:6,fontWeight:'900',letterSpacing:.5},
+  rightPropertiesPremium:{backgroundColor:'#0B1020',borderColor:'rgba(132,151,255,.28)'},
+  inspectorTabs:{height:27,flexDirection:'row',alignItems:'center',justifyContent:'space-around',borderBottomWidth:1,borderColor:C.line,marginBottom:8},
+  inspectorTabActive:{color:C.cyan,fontSize:7,fontWeight:'900',letterSpacing:.7},
+  inspectorTab:{color:'#72809E',fontSize:7,fontWeight:'900',letterSpacing:.7},
+  desktopCommandBar:{height:49,flexDirection:'row',alignItems:'center',justifyContent:'space-around',marginHorizontal:7,marginBottom:5,paddingHorizontal:5,borderRadius:11,backgroundColor:'#111426',borderWidth:1,borderColor:'rgba(133,190,255,.3)'},
+  commandItem:{minWidth:43,alignItems:'center',justifyContent:'center',paddingVertical:4,paddingHorizontal:5,borderRadius:7},
+  commandItemActive:{backgroundColor:'rgba(115,221,255,.12)',borderWidth:1,borderColor:'rgba(115,221,255,.45)'},
+  commandGlyph:{color:'#BDAEFF',fontSize:15,fontWeight:'900'},
+  commandLabel:{color:'#B9C3DA',fontSize:6,fontWeight:'800',marginTop:3},
+
   leftLibraryWide:{width:205},
   categoryWrap:{flexDirection:'row',flexWrap:'wrap',gap:4,marginTop:9,marginBottom:8},
   categoryButton:{paddingHorizontal:8,paddingVertical:6,borderRadius:12,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
@@ -1377,10 +1423,10 @@ const s=StyleSheet.create({
   desktopTool:{width:'31%',alignItems:'center',marginBottom:10},
   desktopToolCircle:{width:35,height:35},
   desktopToolName:{fontSize:6,textAlign:'center'},
-  centerWorkspace:{flex:1,minWidth:0,flexDirection:'column',justifyContent:'flex-start'},
-  desktopPreview:{height:150,flexGrow:0,flexShrink:0,margin:0,marginBottom:4,minHeight:0},
+  centerWorkspace:{flex:1,minWidth:0,minHeight:0,flexDirection:'column',justifyContent:'flex-start'},
+  desktopPreview:{height:150,flexGrow:0,flexShrink:0,margin:0,marginBottom:4,minHeight:0,borderRadius:11,borderColor:'rgba(135,157,255,.32)'},
   desktopCanvas:{height:78,width:'75%',flexGrow:1,minHeight:65,maxHeight:100,marginVertical:3},
-  desktopTimeline:{padding:5,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line,maxHeight:290,flexShrink:0,marginTop:4,marginBottom:0},
+  desktopTimeline:{padding:7,borderRadius:11,backgroundColor:'#0C1120',borderWidth:1,borderColor:'rgba(135,157,255,.28)',maxHeight:290,flexShrink:1,minHeight:105,marginTop:4,marginBottom:0},
   rightProperties:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
   rightPropertiesWide:{width:210},
   inspectorTitle:{color:C.white,fontSize:14,fontWeight:'900',marginTop:10},
