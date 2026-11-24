@@ -2,7 +2,7 @@ import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, SafeAreaView,
   StatusBar, StyleSheet, Modal, Linking,
-  ActivityIndicator, TextInput, useWindowDimensions, Platform, Animated, Easing
+  ActivityIndicator, TextInput, useWindowDimensions, Platform, Animated, Easing, BackHandler
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -350,6 +350,20 @@ function AppContent() {
   },[copyClip,pasteClip,cutClip,undo,redo,duplicateClip,deleteClip,playing]);
 
   useEffect(()=>{
+    if(Platform.OS!=='android')return;
+    const onHardwareBack=()=>{
+      if(modal){setModal('');return true;}
+      if(drawer){setDrawer(false);return true;}
+      if(shortcutPanel){setShortcutPanel(false);return true;}
+      if(page==='editor'||page!=='home'&&page!=='welcome'){setPage('home');return true;}
+      // Keep the app on its dashboard instead of letting one Back press exit it.
+      return true;
+    };
+    const subscription=BackHandler.addEventListener('hardwareBackPress',onHardwareBack);
+    return ()=>subscription.remove();
+  },[page,modal,drawer,shortcutPanel]);
+
+  useEffect(()=>{
     if(Platform.OS!=='web')return;
     const handler=e=>{
       const target=e.target;
@@ -468,8 +482,8 @@ function AppContent() {
 
   const Timeline=({desktop=false})=>(
     <View style={[s.timelineBox,desktop&&s.desktopTimeline,desktop&&{
-      maxHeight:height<430?124:Math.max(165,Math.min(250,Math.floor(height*.46))),
-      flexShrink:0
+      height:Math.max(104,Math.min(190,Math.round(height*.34))),
+      flexGrow:0,flexShrink:0,minHeight:104
     }]}>
       <View pointerEvents="none" style={[s.playheadOverlay,{left:playhead+'%'}]}>
         <View style={s.playheadSideLeft}/>
@@ -497,7 +511,7 @@ function AppContent() {
           <ScrollView
             nestedScrollEnabled
             showsVerticalScrollIndicator={true}
-            style={{maxHeight:desktop?(height<430?64:Math.max(90,Math.min(165,Math.floor(height*.31)))):190}}>
+            style={{height:desktop?Math.max(38,Math.min(104,Math.round(height*.22))):190,maxHeight:desktop?Math.max(38,Math.min(104,Math.round(height*.22))):190,flexGrow:desktop?1:0}}>
             {Array.from({length:trackCount},(_,i)=>({
               name:['VIDEO 01','AUDIO','OVERLAY','EFFECTS','TEXT','VIDEO 02','VOICEOVER','MUSIC','CAPTIONS','GRAPHICS','MASK','ADJUSTMENT'][i],
               color:['#9877F4','#39A6A8','#C17BCB','#D39A55','#5D9BD8','#8064B8','#42A8A0','#BD8C4F','#6289C7','#9E6FA9','#A17A68','#4F9D8B'][i]
@@ -526,7 +540,7 @@ function AppContent() {
 
   const PreviewMonitor=({desktop=false})=>(
     <View style={[s.preview,desktop&&s.desktopPreview,desktop&&{
-      height:height<430?88:Math.max(105,Math.min(155,Math.floor(height*.34))),
+      height:height<400?66:height<480?78:Math.max(105,Math.min(155,Math.floor(height*.30))),
       flexGrow:0,flexShrink:0
     }]}>
       <View style={s.previewMeta}>
@@ -534,7 +548,7 @@ function AppContent() {
         <Text style={s.smallMuted}>{resolution} · {fps}</Text>
       </View>
       <View style={[s.previewCanvas,desktop&&s.desktopCanvas,desktop&&{
-        height:height<430?42:78,minHeight:height<430?42:65,maxHeight:height<430?48:100,
+        height:height<400?30:height<480?38:70,minHeight:height<400?30:height<480?38:60,maxHeight:height<400?34:height<480?42:90,
         flexGrow:1,marginVertical:2
       }]}>
         <EPLogo size={desktop?65:58}/>
@@ -827,6 +841,7 @@ function AppContent() {
 
           {landscape?(
             <View style={s.landscapeWorkspace}>
+              <View style={s.landscapeTopRow}>
               <View style={[s.leftLibrary,s.leftLibraryPremium]}>
                 <View style={s.sideBrand}>
                   <EPLogo size={35}/>
@@ -848,14 +863,13 @@ function AppContent() {
               </View>
 
               <View style={s.centerWorkspace}>
-                <View style={s.workspaceBar}>
+                {height>400&&<View style={s.workspaceBar}>
                   <View><Text style={s.workspaceTitle}>Composition</Text><Text style={s.workspaceSub}>MAIN SEQUENCE · {projectName}</Text></View>
                   <View style={s.workspaceMeta}><Text style={s.workspaceMetaText}>● AUTO SAVED</Text><Text style={s.workspaceMetaText}>1080P · 60 FPS</Text></View>
-                </View>
-                <TurboEngine/>
+                </View>}
+                {height>480&&<TurboEngine/>}
                 <PreviewMonitor desktop/>
                 <EditorTools/>
-                <Timeline desktop/>
               </View>
 
               <View style={[s.rightProperties,s.rightPropertiesPremium,wide&&s.rightPropertiesWide]}>
@@ -883,6 +897,8 @@ function AppContent() {
                 </TouchableOpacity>
                 <Text style={s.inspectorNote}>Processing engine required for final video rendering.</Text>
               </View>
+              </View>
+              <Timeline desktop/>
             </View>
             <View style={s.desktopCommandBar}>
               {[
@@ -1381,7 +1397,8 @@ const s=StyleSheet.create({
   toolGlyph:{color:'#D5D1EB',fontSize:17,fontWeight:'900',textShadowColor:'rgba(255,255,255,.35)',textShadowRadius:3},
   toolName:{color:C.muted,fontSize:6,fontWeight:'800',marginTop:4},
   engineNote:{color:C.muted,fontSize:6,textAlign:'center',paddingVertical:4},
-  landscapeWorkspace:{flex:1,minHeight:0,flexDirection:'row',padding:7,gap:7},
+  landscapeWorkspace:{flex:1,minHeight:0,flexDirection:'column',padding:6,gap:5},
+  landscapeTopRow:{flex:1,minHeight:0,flexDirection:'row',gap:6},
   leftLibrary:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
   leftLibraryPremium:{width:142,padding:8,borderRadius:13,backgroundColor:'#0B1020',borderColor:'rgba(132,151,255,.28)'},
   sideBrand:{flexDirection:'row',alignItems:'center',gap:7,paddingBottom:13,borderBottomWidth:1,borderColor:C.line},
@@ -1426,7 +1443,7 @@ const s=StyleSheet.create({
   centerWorkspace:{flex:1,minWidth:0,minHeight:0,flexDirection:'column',justifyContent:'flex-start'},
   desktopPreview:{height:150,flexGrow:0,flexShrink:0,margin:0,marginBottom:4,minHeight:0,borderRadius:11,borderColor:'rgba(135,157,255,.32)'},
   desktopCanvas:{height:78,width:'75%',flexGrow:1,minHeight:65,maxHeight:100,marginVertical:3},
-  desktopTimeline:{padding:7,borderRadius:11,backgroundColor:'#0C1120',borderWidth:1,borderColor:'rgba(135,157,255,.28)',maxHeight:290,flexShrink:1,minHeight:105,marginTop:4,marginBottom:0},
+  desktopTimeline:{padding:6,borderRadius:10,backgroundColor:'#0C1120',borderWidth:1,borderColor:'rgba(135,157,255,.28)',minHeight:104,marginTop:0,marginBottom:0,overflow:'hidden'},
   rightProperties:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
   rightPropertiesWide:{width:210},
   inspectorTitle:{color:C.white,fontSize:14,fontWeight:'900',marginTop:10},
