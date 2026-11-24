@@ -1,4 +1,3 @@
-```javascript
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, SafeAreaView,
@@ -358,7 +357,8 @@ function AppContent() {
 
   useEffect(()=>{
     let mounted=true;
-    const init=async()=>{      try {
+    const init=async()=>{
+      try {
         const [b,d,p,cid,pts,photos]=await Promise.all([
           AsyncStorage.getItem('ERROR_PIXEL_BALANCE'),
           AsyncStorage.getItem('ERROR_PIXEL_DAILY_CLAIM_DATE'),
@@ -717,7 +717,8 @@ function AppContent() {
               </View>
               <TouchableOpacity onPress={()=>setPage('editor')}>
                 <Text style={s.link}>OPEN EDITOR ↗</Text>
-              </TouchableOpacity>            </View>
+              </TouchableOpacity>
+            </View>
             <View style={s.quickGrid}>
               {QUICK_TOOLS.map((name,i)=>(
                 <TouchableOpacity key={name} style={s.quickTool} onPress={()=>{
@@ -922,68 +923,6 @@ function AppContent() {
                 <Text style={s.projectName}>PHOTO STUDIO</Text>
                 <Text style={s.smallMuted}>Professional visual workspace</Text>
               </View>
-              <TextInput value={projectName} onChangeText={setProjectName} placeholder="Photo project name" placeholderTextColor={C.muted} style={s.nameInput}/>
-              <View style={s.helpRow}>
-                {['Crop','Resize','Rotate','Background Removal','Color Grading','Photo Upscale'].map(x=>(
-                  <TouchableOpacity key={x} style={s.helpCard} onPress={()=>setLastAction(x+' selected — photo engine connection required')}>
-                    <Text style={s.helpIcon}>◇</Text>
-                    <Text style={s.helpTitle}>{x.toUpperCase()}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TouchableOpacity style={s.connectButton} onPress={()=>setLastAction('Photo import requires native media picker connection')}><Text style={s.claimText}>IMPORT PHOTO</Text></TouchableOpacity>
-              <TouchableOpacity style={s.connectButton} onPress={()=>setPhotoProjects(v=>[...v,{name:projectName,date:today()}])}><Text style={s.claimText}>SAVE PHOTO PROJECT</Text></TouchableOpacity>
-              {photoProjects.map((x,i)=><Text key={i} style={s.optionText}>{x.name} · {x.date}</Text>)}
-            </ScrollView>
-          )}
-
-          {page==='projects'&&(
-            <ScrollView contentContainerStyle={s.subContent}>
-              <TextInput value={projectName} onChangeText={setProjectName} placeholder="Enter project name..." placeholderTextColor={C.muted} style={s.nameInput}/>
-              <TouchableOpacity style={s.connectButton} onPress={saveProject}><Text style={s.claimText}>＋ SAVE NEW PROJECT</Text></TouchableOpacity>
-              {projects.length===0?<View style={s.emptyCard}><Text style={s.emptyTitle}>No projects saved yet</Text><Text style={s.smallMuted}>Create and save your first project.</Text></View>:projects.map((p,i)=><TouchableOpacity key={i} style={s.projectRow} onPress={()=>setPage('editor')}><EPLogo size={40}/><View style={{flex:1}}><Text style={s.helpTitle}>{p.name}</Text><Text style={s.smallMuted}>{p.date}</Text></View><Text style={s.link}>OPEN ↗</Text></TouchableOpacity>)}
-            </ScrollView>
-          )}
-
-          {page==='media'&&(
-            <ScrollView contentContainerStyle={s.subContent}>
-              <TextInput value={mediaSearch} onChangeText={setMediaSearch} placeholder="Search your media library..." placeholderTextColor={C.muted} style={s.nameInput}/>
-              <View style={s.photoCanvas}><Text style={s.helpIcon}>▣</Text><Text style={s.sectionTitle}>MEDIA LIBRARY</Text><Text style={s.smallMuted}>Your imported video, audio and image files</Text></View>
-              <TouchableOpacity style={s.connectButton} onPress={()=>setLastAction('Native file picker connection required to import media')}><Text style={s.claimText}>＋ IMPORT MEDIA</Text></TouchableOpacity>
-              <Text style={s.statsNote}>Imported media will appear here after a native file-picker connection is added.</Text>
-              {mediaItems.filter(x=>x.toLowerCase().includes(mediaSearch.toLowerCase())).map(x=><Text key={x} style={s.optionText}>{x}</Text>)}
-            </ScrollView>
-          )}                  {visibleTools.map(x=>(
-                    <ToolButton key={x[0]} item={x} active={tool===x[0]}
-                      onPress={()=>chooseTool(x[0])}/>
-                  ))}
-                </ScrollView>
-              </View>
-              <Text style={s.engineNote}>VIDEO PROCESSING ENGINE CONNECTION REQUIRED FOR FINAL EXPORT</Text>
-            </View>
-          )}
-        </View>
-      )}
-
-      {page!=='home'&&page!=='editor'&&(
-        <View style={s.main}>
-          <View style={s.subHeader}>
-            <RoundButton onPress={()=>setPage('home')}>
-              <Text style={s.buttonGlyph}>‹</Text>
-            </RoundButton>
-            <Text style={s.subTitle}>{menu.find(x=>x[1]===page)?.[0]?.toUpperCase()||page.toUpperCase()}</Text>
-            <RoundButton onPress={()=>setDrawer(true)}>
-              <Text style={s.buttonGlyph}>•••</Text>
-            </RoundButton>
-          </View>
-
-          {page==='photo'&&(
-            <ScrollView contentContainerStyle={s.subContent}>
-              <View style={s.photoCanvas}>
-                <EPLogo size={80}/>
-                <Text style={s.projectName}>PHOTO STUDIO</Text>
-                <Text style={s.smallMuted}>Professional visual workspace</Text>
-              </View>
               <View style={s.quickGrid}>
                 {TOOL_GROUPS.Photo.map(x=>(
                   <TouchableOpacity key={x} style={s.option} onPress={()=>setLastAction(x+' selected — image processing engine may be required')}>
@@ -1058,8 +997,7 @@ function AppContent() {
               <Text style={s.sectionTitle}>Creator Progress</Text>
               {CREATOR_LEVELS.map(x=><View key={x.level} style={s.projectRow}><View style={{width:54,height:54,borderRadius:27,borderWidth:3,borderColor:['#B77945','#D69A62','#A8B3C2','#C7D5E6','#D9AA36','#F0CB68','#65CFE8','#B58AFF'][x.level-1],backgroundColor:'#211A35',alignItems:'center',justifyContent:'center',marginRight:5}}><Text style={{fontSize:18,fontWeight:'900',color:'#F1D28A'}}>EP</Text><Text style={{fontSize:7,color:'#F1D28A'}}>{'✦'.repeat(Math.min(x.stars,8))}</Text></View><View style={{flex:1}}><Text style={s.helpTitle}>LEVEL {x.level} · {x.name}</Text><Text style={s.smallMuted}>{x.points.toLocaleString()} points · {x.reward} free premium</Text><Text style={s.smallMuted}>{x.frame}</Text></View><Text style={s.link}>{creatorLevel>=x.level?'UNLOCKED':'LOCKED'}</Text></View>)}
               <TouchableOpacity style={s.connectButton} onPress={()=>{setConnectedSocial(true);openSocial(TIKTOK);}}><Text style={s.claimText}>{connectedSocial?'SOCIAL PROFILE OPENED':'CONNECT TIKTOK / INSTAGRAM'}</Text></TouchableOpacity>
-              <Text style={s.eyebrow}>SOCIAL FOLLOWERS (VERIFICATION REQUIRED)</Text>
-              <TextInput value={creatorFollowers} onChangeText={setCreatorFollowers} keyboardType="number-pad" placeholder="Enter verified follower count" placeholderTextColor={C.muted} style={s.nameInput}/>
+              <Text style={s.eyebrow}>SOCIAL FOLLOWERS (VERIFICATION REQUIRED)</Text>              <TextInput value={creatorFollowers} onChangeText={setCreatorFollowers} keyboardType="number-pad" placeholder="Enter verified follower count" placeholderTextColor={C.muted} style={s.nameInput}/>
               <TouchableOpacity style={s.connectButton} onPress={()=>{if(Number(creatorFollowers)>=5000)setCreatorApplied(true);else setCreatorApplied(false);}}><Text style={s.claimText}>{creatorApplied?'APPLICATION SUBMITTED':'APPLY FOR TEMPLATE CREATOR'}</Text></TouchableOpacity>
               <Text style={s.statsNote}>{creatorApplied?'Your application is marked submitted in this local preview. Admin review and social verification are still required.':'You need at least 5,000 followers to apply. Enter a verified count above.'} You can upload templates and effects after approval. Template Creator eligibility target: 5,000+ followers, subject to manual verification. Social APIs may not expose follower counts. Points must be calculated server-side from verified followers, likes, views and genuine template usage. This local owner profile is a UI preview, not secure account authorization.</Text>
             </ScrollView>
@@ -1255,7 +1193,69 @@ const s=StyleSheet.create({
   logoGlint:{position:'absolute',height:3,borderRadius:4,top:'22%',right:'18%',backgroundColor:C.cyan,transform:[{rotate:'-35deg'}]},
   welcomeBrand:{color:C.white,fontSize:31,fontWeight:'900',letterSpacing:2,marginTop:28},
   tag:{color:C.cyan,fontSize:8,letterSpacing:2.4,marginTop:10},
-  loadingLine:{flexDirection:'row',alignItems:'center',gap:9,marginTop  previewSub:{color:C.muted,fontSize:7,marginTop:4},
+  loadingLine:{flexDirection:'row',alignItems:'center',gap:9,marginTop:42},
+  loadingText:{color:C.cyan,fontSize:8,letterSpacing:1.4},
+  powered:{color:C.muted,fontSize:8,letterSpacing:1.5,marginTop:24},
+  channel:{color:C.violet,fontSize:10,fontWeight:'900',letterSpacing:2,marginTop:8},
+  homeContent:{padding:17,paddingBottom:45},
+  topBar:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:18},
+  topActions:{flexDirection:'row',gap:8},
+  brandRow:{flexDirection:'row',alignItems:'center',gap:10},
+  brand:{color:C.white,fontSize:16,fontWeight:'900',letterSpacing:1.2},
+  brandSub:{color:C.cyan,fontSize:6,letterSpacing:1.4,marginTop:4},
+  roundButton:{width:40,height:40,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(169,139,255,.13)',borderWidth:1,borderColor:'rgba(205,188,255,.38)'},
+  roundActive:{backgroundColor:'rgba(128,232,243,.15)',borderColor:C.cyan},
+  buttonGlyph:{color:C.white,fontSize:17,fontWeight:'800'},
+  notification:{flexDirection:'row',alignItems:'center',gap:10,padding:12,marginBottom:10,borderRadius:15,backgroundColor:'rgba(128,232,243,.07)',borderWidth:1,borderColor:'rgba(128,232,243,.27)'},
+  notificationGlyph:{color:C.cyan,fontSize:19},
+  notificationHead:{color:C.cyan,fontSize:7,fontWeight:'900',letterSpacing:1.2},
+  notificationText:{color:C.white,fontSize:9,marginTop:4},
+  tokenCard:{flexDirection:'row',alignItems:'center',padding:16,marginBottom:22,borderRadius:21,backgroundColor:'#19142A',borderWidth:1,borderColor:'rgba(169,139,255,.48)'},
+  eyebrow:{color:C.cyan,fontSize:7,letterSpacing:1.4,fontWeight:'800'},
+  tokenHeading:{color:C.white,fontSize:13,fontWeight:'900',letterSpacing:1.2,marginTop:5},
+  tokenCount:{color:'#fff',fontSize:26,fontWeight:'900',marginTop:4},
+  tokenUnit:{color:C.violet,fontSize:8,letterSpacing:1},
+  smallMuted:{color:C.muted,fontSize:8,marginTop:5},
+  tokenRight:{alignItems:'center',marginLeft:8},
+  tokenCoin:{width:39,height:39,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'#44336D',borderWidth:1,borderColor:C.gold,marginBottom:8},
+  coinGlyph:{color:C.gold,fontSize:21,fontWeight:'900'},
+  claimButton:{minWidth:92,height:38,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'#8060C7',borderWidth:1,borderColor:'#C9B4FF'},
+  claimDisabled:{backgroundColor:'#383146',borderColor:'#665D77'},
+  claimText:{color:'#fff',fontSize:9,fontWeight:'900',letterSpacing:1},
+  claimHint:{color:C.muted,fontSize:6,marginTop:6},
+  welcomeText:{marginBottom:16},
+  heading:{color:C.white,fontSize:25,fontWeight:'900',marginTop:5},
+  body:{color:C.muted,fontSize:10,marginTop:8,lineHeight:17},
+  hero:{padding:17,borderRadius:24,backgroundColor:'#171326',borderWidth:1,borderColor:'rgba(193,163,255,.35)'},
+  heroTop:{flexDirection:'row',justifyContent:'space-between'},
+  proBadge:{color:C.gold,fontSize:7,borderWidth:1,borderColor:'rgba(233,211,159,.4)',borderRadius:20,padding:7,overflow:'hidden'},
+  heroCenter:{alignItems:'center',paddingVertical:20},
+  heroTitle:{color:C.white,fontSize:22,fontWeight:'900',letterSpacing:1.5,marginTop:12},
+  heroAccent:{color:C.violet,fontSize:24,fontWeight:'900',letterSpacing:2},
+  heroCopy:{color:C.muted,fontSize:9,textAlign:'center',lineHeight:15,maxWidth:250,marginTop:9},
+  newProject:{flexDirection:'row',alignItems:'center',padding:10,borderRadius:30,backgroundColor:'rgba(255,255,255,.06)',borderWidth:1,borderColor:C.line},
+  newProjectTitle:{color:C.white,fontSize:9,fontWeight:'900',letterSpacing:.8},
+  arrow:{color:C.cyan,fontSize:20},
+  sectionRow:{flexDirection:'row',alignItems:'flex-end',justifyContent:'space-between',marginTop:25,marginBottom:12},
+  sectionTitle:{color:C.white,fontSize:18,fontWeight:'900',marginTop:5},
+  counter:{color:C.muted,fontSize:8},
+  workspaceGrid:{flexDirection:'row',gap:9},
+  videoCard:{width:'49%',minHeight:170,padding:14,borderRadius:19,justifyContent:'space-between',backgroundColor:'#1B1530',borderWidth:1,borderColor:'rgba(169,139,255,.45)'},
+  cardIcon:{color:C.violet,fontSize:28},
+  cardTitle:{color:C.white,fontSize:18,fontWeight:'900'},
+  cardSub:{color:C.cyan,fontSize:6,letterSpacing:1,marginTop:7},
+  cardArrow:{color:C.white,fontSize:20,position:'absolute',right:13,bottom:12},
+  sideCards:{flex:1,gap:9},
+  smallCard:{flex:1,padding:12,borderRadius:17,justifyContent:'center',backgroundColor:'#13212A',borderWidth:1,borderColor:'rgba(128,232,243,.3)'},
+  smallCardTitle:{color:C.white,fontSize:9,fontWeight:'900',marginTop:7},
+  link:{color:C.cyan,fontSize:8,fontWeight:'900',letterSpacing:.7},
+  previewGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:10},
+  previewCard:{width:'48%',padding:9,borderRadius:16,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
+  previewVisual:{height:91,borderRadius:11,backgroundColor:'#1B1630',borderWidth:1,alignItems:'center',justifyContent:'center'},
+  previewIcon:{fontSize:35,fontWeight:'900'},
+  previewPlay:{color:C.cyan,fontSize:6,letterSpacing:1,marginTop:6},
+  previewName:{color:C.white,fontSize:9,fontWeight:'900',marginTop:9},
+  previewSub:{color:C.muted,fontSize:7,marginTop:4},
   quickGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:10},
   quickTool:{width:'30%',alignItems:'center',paddingVertical:14,borderRadius:16,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
   quickIcon:{color:C.cyan,fontSize:22},
