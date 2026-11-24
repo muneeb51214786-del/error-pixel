@@ -155,11 +155,29 @@ function PreviewCard({item,onPress}) {
   );
 }
 
+function getToolButtonShape(item) {
+  const group=item[2];
+  const name=item[0];
+  if(group==='Audio') return {width:46,height:34,borderRadius:10,transform:[{skewX:'-9deg'}],borderColor:'rgba(101,214,176,.48)',backgroundColor:'rgba(101,214,176,.10)'};
+  if(group==='Text') return {width:36,height:36,borderRadius:7,borderWidth:2,borderColor:'rgba(215,167,255,.55)',backgroundColor:'rgba(215,167,255,.10)'};
+  if(group==='Effects'||group==='Transitions') return {width:36,height:36,borderRadius:9,transform:[{rotate:'45deg'}],borderColor:'rgba(255,157,210,.55)',backgroundColor:'rgba(255,157,210,.10)'};
+  if(group==='Color') return {width:39,height:39,borderRadius:20,borderWidth:2,borderColor:'rgba(255,194,112,.58)',backgroundColor:'rgba(255,194,112,.10)'};
+  if(group==='Motion') return {width:36,height:36,borderRadius:5,transform:[{rotate:'45deg'}],borderColor:'rgba(110,167,232,.62)',backgroundColor:'rgba(110,167,232,.12)'};
+  if(group==='AI') return {width:40,height:36,borderRadius:13,borderTopLeftRadius:5,borderBottomRightRadius:5,borderColor:'rgba(167,139,250,.62)',backgroundColor:'rgba(167,139,250,.12)'};
+  if(group==='Output') return {width:34,height:40,borderRadius:8,borderTopLeftRadius:16,borderTopRightRadius:16,borderColor:'rgba(233,211,159,.62)',backgroundColor:'rgba(233,211,159,.10)'};
+  if(group==='Photo') return {width:38,height:34,borderRadius:5,transform:[{skewY:'-7deg'}],borderColor:'rgba(128,190,255,.58)',backgroundColor:'rgba(128,190,255,.10)'};
+  if(group==='Advanced') return {width:38,height:38,borderRadius:4,transform:[{rotate:'45deg'}],borderColor:'rgba(114,232,255,.52)',backgroundColor:'rgba(114,232,255,.09)'};
+  if(['Split','Cut','Razor Tool','Trim','Slice'].includes(name)) return {width:43,height:32,borderRadius:6,transform:[{skewX:'-12deg'}],borderColor:'rgba(255,130,145,.58)',backgroundColor:'rgba(255,130,145,.10)'};
+  if(['Crop','Resize','Rotate','Flip','Mirror'].includes(name)) return {width:36,height:36,borderRadius:5,borderWidth:2,borderColor:'rgba(114,232,255,.55)',backgroundColor:'rgba(114,232,255,.09)'};
+  return {width:38,height:34,borderRadius:11,borderColor:'rgba(180,190,220,.35)',backgroundColor:'rgba(255,255,255,.055)'};
+}
 function ToolButton({item,active,onPress,compact=false}) {
+  const shape=getToolButtonShape(item);
+  const tint= item[2]==='Audio'?'#65D6B0':item[2]==='Text'?'#D7A7FF':item[2]==='Effects'||item[2]==='Transitions'?'#FF9DD2':item[2]==='Color'?'#FFC270':item[2]==='Motion'?'#6EA7E8':item[2]==='AI'?'#A78BFA':item[2]==='Output'?'#E9D39F':item[2]==='Photo'?'#80BEFF':item[2]==='Advanced'?'#72E8FF':'#D5D1EB';
   return (
     <TouchableOpacity style={compact?s.desktopTool:s.toolItem} onPress={onPress}>
-      <View style={[s.toolCircle,active&&s.toolCircleActive,compact&&s.desktopToolCircle]}>
-        <Text style={[s.toolGlyph,active&&{color:C.cyan}]}>{item[1]}</Text>
+      <View style={[s.toolCircle,shape,active&&s.toolCircleActive,compact&&s.desktopToolCircle]}>
+        <Text style={[s.toolGlyph,{color:tint},active&&{color:C.cyan}]}>{item[1]}</Text>
       </View>
       <Text style={[s.toolName,active&&{color:C.white},compact&&s.desktopToolName]}>
         {item[0]}
