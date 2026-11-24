@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, SafeAreaView,
-  StatusBar, StyleSheet, Modal, Linking, Animated, Easing,
+  StatusBar, StyleSheet, Modal, Linking,
   ActivityIndicator, TextInput, useWindowDimensions, Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
