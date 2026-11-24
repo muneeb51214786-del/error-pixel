@@ -858,6 +858,7 @@ function AppContent() {
           </View>
 
           {landscape?(
+            <>
             <View style={s.landscapeWorkspace}>
               <View style={s.landscapeTopRow}>
               <View style={[s.leftLibrary,s.leftLibraryPremium]}>
@@ -929,6 +930,7 @@ function AppContent() {
                 </TouchableOpacity>
               ))}
             </View>
+            </>
           ):(
             <View style={s.mobileEditor}>
               <PreviewMonitor/>
