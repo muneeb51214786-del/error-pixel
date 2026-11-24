@@ -204,7 +204,7 @@ function AppContent() {
   const [helpQuestion,setHelpQuestion]=useState('');
   const [projectName,setProjectName]=useState('Untitled Project');
   const [trackCount,setTrackCount]=useState(12);
-  const [category,setCategory]=useState('All');
+  const [category,setCategory]=useState('Edit');
   const [projects,setProjects]=useState([]);
   const [keyframeActive,setKeyframeActive]=useState(false);
   const [shortcutPanel,setShortcutPanel]=useState(false);
@@ -882,13 +882,24 @@ function AppContent() {
             </View>
           ):(
             <View style={s.mobileEditor}>
-              <TextInput value={toolSearch} onChangeText={setToolSearch} placeholder="Search video editing tools..." placeholderTextColor={C.muted} style={[s.nameInput,{marginHorizontal:9,marginTop:4,marginBottom:2}]}/>
               <PreviewMonitor/>
+              <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-around',marginHorizontal:9,marginTop:2,marginBottom:5,paddingVertical:8,borderRadius:12,backgroundColor:'rgba(18,22,42,.96)',borderWidth:1,borderColor:C.line}}>
+                {[
+                  ['＋','ADD MEDIA','Import'],
+                  ['♫','AUDIO','Audio'],
+                  ['T','TEXT','Text'],
+                  ['✧','EFFECTS','Effects']
+                ].map(([glyph,label,name])=>(
+                  <TouchableOpacity key={label} onPress={()=>chooseTool(name)} style={{alignItems:'center',minWidth:58}}>
+                    <Text style={{color:C.cyan,fontSize:18,fontWeight:'900'}}>{glyph}</Text>
+                    <Text style={{color:C.white,fontSize:7,fontWeight:'900',marginTop:3}}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
               <Timeline/>
-              <View style={{paddingHorizontal:9,marginTop:3}}><TextInput value={mediaSearch} onChangeText={setMediaSearch} placeholder="Search imported videos, photos and project media..." placeholderTextColor={C.muted} style={s.nameInput}/></View>
               <View style={s.toolDock}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.mobileCategories}>
-                  {['All','Edit','Motion','Color','Audio','Effects','Transitions','Text','Advanced','AI','Output'].map(x=>(
+                  {['Edit','Audio','Text','Effects','Color','AI','Output'].map(x=>(
                     <TouchableOpacity key={x} onPress={()=>setCategory(x)} style={[s.mobileCategory,category===x&&s.categoryActive]}>
                       <Text style={[s.categoryText,category===x&&{color:C.cyan}]}>{x}</Text>
                     </TouchableOpacity>
@@ -907,7 +918,6 @@ function AppContent() {
                   ))}
                 </ScrollView>
               </View>
-              <Text style={s.engineNote}>VIDEO PROCESSING ENGINE CONNECTION REQUIRED FOR FINAL EXPORT</Text>
             </View>
           )}
         </View>
