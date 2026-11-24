@@ -60,9 +60,9 @@ const OPTIONS = {
   Trim:['Trim start','Trim end','Trim both sides'],
   Speed:['0.1×','0.25×','0.5×','0.75×','1×','1.5×','2×','4×','10×','25×','50×','100×','Speed curve','Frame Interpolation'],
   'Frame Interpolation':['Off','Frame Blending','Optical Flow','AI Frame Generation'],
-  'AI Video Enhancer':['Enhance details','Denoise','Improve clarity','AI model connection required'],
-  'AI Quality Upscaler':['2× Upscale','4× Upscale','8K Upscale','AI model connection required'],
-  'FPS Booster':['60 FPS','120 FPS','240 FPS','480 FPS','960 FPS','AI interpolation required'],
+  'AI Video Enhancer':['Topaz Video AI · Proteus','Topaz Video AI · Iris','Topaz Video AI · Artemis','Enhance fine details','Recover texture','Denoise video','Deblur motion','Improve clarity','AI processing service required'],
+  'AI Quality Upscaler':['2× AI Upscale','4× AI Upscale','8K Ultra HD Upscale','Topaz-style detail recovery','Face refinement','Texture recovery','AI processing service required'],
+  'FPS Booster':['30 → 60 FPS','30 → 120 FPS','60 → 120 FPS','120 → 240 FPS','Optical Flow','RIFE AI Interpolation','DAIN AI Interpolation','AI frame generation required'],
   'Color Grading':['Basic correction','Color wheels','HSL','Curves','LUT library','LOG to Rec.709'],
   Export:[...RESOLUTIONS,...FRAME_RATES,...FORMATS]
 };
@@ -88,25 +88,10 @@ const SHORTCUTS = {
 };
 
 function EPLogo({size=54}) {
-  const spin=useRef(new Animated.Value(0)).current;
-  useEffect(()=>{
-    const loop=Animated.loop(Animated.timing(spin,{
-      toValue:1,duration:5000,easing:Easing.linear,useNativeDriver:true
-    }));
-    loop.start();
-    return ()=>loop.stop();
-  },[spin]);
-  const rotate=spin.interpolate({inputRange:[0,1],outputRange:['0deg','360deg']});
   return (
     <View style={[s.logo,{width:size,height:size,borderRadius:size/2}]}>
-      <Animated.View style={[s.logoRing,{
-        width:size*.88,height:size*.88,borderRadius:size,
-        transform:[{rotate}]
-      }]}/>
-      <Animated.View style={[s.logoRing2,{
-        width:size*.70,height:size*.70,borderRadius:size,
-        transform:[{rotate}]
-      }]}/>
+      <View style={[s.logoRing,{width:size*.88,height:size*.88,borderRadius:size}]}/>
+      <View style={[s.logoRing2,{width:size*.70,height:size*.70,borderRadius:size}]}/>
       <Text style={{color:'#fff',fontWeight:'900',fontSize:size*.34,
         textShadowColor:C.violet,textShadowRadius:12}}>EP</Text>
       <View style={[s.logoGlint,{width:size*.19}]}/>
@@ -136,22 +121,11 @@ function SocialDock({onOpen}) {
 }
 
 function PreviewCard({item,onPress}) {
-  const pulse=useRef(new Animated.Value(.78)).current;
-  useEffect(()=>{
-    const loop=Animated.loop(Animated.sequence([
-      Animated.timing(pulse,{toValue:1,duration:900,useNativeDriver:true}),
-      Animated.timing(pulse,{toValue:.78,duration:900,useNativeDriver:true})
-    ]));
-    loop.start();
-    return ()=>loop.stop();
-  },[pulse]);
   return (
     <TouchableOpacity style={s.previewCard} onPress={onPress}>
       <View style={[s.previewVisual,{borderColor:item.color+'66'}]}>
-        <Animated.View style={{opacity:pulse,transform:[{scale:pulse}]}}>
-          <Text style={[s.previewIcon,{color:item.color}]}>{item.icon}</Text>
-        </Animated.View>
-        <Text style={s.previewPlay}>▶ FEATURE PREVIEW</Text>
+        <Text style={[s.previewIcon,{color:item.color}]}>{item.icon}</Text>
+        <Text style={s.previewPlay}>FEATURE PREVIEW</Text>
       </View>
       <Text style={s.previewName}>{item.name}</Text>
       <Text style={s.previewSub}>{item.sub}</Text>
