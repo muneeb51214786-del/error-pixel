@@ -1339,7 +1339,7 @@ const s=StyleSheet.create({
   helpTitle:{color:C.white,fontSize:9,fontWeight:'900',marginTop:8},
   emptyCard:{alignItems:'center',padding:22,borderRadius:19,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
   emptyTitle:{color:C.white,fontSize:11,fontWeight:'800',marginTop:12},
-  projectRow:{flexDirection:'row',alignItems:'center',gap:12,padding:14,marginBottom:10,borderRadius:17,backgroundColor:'rgba(20,28,51,.95)',borderWidth:1,borderTopColor:'rgba(255,255,255,.32)',borderLeftColor:'rgba(167,139,250,.34)',borderRightColor:'rgba(114,232,255,.40)',borderBottomColor:'rgba(83,103,170,.48)},
+  projectRow:{flexDirection:'row',alignItems:'center',gap:12,padding:14,marginBottom:10,borderRadius:17,backgroundColor:'rgba(20,28,51,.95)',borderWidth:1,borderTopColor:'rgba(255,255,255,.32)',borderLeftColor:'rgba(167,139,250,.34)',borderRightColor:'rgba(114,232,255,.40)',borderBottomColor:'rgba(83,103,170,.48)'},
   tiktokStats:{marginTop:25,padding:15,borderRadius:18,backgroundColor:'#151321',borderWidth:1,borderColor:'rgba(128,232,243,.35)'},
   tiktokHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
   tiktokTitle:{color:C.white,fontSize:15,fontWeight:'900',marginTop:5},
