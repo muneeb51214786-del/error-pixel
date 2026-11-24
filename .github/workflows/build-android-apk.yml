@@ -28,6 +28,9 @@ jobs:
       - name: Install project dependencies
         run: npm install
 
+      - name: Validate Android JavaScript bundle
+        run: npx expo export --platform android --output-dir /tmp/error-pixel-export
+
       - name: Build APK with Expo EAS
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
