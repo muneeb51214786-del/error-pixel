@@ -2,7 +2,7 @@ import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, SafeAreaView,
   StatusBar, StyleSheet, Modal, Linking,
-  ActivityIndicator, TextInput, useWindowDimensions, Platform
+  ActivityIndicator, TextInput, useWindowDimensions, Platform, Animated, Easing
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -168,6 +168,22 @@ function ToolButton({item,active,onPress,compact=false}) {
   );
 }
 
+function TurboEngine(){
+  const pulse=useRef(new Animated.Value(.35)).current;
+  useEffect(()=>{
+    const loop=Animated.loop(Animated.sequence([
+      Animated.timing(pulse,{toValue:1,duration:850,easing:Easing.inOut(Easing.ease),useNativeDriver:true}),
+      Animated.timing(pulse,{toValue:.35,duration:850,easing:Easing.inOut(Easing.ease),useNativeDriver:true})
+    ]));
+    loop.start();
+    return ()=>loop.stop();
+  },[pulse]);
+  return <View style={s.turboPanel}>
+    <View style={s.turboTop}><Animated.View style={[s.turboLamp,{opacity:pulse}]}/><Text style={s.turboTitle}>TURBO ENGINE</Text><Text style={s.turboLive}>AE WORKSPACE · READY</Text></View>
+    <Text style={s.turboSub}>COMPOSITION · LAYERS · KEYFRAMES · GRAPH EDITOR · EFFECTS RACK</Text>
+  </View>;
+}
+
 function AppContent() {
   const {width,height}=useWindowDimensions();
   const landscape=width>height;
@@ -289,10 +305,10 @@ function AppContent() {
   const chooseOption=option=>{
     saveHistory();
     setLastAction(option+' selected');
-    if(tool==='Split')setClips(v=>v+1);
+    if(tool==='Split'&&option==='Split at playhead')setClips(v=>v+1);
     if(tool==='Speed'&&option==='Frame Interpolation')setTool('Frame Interpolation');
     if(/120|240/.test(option)&&/FPS/.test(option))setFps(option.split('→').pop().trim());
-    if(option==='Split at playhead')setClips(v=>v+1);
+    if(option==='Split at playhead'&&tool!=='Split')setClips(v=>v+1);
     if(tool==='Export'){
       if(option.includes('FPS'))setFps(option);
       else setResolution(option);
@@ -829,6 +845,7 @@ function AppContent() {
               </View>
 
               <View style={s.centerWorkspace}>
+                <TurboEngine/>
                 <PreviewMonitor desktop/>
                 <EditorTools/>
                 <Timeline desktop/>
@@ -864,7 +881,6 @@ function AppContent() {
               <TextInput value={toolSearch} onChangeText={setToolSearch} placeholder="Search video editing tools..." placeholderTextColor={C.muted} style={[s.nameInput,{marginHorizontal:9,marginTop:4,marginBottom:2}]}/>
               <PreviewMonitor/>
               <Timeline/>
-              <EditorTools/>
               <View style={{paddingHorizontal:9,marginTop:3}}><TextInput value={mediaSearch} onChangeText={setMediaSearch} placeholder="Search imported videos, photos and project media..." placeholderTextColor={C.muted} style={s.nameInput}/></View>
               <View style={s.toolDock}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.mobileCategories}>
@@ -877,6 +893,13 @@ function AppContent() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.toolList}>
                   {visibleTools.map(x=>(
                     <ToolButton key={x[0]} item={x} active={tool===x[0]} onPress={()=>chooseTool(x[0])}/>
+                  ))}
+                </ScrollView>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.mobileOptionList}>
+                  {getToolOptions(tool).map(option=>(
+                    <TouchableOpacity key={option} style={s.mobileOption} onPress={()=>chooseOption(option)}>
+                      <Text style={s.mobileOptionText}>{option}</Text>
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
@@ -1279,7 +1302,7 @@ const s=StyleSheet.create({
   exportTop:{height:37,paddingHorizontal:12,borderRadius:20,alignItems:'center',justifyContent:'center',backgroundColor:'#7655C2',borderWidth:1,borderColor:'#C7B0FF'},
   shortcutTop:{height:35,paddingHorizontal:9,borderRadius:18,alignItems:'center',justifyContent:'center',backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
   exportTopText:{color:'#fff',fontSize:8,fontWeight:'900'},
-  mobileEditor:{flex:1,paddingBottom:106},
+  mobileEditor:{flex:1,paddingBottom:164},
   preview:{margin:9,padding:8,borderRadius:15,backgroundColor:'#0E0C18',borderWidth:1,borderColor:C.line},
   previewMeta:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
   previewCanvas:{height:130,width:'82%',alignSelf:'center',alignItems:'center',justifyContent:'center',marginVertical:5,borderRadius:8,backgroundColor:'#1A1530',borderWidth:1,borderColor:'rgba(169,139,255,.5)'},
@@ -1310,7 +1333,16 @@ const s=StyleSheet.create({
   toolPanel:{marginHorizontal:8,marginTop:5,padding:9,borderRadius:13,backgroundColor:'#17162A',borderWidth:1,borderTopColor:'rgba(255,255,255,.42)',borderLeftColor:'rgba(181,157,255,.45)',borderRightColor:'rgba(102,220,240,.32)',borderBottomColor:'rgba(82,67,128,.85)'},
   toolPanelHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:7,gap:8},
   toolTitle:{color:C.white,fontSize:11,fontWeight:'900',marginTop:3},
-  toolDock:{position:'absolute',left:0,right:0,bottom:0,paddingTop:7,paddingBottom:8,backgroundColor:'#10101A',borderTopWidth:1,borderColor:'rgba(200,180,255,.32)',elevation:18,zIndex:20},
+  toolDock:{position:'absolute',left:0,right:0,bottom:0,paddingTop:7,paddingBottom:8,backgroundColor:'#100F1D',borderTopWidth:1,borderTopColor:'rgba(219,207,255,.55)',borderBottomColor:'rgba(70,205,231,.45)',elevation:22,zIndex:20,shadowColor:'#8E79E8',shadowOpacity:.32,shadowRadius:14},
+  mobileOptionList:{alignItems:'center',paddingHorizontal:7,paddingTop:6,gap:6},
+  mobileOption:{paddingHorizontal:10,paddingVertical:7,borderRadius:8,backgroundColor:'#25213B',borderWidth:1,borderTopColor:'rgba(255,255,255,.4)',borderLeftColor:'rgba(190,170,255,.45)',borderRightColor:'rgba(106,220,240,.35)',borderBottomColor:'rgba(70,57,110,.9)'},
+  mobileOptionText:{color:'#DCD8F2',fontSize:8,fontWeight:'800'},
+  turboPanel:{paddingHorizontal:9,paddingVertical:7,marginBottom:5,borderRadius:10,backgroundColor:'#17152A',borderWidth:1,borderTopColor:'rgba(255,255,255,.4)',borderLeftColor:'rgba(178,153,255,.48)',borderRightColor:'rgba(107,219,239,.42)',borderBottomColor:'rgba(76,60,125,.9)'},
+  turboTop:{flexDirection:'row',alignItems:'center',gap:7},
+  turboLamp:{width:7,height:7,borderRadius:4,backgroundColor:'#78EAF5',shadowColor:'#78EAF5',shadowOpacity:1,shadowRadius:7},
+  turboTitle:{color:'#E7E1FF',fontSize:9,fontWeight:'900',letterSpacing:1.3},
+  turboLive:{marginLeft:'auto',color:'#82E9F3',fontSize:6,fontWeight:'900'},
+  turboSub:{color:'#9E96B8',fontSize:6,letterSpacing:.7,marginTop:5},
   mobileCategories:{alignItems:'center',paddingHorizontal:8,paddingBottom:7,gap:6},
   mobileCategory:{paddingHorizontal:12,paddingVertical:7,borderRadius:18,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
   toolList:{alignItems:'center',paddingHorizontal:4,paddingBottom:2},
