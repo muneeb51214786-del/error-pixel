@@ -1280,7 +1280,7 @@ const s=StyleSheet.create({
   dashboardStatusTitle:{color:C.white,fontSize:13,fontWeight:'800',marginTop:6},
   statusPill:{paddingHorizontal:11,paddingVertical:7,borderRadius:20,backgroundColor:'rgba(101,200,169,.13)',borderWidth:1,borderColor:'rgba(101,200,169,.4)'},
   statusPillText:{color:C.green,fontSize:8,fontWeight:'900',letterSpacing:1},
-  topBar:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:20,padding:11,borderRadius:19,backgroundColor:'rgba(17,25,47,.88)',borderWidth:1,borderTopColor:'rgba(255,255,255,.25)',borderLeftColor:'rgba(167,139,250,.28)',borderRightColor:'rgba(114,232,255,.34)',borderBottomColor:'rgba(91,110,169,.38)},
+  topBar:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:20,padding:11,borderRadius:19,backgroundColor:'rgba(17,25,47,.88)',borderWidth:1,borderTopColor:'rgba(255,255,255,.25)',borderLeftColor:'rgba(167,139,250,.28)',borderRightColor:'rgba(114,232,255,.34)',borderBottomColor:'rgba(91,110,169,.38)'},
   topActions:{flexDirection:'row',gap:8},
   brandRow:{flexDirection:'row',alignItems:'center',gap:10},
   brand:{color:C.white,fontSize:16,fontWeight:'900',letterSpacing:1.2},
