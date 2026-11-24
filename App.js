@@ -35,8 +35,30 @@ const TOOL_GROUPS = {
   Photo: ['Photo Crop','Photo Resize','Photo Rotate','Layers','Blend Modes','Healing Brush','Clone Stamp','Liquify','Perspective Correction','RAW Editing','Background Removal','Background Replacement','Photo Filters','Photo Color Grade','Photo Curves','Photo HSL','Photo Sharpen','Photo Denoise','Photo Upscale','Object Removal','Portrait Retouch','3D Photo'],
   Output: ['Export','Export Presets','Bitrate','Codec','Color Space','Chroma Subsampling','Audio Sample Rate','Project Backup','Cloud Storage','Account Sync']
 };
-const TOOL_ICONS = {'Import':'＋','Media Library':'▣','Split':'✂','Trim':'↔','Cut':'⌁','Crop':'⌗','Rotate':'⟳','Speed':'◷','Keyframe':'◇','Graph Editor':'⌁','AI Video Enhancer':'✦','AI Quality Upscaler':'⤢','FPS Booster':'⏩','Color Grading':'◐','Audio':'♫','Export':'⇧'};
-const TOOLS = Object.entries(TOOL_GROUPS).flatMap(([group,names])=>names.map(name=>[name,TOOL_ICONS[name]||'✧',group]));
+const TOOL_ICONS = {
+  'Import':'⇧','Media Library':'▤','Media Search':'⌕','Selection':'↖','Hand':'✋',
+  'Trim':'⟷','Cut':'⌁','Split':'✂','Slice':'◩','Crop':'⌗','Resize':'⤢','Rotate':'⟳','Flip':'⇋','Mirror':'◫',
+  'Reverse':'◀','Freeze Frame':'❄','Loop':'⟳','Duplicate':'▣','Merge':'⊕','Join':'⊔','Razor Tool':'╱',
+  'Speed':'◷','Speed Ramp':'⌁','Time Remap':'◴','Frame Hold':'Ⅱ','Keyframe':'◇','Graph Editor':'⌁',
+  'Curve Editor':'∿','Velocity Curve':'⌁','Motion Blur':'≋','Motion Paths':'⌖','Anchor Point':'⊙',
+  'Color Correction':'◐','Color Grading':'◒','LUTs':'▦','HSL':'◉','Curves':'∿','Brightness':'☼',
+  'Contrast':'◑','Saturation':'◍','Exposure':'☀','Temperature':'♨','Tint':'◈','Shadows':'◒',
+  'Highlights':'✧','HDR':'◉','Sharpen':'✣','Blur':'◌','Denoise':'▧','Color Wheels':'◉',
+  'MP3 Cutter':'♫','MP4 Audio Extractor':'♬','Equalizer':'▥','Reverb':'〰','Echo':'∿',
+  'Compressor':'▤','Pitch Changer':'♩','Noise Reduction':'▥','Auto Beat Sync':'♬',
+  'Glitch':'▨','VHS':'▥','Lens Flare':'☼','Light Leak':'◉','Bokeh':'❖','Distortion':'⌁',
+  'Shake':'↝','3D':'◇','Particles':'⁙','Smoke':'≋','Fire':'♨','Rain':'╱','Snow':'❄','Glow':'✧',
+  'Zoom In':'⊕','Zoom Out':'⊖','Whip':'➜','Spin':'⟳','Morph':'◉','Cross Dissolve':'◍',
+  'Title Tool':'T','Auto Captions':'▤','Subtitle Generator':'▤','Logo Animation':'◇',
+  'Shape Tool':'⬡','Vector Drawing':'⌁','Pen Tool':'✎','3D Text':'T³','Masking':'◩',
+  'Rotoscoping':'✂','Chroma Key':'▧','Green Screen':'▣','Motion Tracking':'⌖',
+  'Stabilization':'⊕','FPS Booster':'⏩','RIFE AI':'R','Flowframes':'F','DAIN':'D',
+  'AI Video Enhancer':'✧','AI Quality Upscaler':'⤢','AI Photo Enhancer':'▧',
+  'Photo Crop':'⌗','Photo Resize':'⤢','Photo Rotate':'⟳','Layers':'▤',
+  'Export':'⇧','Export Presets':'▦','Bitrate':'▥','Codec':'▧'
+};
+const groupGlyphs = {Edit:'⌁',Motion:'◇',Color:'◉',Audio:'♫',Effects:'✣',Transitions:'⇢',Text:'T',Advanced:'⌖',AI:'✧',Photo:'▧',Output:'⇧'};
+const TOOLS = Object.entries(TOOL_GROUPS).flatMap(([group,names])=>names.map(name=>[name,TOOL_ICONS[name]||groupGlyphs[group]||'⌁',group]));
 const RESOLUTIONS = ['144p','240p','360p','480p','720p HD','1080p Full HD','2K QHD','4K Ultra HD','5K','6K','8K Ultra HD','12K','16K Ultra HD'];
 const FORMATS = ['MP3','MP4','MOV','AVI','MKV','WEBM','ProRes','DNxHD'];
 const FRAME_RATES = ['24 FPS','30 FPS','60 FPS','90 FPS','120 FPS','240 FPS','480 FPS','960 FPS','1000 FPS','2000 FPS','10000 FPS (Future)'];
@@ -59,7 +81,7 @@ const OPTIONS = {
   Split:['Split at playhead','Split all tracks','Split selected track'],
   Trim:['Trim start','Trim end','Trim both sides'],
   Speed:['0.1×','0.25×','0.5×','0.75×','1×','1.5×','2×','4×','10×','25×','50×','100×','Speed curve','Frame Interpolation'],
-  'Frame Interpolation':['Off','Frame Blending','Optical Flow','AI Frame Generation'],
+  'Frame Interpolation':['Off','Frame Blending','Optical Flow','AI Frame Generation','30 → 60 FPS','30 → 120 FPS','60 → 120 FPS','120 → 240 FPS','RIFE AI · 120 FPS','RIFE AI · 240 FPS','DAIN AI · 120 FPS','DAIN AI · 240 FPS'],
   'AI Video Enhancer':['Topaz Video AI · Proteus','Topaz Video AI · Iris','Topaz Video AI · Artemis','Enhance fine details','Recover texture','Denoise video','Deblur motion','Improve clarity','AI processing service required'],
   'AI Quality Upscaler':['2× AI Upscale','4× AI Upscale','8K Ultra HD Upscale','Topaz-style detail recovery','Face refinement','Texture recovery','AI processing service required'],
   'FPS Booster':['30 → 60 FPS','30 → 120 FPS','60 → 120 FPS','120 → 240 FPS','Optical Flow','RIFE AI Interpolation','DAIN AI Interpolation','AI frame generation required'],
@@ -158,6 +180,7 @@ function AppContent() {
   const [clips,setClips]=useState(1);
   const [playing,setPlaying]=useState(false);
   const [fps,setFps]=useState('60 FPS');
+  const [playhead,setPlayhead]=useState(50);
   const [resolution,setResolution]=useState('1080p');
   const [modal,setModal]=useState('');
   const [helpQuestion,setHelpQuestion]=useState('');
@@ -268,6 +291,8 @@ function AppContent() {
     setLastAction(option+' selected');
     if(tool==='Split')setClips(v=>v+1);
     if(tool==='Speed'&&option==='Frame Interpolation')setTool('Frame Interpolation');
+    if(/120|240/.test(option)&&/FPS/.test(option))setFps(option.split('→').pop().trim());
+    if(option==='Split at playhead')setClips(v=>v+1);
     if(tool==='Export'){
       if(option.includes('FPS'))setFps(option);
       else setResolution(option);
@@ -367,6 +392,19 @@ function AppContent() {
   ];
 
   const visibleTools=TOOLS.filter(x=>(category==='All'||x[2]===category)&&x[0].toLowerCase().includes(toolSearch.toLowerCase()));
+  const getToolOptions=name=>OPTIONS[name]||({
+    Edit:['Apply to selected clip','Set in point','Set out point','Duplicate clip','Reset tool'],
+    Motion:['Add keyframe','Ease in','Ease out','Open graph editor','Reset motion'],
+    Color:['Auto correction','Adjust intensity','Apply to selected clip','Reset color'],
+    Audio:['Apply to selected audio','Fade in','Fade out','Preview audio','Reset audio'],
+    Effects:['Apply effect','Adjust strength','Preview effect','Remove effect'],
+    Transitions:['Apply transition','Duration 0.5s','Duration 1.0s','Duration 2.0s'],
+    Text:['Add text layer','Edit text','Choose font','Animate text'],
+    Advanced:['Apply to selected layer','Track forward','Track backward','Reset analysis'],
+    AI:['Choose AI model','Preview processing','Quality: High','AI service required'],
+    Photo:['Apply to image','Adjust strength','Preview','Reset image'],
+    Output:['Open export settings','Save preset','Export settings']
+  }[TOOLS.find(x=>x[0]===name)?.[2]]||['Apply','Adjust settings','Reset tool']);
   const activeRank=CREATOR_LEVELS[Math.max(0,Math.min(7,creatorLevel-1))];
   const openTool=name=>{setPage('editor');setTool(name);};
   const addCreatorPoints=async amount=>{const n=creatorPoints+amount;setCreatorPoints(n);const rank=CREATOR_LEVELS.filter(x=>n>=x.points).slice(-1)[0]?.level||1;setCreatorLevel(rank);try{await AsyncStorage.multiSet([['ERROR_PIXEL_CREATOR_POINTS',String(n)],['ERROR_PIXEL_CREATOR_ID',creatorId]]);}catch(e){}};
@@ -401,7 +439,7 @@ function AppContent() {
         <Text style={s.smallMuted} numberOfLines={1}>{lastAction}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {(OPTIONS[tool]||['Select','Adjust','Settings','Apply']).map(x=>(
+        {getToolOptions(tool).map(x=>(
           <TouchableOpacity key={x} style={s.option} onPress={()=>chooseOption(x)}>
             <Text style={s.optionText}>{x}</Text>
           </TouchableOpacity>
@@ -415,6 +453,13 @@ function AppContent() {
       maxHeight:height<430?124:Math.max(165,Math.min(250,Math.floor(height*.46))),
       flexShrink:0
     }]}>
+      <View pointerEvents="none" style={s.playheadOverlay}>
+        <View style={s.playheadSideLeft}/>
+        <View style={s.playheadSideRight}/>
+        <View style={s.playheadLine}/>
+        <View style={s.playheadCap}/>
+        <Text style={s.playheadLabel}>PLAYHEAD · SPLIT HERE</Text>
+      </View>
       <View style={s.timelineHead}>
         <View>
           <Text style={s.eyebrow}>MULTI-TRACK SEQUENCE</Text>
@@ -427,8 +472,8 @@ function AppContent() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{minWidth:620}}>
           <View style={s.rulerInner}>
-            {['00:00','00:03','00:06','00:09','00:12','00:15','00:18','00:21'].map(x=>(
-              <Text key={x} style={s.rulerText}>{x}</Text>
+            {['00:00','00:03','00:06','00:09','00:12','00:15','00:18','00:21'].map((x,i)=>(
+              <TouchableOpacity key={x} onPress={()=>{setPlayhead(i*100/7);setLastAction('Playhead moved to '+x);}}><Text style={[s.rulerText,Math.abs(playhead-i*100/7)<8&&{color:C.cyan}]}>{x}</Text></TouchableOpacity>
             ))}
           </View>
           <ScrollView
@@ -797,7 +842,7 @@ function AppContent() {
                 <View style={s.inspectorDivider}/>
                 <Text style={s.inspectorLabel}>AVAILABLE OPTIONS</Text>
                 <ScrollView style={{flex:1}}>
-                  {(OPTIONS[tool]||['Select','Adjust','Settings','Apply']).map(x=>(
+                  {getToolOptions(tool).map(x=>(
                     <TouchableOpacity key={x} style={s.inspectorOption} onPress={()=>chooseOption(x)}>
                       <Text style={s.optionText}>{x}</Text>
                       <Text style={s.link}>›</Text>
@@ -1225,7 +1270,7 @@ const s=StyleSheet.create({
   subTitle:{color:C.white,fontSize:11,fontWeight:'900',letterSpacing:1.4},
   subContent:{padding:17},
   photoCanvas:{height:240,alignItems:'center',justifyContent:'center',gap:10,borderRadius:18,backgroundColor:C.panel,borderWidth:1,borderColor:C.line,marginBottom:16},
-  option:{paddingHorizontal:12,paddingVertical:9,borderRadius:20,marginRight:6,marginBottom:7,backgroundColor:'rgba(169,139,255,.12)',borderWidth:1,borderColor:C.line},
+  option:{paddingHorizontal:12,paddingVertical:9,borderRadius:9,marginRight:6,marginBottom:7,backgroundColor:'#26213B',borderWidth:1,borderTopColor:'rgba(255,255,255,.38)',borderLeftColor:'rgba(189,168,255,.4)',borderRightColor:'rgba(105,216,238,.34)',borderBottomColor:'rgba(70,57,110,.9)'},
   optionText:{color:C.white,fontSize:8,fontWeight:'800'},
   plan:{padding:18,borderRadius:17,backgroundColor:C.panel,borderWidth:1,borderColor:C.line,marginBottom:12},
   planPrice:{color:C.white,fontSize:25,fontWeight:'900',marginVertical:9},
@@ -1247,7 +1292,13 @@ const s=StyleSheet.create({
   keyframeOn:{backgroundColor:'rgba(233,211,159,.16)',borderColor:C.gold},
   controlGlyph:{color:C.white,fontSize:17,fontWeight:'900'},
   controlLabel:{color:C.muted,fontSize:6,fontWeight:'900',marginTop:2},
-  timelineBox:{marginHorizontal:8,marginBottom:4},
+  timelineBox:{marginHorizontal:8,marginBottom:4,position:'relative'},
+  playheadOverlay:{position:'absolute',left:'50%',top:35,bottom:4,width:1,zIndex:8,alignItems:'center'},
+  playheadLine:{position:'absolute',top:0,bottom:0,width:2,backgroundColor:'#78EAF5',shadowColor:'#78EAF5',shadowOpacity:.9,shadowRadius:7,elevation:7},
+  playheadCap:{position:'absolute',top:-4,width:11,height:11,backgroundColor:'#78EAF5',borderRadius:2,transform:[{rotate:'45deg'}]},
+  playheadLabel:{position:'absolute',top:9,left:7,width:105,color:'#8DECF5',fontSize:6,fontWeight:'900',letterSpacing:.5,backgroundColor:'rgba(8,7,17,.82)',padding:3},
+  playheadSideLeft:{position:'absolute',top:0,bottom:0,left:-95,width:1,backgroundColor:'rgba(128,232,243,.16)'},
+  playheadSideRight:{position:'absolute',top:0,bottom:0,left:95,width:1,backgroundColor:'rgba(128,232,243,.16)'},
   timelineHead:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginHorizontal:3,marginTop:4,marginBottom:5},
   rulerInner:{width:620,flexDirection:'row',justifyContent:'space-between',paddingLeft:92,paddingRight:10,paddingVertical:7,borderBottomWidth:1,borderColor:C.line},
   rulerText:{color:C.muted,fontSize:8},
@@ -1256,7 +1307,7 @@ const s=StyleSheet.create({
   trackLane:{flex:1,justifyContent:'center',paddingHorizontal:6},
   clip:{height:21,borderRadius:6,justifyContent:'center',paddingHorizontal:7},
   clipText:{color:'#fff',fontSize:6,fontWeight:'900'},
-  toolPanel:{marginHorizontal:8,marginTop:5,padding:9,borderRadius:13,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
+  toolPanel:{marginHorizontal:8,marginTop:5,padding:9,borderRadius:13,backgroundColor:'#17162A',borderWidth:1,borderTopColor:'rgba(255,255,255,.42)',borderLeftColor:'rgba(181,157,255,.45)',borderRightColor:'rgba(102,220,240,.32)',borderBottomColor:'rgba(82,67,128,.85)'},
   toolPanelHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:7,gap:8},
   toolTitle:{color:C.white,fontSize:11,fontWeight:'900',marginTop:3},
   toolDock:{position:'absolute',left:0,right:0,bottom:0,paddingTop:7,paddingBottom:8,backgroundColor:'#10101A',borderTopWidth:1,borderColor:'rgba(200,180,255,.32)',elevation:18,zIndex:20},
@@ -1265,8 +1316,8 @@ const s=StyleSheet.create({
   toolList:{alignItems:'center',paddingHorizontal:4,paddingBottom:2},
   toolItem:{width:61,alignItems:'center',justifyContent:'center'},
   toolCircle:{width:39,height:39,borderRadius:21,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,.055)',borderWidth:1,borderColor:'rgba(205,188,255,.17)'},
-  toolCircleActive:{backgroundColor:'rgba(128,232,243,.12)',borderColor:C.cyan},
-  toolGlyph:{color:'#B9B2C9',fontSize:17,fontWeight:'800'},
+  toolCircleActive:{backgroundColor:'#292D50',borderColor:C.cyan,shadowColor:C.cyan,shadowOpacity:.55,shadowRadius:9,elevation:8},
+  toolGlyph:{color:'#D5D1EB',fontSize:17,fontWeight:'900',textShadowColor:'rgba(255,255,255,.35)',textShadowRadius:3},
   toolName:{color:C.muted,fontSize:6,fontWeight:'800',marginTop:4},
   engineNote:{color:C.muted,fontSize:6,textAlign:'center',paddingVertical:4},
   landscapeWorkspace:{flex:1,flexDirection:'row',padding:7,gap:7},
