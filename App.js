@@ -453,7 +453,7 @@ function AppContent() {
       maxHeight:height<430?124:Math.max(165,Math.min(250,Math.floor(height*.46))),
       flexShrink:0
     }]}>
-      <View pointerEvents="none" style={s.playheadOverlay}>
+      <View pointerEvents="none" style={[s.playheadOverlay,{left:playhead+'%'}]}>
         <View style={s.playheadSideLeft}/>
         <View style={s.playheadSideRight}/>
         <View style={s.playheadLine}/>
