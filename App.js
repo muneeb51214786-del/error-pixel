@@ -169,6 +169,7 @@ function ToolButton({item,active,onPress,compact=false}) {
 }
 
 function TurboEngine(){
+  const [started,setStarted]=useState(false);
   const pulse=useRef(new Animated.Value(.35)).current;
   useEffect(()=>{
     const loop=Animated.loop(Animated.sequence([
@@ -179,8 +180,8 @@ function TurboEngine(){
     return ()=>loop.stop();
   },[pulse]);
   return <View style={s.turboPanel}>
-    <View style={s.turboTop}><Animated.View style={[s.turboLamp,{opacity:pulse}]}/><Text style={s.turboTitle}>TURBO ENGINE</Text><Text style={s.turboLive}>AE WORKSPACE · READY</Text></View>
-    <Text style={s.turboSub}>COMPOSITION · LAYERS · KEYFRAMES · GRAPH EDITOR · EFFECTS RACK</Text>
+    <View style={s.turboTop}><Animated.View style={[s.turboLamp,{opacity:pulse}]}/><Text style={s.turboTitle}>TURBO ENGINE</Text><TouchableOpacity onPress={()=>setStarted(v=>!v)}><Text style={s.turboLive}>{started?'ENGINE UI ACTIVE':'▶ START TURBO'}</Text></TouchableOpacity></View>
+    <Text style={s.turboSub}>{started?'WORKSPACE SESSION ACTIVE · RENDER ENGINE CONNECTION STILL REQUIRED':'COMPOSITION · LAYERS · KEYFRAMES · GRAPH EDITOR · EFFECTS RACK'}</Text>
   </View>;
 }
 
@@ -197,6 +198,7 @@ function AppContent() {
   const [playing,setPlaying]=useState(false);
   const [fps,setFps]=useState('60 FPS');
   const [playhead,setPlayhead]=useState(50);
+  const [keyframes,setKeyframes]=useState([]);
   const [resolution,setResolution]=useState('1080p');
   const [modal,setModal]=useState('');
   const [helpQuestion,setHelpQuestion]=useState('');
@@ -299,7 +301,7 @@ function AppContent() {
     if(name==='Export')setModal('export');
     if(name==='Import')setLastAction('Media picker connection required');
     if(name==='Frame Interpolation')setLastAction('Choose Frame Blending, Optical Flow or AI Frame Generation in Speed / Interpolation options');
-    if(name==='Keyframe')setKeyframeActive(v=>!v);
+    if(name==='Keyframe'){setKeyframeActive(true);setKeyframes(v=>v.some(k=>k.track===0&&k.at===Math.round(playhead))?v:[...v,{track:0,at:Math.round(playhead)}]);}
   };
 
   const chooseOption=option=>{
@@ -503,14 +505,16 @@ function AppContent() {
               <View key={x.name} style={s.track}>
                 <Text style={s.trackName}>{x.name}</Text>
                 <View style={s.trackLane}>
-                  <View style={[s.clip,{
+                  <TouchableOpacity activeOpacity={.85} onPress={()=>{
+                    setLastAction(x.name+' layer selected at '+Math.round(playhead)+'%');
+                    if(keyframeActive)setKeyframes(v=>v.some(k=>k.track===i&&k.at===Math.round(playhead))?v:[...v,{track:i,at:Math.round(playhead)}]);
+                  }} style={[s.clip,{
                     width:Math.min(150+clips*24,390),
                     backgroundColor:x.color
                   }]}>
-                    <Text style={s.clipText}>
-                      {i===0?'VIDEO CLIP '+clips:x.name+' LAYER'}
-                    </Text>
-                  </View>
+                    <Text style={s.clipText}>{i===0?'VIDEO CLIP '+clips:x.name+' LAYER'}</Text>
+                    {keyframes.filter(k=>k.track===i).map(k=><View key={k.at} style={[s.keyframeMarker,{left:(k.at/100)*Math.min(150+clips*24,390)}]}/>)}
+                  </TouchableOpacity>
                 </View>
               </View>
             ))}
