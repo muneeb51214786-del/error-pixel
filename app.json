@@ -8,7 +8,12 @@
     "newArchEnabled": true,
     "android": {
       "package": "com.erroreditx.errorpixel",
-      "versionCode": 1
+      "versionCode": 2
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5135197d-0dc7-4ed7-9162-c406dba830bd"
+      }
     }
   }
 }
