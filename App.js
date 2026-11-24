@@ -13,7 +13,6 @@ const C = {
   line:'rgba(205,188,255,.20)', green:'#65C8A9'
 };
 
-const DAILY_REWARD = 3;
 const TIKTOK = 'https://www.tiktok.com/@erroreditx99';
 
 const SOCIAL = [
@@ -180,9 +179,6 @@ function AppContent() {
 
   const [page,setPage]=useState('welcome');
   const [drawer,setDrawer]=useState(false);
-  const [tokens,setTokens]=useState(0);
-  const [claimDate,setClaimDate]=useState('');
-  const [claimStep,setClaimStep]=useState('idle');
   const [tool,setTool]=useState('Split');
   const [lastAction,setLastAction]=useState('Ready to edit');
   const [clips,setClips]=useState(1);
@@ -359,20 +355,13 @@ function AppContent() {
     let mounted=true;
     const init=async()=>{
       try {
-        const [b,d,p,cid,pts,photos]=await Promise.all([
-          AsyncStorage.getItem('ERROR_PIXEL_BALANCE'),
-          AsyncStorage.getItem('ERROR_PIXEL_DAILY_CLAIM_DATE'),
+        const [p,cid,pts,photos]=await Promise.all([
           AsyncStorage.getItem('ERROR_PIXEL_PROJECTS'),
           AsyncStorage.getItem('ERROR_PIXEL_CREATOR_ID'),
           AsyncStorage.getItem('ERROR_PIXEL_CREATOR_POINTS'),
           AsyncStorage.getItem('ERROR_PIXEL_PHOTO_PROJECTS')
         ]);
         if(!mounted)return;
-        if(b!==null)setTokens(Number(b)||0);
-        if(d){
-          setClaimDate(d);
-          if(d===today())setClaimStep('claimed');
-        }
         if(p)setProjects(JSON.parse(p));
         if(cid)setCreatorId(cid);
         if(pts){const n=Number(pts)||0;setCreatorPoints(n);setCreatorLevel(CREATOR_LEVELS.filter(x=>n>=x.points).slice(-1)[0]?.level||1);}
@@ -389,27 +378,6 @@ function AppContent() {
   const openSocial=async url=>{
     try{await Linking.openURL(url);}
     catch(e){console.log('Open link failed:',e);}
-  };
-
-  const claimDaily=async()=>{
-    if(claimDate===today())return;
-    setClaimStep('visited');
-    await openSocial(TIKTOK);
-  };
-
-  const collectTokens=async()=>{
-    if(claimDate===today())return;
-    const balance=tokens+DAILY_REWARD;
-    const date=today();
-    setTokens(balance);
-    setClaimDate(date);
-    setClaimStep('claimed');
-    try{
-      await AsyncStorage.multiSet([
-        ['ERROR_PIXEL_BALANCE',String(balance)],
-        ['ERROR_PIXEL_DAILY_CLAIM_DATE',date]
-      ]);
-    }catch(e){console.log('Save tokens:',e);}
   };
 
   const saveProject=async()=>{
@@ -604,36 +572,26 @@ function AppContent() {
             <TouchableOpacity style={s.notification} onPress={()=>setPage('creator')}>
               <Text style={s.notificationGlyph}>✦</Text><View style={{flex:1}}><Text style={s.notificationHead}>YOUR CREATOR PROFILE · {activeRank.name.toUpperCase()}</Text><Text style={s.notificationText}>{creatorId} · {creatorPoints.toLocaleString()} Creator Points · {activeRank.reward} Premium reward</Text></View><Text style={s.link}>VIEW ↗</Text>
             </TouchableOpacity>
-            <View style={s.notification}>
-              <Text style={s.notificationGlyph}>◉</Text>
-              <View style={{flex:1}}>
-                <Text style={s.notificationHead}>STUDIO NOTIFICATION</Text>
-                <Text style={s.notificationText}>
-                  {claimStep==='claimed'?'Your daily Error Tokens have been collected.':
-                  claimStep==='visited'?'TikTok opened. Return and collect your tokens.':
-                  'Your daily creator reward is ready.'}
-                </Text>
-              </View>
+            <View style={s.dashboardMetrics}>
+              {[
+                ['PROJECTS',String(projects.length).padStart(2,'0'),'▣'],
+                ['MEDIA ASSETS',String(mediaItems.length).padStart(2,'0'),'▤'],
+                ['CREATOR LEVEL',activeRank.name,'✦']
+              ].map(item=>(
+                <View key={item[0]} style={s.metricCard}>
+                  <Text style={s.metricIcon}>{item[2]}</Text>
+                  <Text style={s.metricValue}>{item[1]}</Text>
+                  <Text style={s.metricLabel}>{item[0]}</Text>
+                </View>
+              ))}
             </View>
-
-            <View style={s.tokenCard}>
+            <View style={s.dashboardStatus}>
               <View style={{flex:1}}>
-                <Text style={s.eyebrow}>DAILY CREATOR REWARD</Text>
-                <Text style={s.tokenHeading}>ERROR TOKENS</Text>
-                <Text style={s.tokenCount}>{tokens} <Text style={s.tokenUnit}>TOKENS</Text></Text>
-                <Text style={s.smallMuted}>Daily reward · +{DAILY_REWARD} tokens</Text>
+                <Text style={s.eyebrow}>WORKSPACE STATUS</Text>
+                <Text style={s.dashboardStatusTitle}>Your creative studio is ready</Text>
+                <Text style={s.smallMuted}>Video, photo and AI tools in one professional workspace</Text>
               </View>
-              <View style={s.tokenRight}>
-                <View style={s.tokenCoin}><Text style={s.coinGlyph}>E</Text></View>
-                <TouchableOpacity disabled={claimStep==='claimed'}
-                  style={[s.claimButton,claimStep==='claimed'&&s.claimDisabled]}
-                  onPress={claimStep==='visited'?collectTokens:claimDaily}>
-                  <Text style={s.claimText}>
-                    {claimStep==='claimed'?'CLAIMED':claimStep==='visited'?'COLLECT':'CLAIM'}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={s.claimHint}>{claimStep==='claimed'?'NEXT CLAIM TOMORROW':'VISIT TIKTOK FIRST'}</Text>
-              </View>
+              <View style={s.statusPill}><Text style={s.statusPillText}>READY</Text></View>
             </View>
 
             <View style={s.welcomeText}>
@@ -890,11 +848,16 @@ function AppContent() {
               <EditorTools/>
               <View style={{paddingHorizontal:9,marginTop:3}}><TextInput value={mediaSearch} onChangeText={setMediaSearch} placeholder="Search imported videos, photos and project media..." placeholderTextColor={C.muted} style={s.nameInput}/></View>
               <View style={s.toolDock}>
-                <Text style={s.dockCaption}>PRO TOOLS · SWIPE TO EXPLORE</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.mobileCategories}>
+                  {['All','Edit','Motion','Color','Audio','Effects','Transitions','Text','Advanced','AI','Output'].map(x=>(
+                    <TouchableOpacity key={x} onPress={()=>setCategory(x)} style={[s.mobileCategory,category===x&&s.categoryActive]}>
+                      <Text style={[s.categoryText,category===x&&{color:C.cyan}]}>{x}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.toolList}>
                   {visibleTools.map(x=>(
-                    <ToolButton key={x[0]} item={x} active={tool===x[0]}
-                      onPress={()=>chooseTool(x[0])}/>
+                    <ToolButton key={x[0]} item={x} active={tool===x[0]} onPress={()=>chooseTool(x[0])}/>
                   ))}
                 </ScrollView>
               </View>
@@ -1006,10 +969,13 @@ function AppContent() {
           {page==='membership'&&(
             <ScrollView contentContainerStyle={s.subContent}>
               {[
-                ['WEEKLY','Rs. 350','150 Error Tokens'],
-                ['MONTHLY','Rs. 1,200','800 Error Tokens'],
-                ['YEARLY','Rs. 9,000','10,000 Error Tokens'],
-                ['LIFETIME','Rs. 30,000','Premium access']
+                ['STANDARD · WEEKLY','Rs. 350','Core editing tools · Standard access'],
+                ['PRO · WEEKLY','Rs. 550','Full professional workspace · Pro access'],
+                ['STANDARD · MONTHLY','Rs. 1,000','Core editing tools · Standard access'],
+                ['PRO · MONTHLY','Rs. 1,500','Full professional workspace · Pro access'],
+                ['STANDARD · YEARLY','Rs. 9,000','Core editing tools · Standard access'],
+                ['PRO · YEARLY','Rs. 11,499','Full professional workspace · Pro access'],
+                ['STANDARD · LIFETIME','Rs. 20,000','Standard access for lifetime']
               ].map(x=>(
                 <View key={x[0]} style={s.plan}>
                   <Text style={s.eyebrow}>{x[0]}</Text>
@@ -1197,7 +1163,16 @@ const s=StyleSheet.create({
   loadingText:{color:C.cyan,fontSize:8,letterSpacing:1.4},
   powered:{color:C.muted,fontSize:8,letterSpacing:1.5,marginTop:24},
   channel:{color:C.violet,fontSize:10,fontWeight:'900',letterSpacing:2,marginTop:8},
-  homeContent:{padding:17,paddingBottom:45},
+  homeContent:{padding:18,paddingBottom:50},
+  dashboardMetrics:{flexDirection:'row',gap:9,marginTop:18},
+  metricCard:{flex:1,minWidth:0,minHeight:104,padding:12,borderRadius:15,backgroundColor:'#151923',borderWidth:1,borderColor:'rgba(150,170,205,.22)'},
+  metricIcon:{color:C.cyan,fontSize:16,fontWeight:'900'},
+  metricValue:{color:C.white,fontSize:17,fontWeight:'900',marginTop:10},
+  metricLabel:{color:C.muted,fontSize:7,fontWeight:'800',letterSpacing:.8,marginTop:5},
+  dashboardStatus:{flexDirection:'row',alignItems:'center',gap:12,padding:15,marginTop:10,borderRadius:15,backgroundColor:'#131A20',borderWidth:1,borderColor:'rgba(101,200,169,.25)'},
+  dashboardStatusTitle:{color:C.white,fontSize:13,fontWeight:'800',marginTop:6},
+  statusPill:{paddingHorizontal:11,paddingVertical:7,borderRadius:20,backgroundColor:'rgba(101,200,169,.13)',borderWidth:1,borderColor:'rgba(101,200,169,.4)'},
+  statusPillText:{color:C.green,fontSize:8,fontWeight:'900',letterSpacing:1},
   topBar:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:18},
   topActions:{flexDirection:'row',gap:8},
   brandRow:{flexDirection:'row',alignItems:'center',gap:10},
@@ -1210,23 +1185,14 @@ const s=StyleSheet.create({
   notificationGlyph:{color:C.cyan,fontSize:19},
   notificationHead:{color:C.cyan,fontSize:7,fontWeight:'900',letterSpacing:1.2},
   notificationText:{color:C.white,fontSize:9,marginTop:4},
-  tokenCard:{flexDirection:'row',alignItems:'center',padding:16,marginBottom:22,borderRadius:21,backgroundColor:'#19142A',borderWidth:1,borderColor:'rgba(169,139,255,.48)'},
   eyebrow:{color:C.cyan,fontSize:7,letterSpacing:1.4,fontWeight:'800'},
-  tokenHeading:{color:C.white,fontSize:13,fontWeight:'900',letterSpacing:1.2,marginTop:5},
-  tokenCount:{color:'#fff',fontSize:26,fontWeight:'900',marginTop:4},
-  tokenUnit:{color:C.violet,fontSize:8,letterSpacing:1},
   smallMuted:{color:C.muted,fontSize:8,marginTop:5},
-  tokenRight:{alignItems:'center',marginLeft:8},
-  tokenCoin:{width:39,height:39,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'#44336D',borderWidth:1,borderColor:C.gold,marginBottom:8},
-  coinGlyph:{color:C.gold,fontSize:21,fontWeight:'900'},
-  claimButton:{minWidth:92,height:38,borderRadius:22,alignItems:'center',justifyContent:'center',backgroundColor:'#8060C7',borderWidth:1,borderColor:'#C9B4FF'},
-  claimDisabled:{backgroundColor:'#383146',borderColor:'#665D77'},
   claimText:{color:'#fff',fontSize:9,fontWeight:'900',letterSpacing:1},
   claimHint:{color:C.muted,fontSize:6,marginTop:6},
   welcomeText:{marginBottom:16},
   heading:{color:C.white,fontSize:25,fontWeight:'900',marginTop:5},
   body:{color:C.muted,fontSize:10,marginTop:8,lineHeight:17},
-  hero:{padding:17,borderRadius:24,backgroundColor:'#171326',borderWidth:1,borderColor:'rgba(193,163,255,.35)'},
+  hero:{padding:17,borderRadius:18,backgroundColor:'#171B25',borderWidth:1,borderColor:'rgba(150,170,205,.25)'},
   heroTop:{flexDirection:'row',justifyContent:'space-between'},
   proBadge:{color:C.gold,fontSize:7,borderWidth:1,borderColor:'rgba(233,211,159,.4)',borderRadius:20,padding:7,overflow:'hidden'},
   heroCenter:{alignItems:'center',paddingVertical:20},
@@ -1240,13 +1206,13 @@ const s=StyleSheet.create({
   sectionTitle:{color:C.white,fontSize:18,fontWeight:'900',marginTop:5},
   counter:{color:C.muted,fontSize:8},
   workspaceGrid:{flexDirection:'row',gap:9},
-  videoCard:{width:'49%',minHeight:170,padding:14,borderRadius:19,justifyContent:'space-between',backgroundColor:'#1B1530',borderWidth:1,borderColor:'rgba(169,139,255,.45)'},
+  videoCard:{width:'49%',minHeight:170,padding:14,borderRadius:15,justifyContent:'space-between',backgroundColor:'#18202B',borderWidth:1,borderColor:'rgba(150,170,205,.28)'},
   cardIcon:{color:C.violet,fontSize:28},
   cardTitle:{color:C.white,fontSize:18,fontWeight:'900'},
   cardSub:{color:C.cyan,fontSize:6,letterSpacing:1,marginTop:7},
   cardArrow:{color:C.white,fontSize:20,position:'absolute',right:13,bottom:12},
   sideCards:{flex:1,gap:9},
-  smallCard:{flex:1,padding:12,borderRadius:17,justifyContent:'center',backgroundColor:'#13212A',borderWidth:1,borderColor:'rgba(128,232,243,.3)'},
+  smallCard:{flex:1,padding:12,borderRadius:14,justifyContent:'center',backgroundColor:'#18212A',borderWidth:1,borderColor:'rgba(150,170,205,.24)'},
   smallCardTitle:{color:C.white,fontSize:9,fontWeight:'900',marginTop:7},
   link:{color:C.cyan,fontSize:8,fontWeight:'900',letterSpacing:.7},
   previewGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:10},
@@ -1294,7 +1260,7 @@ const s=StyleSheet.create({
   exportTop:{height:37,paddingHorizontal:12,borderRadius:20,alignItems:'center',justifyContent:'center',backgroundColor:'#7655C2',borderWidth:1,borderColor:'#C7B0FF'},
   shortcutTop:{height:35,paddingHorizontal:9,borderRadius:18,alignItems:'center',justifyContent:'center',backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
   exportTopText:{color:'#fff',fontSize:8,fontWeight:'900'},
-  mobileEditor:{flex:1},
+  mobileEditor:{flex:1,paddingBottom:106},
   preview:{margin:9,padding:8,borderRadius:15,backgroundColor:'#0E0C18',borderWidth:1,borderColor:C.line},
   previewMeta:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
   previewCanvas:{height:130,width:'82%',alignSelf:'center',alignItems:'center',justifyContent:'center',marginVertical:5,borderRadius:8,backgroundColor:'#1A1530',borderWidth:1,borderColor:'rgba(169,139,255,.5)'},
@@ -1319,9 +1285,10 @@ const s=StyleSheet.create({
   toolPanel:{marginHorizontal:8,marginTop:5,padding:9,borderRadius:13,backgroundColor:C.panel,borderWidth:1,borderColor:C.line},
   toolPanelHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:7,gap:8},
   toolTitle:{color:C.white,fontSize:11,fontWeight:'900',marginTop:3},
-  toolDock:{marginTop:'auto',marginHorizontal:8,marginBottom:4,paddingTop:7,paddingBottom:5,borderRadius:15,backgroundColor:'#12101D',borderWidth:1,borderColor:'rgba(200,180,255,.3)'},
-  dockCaption:{color:C.muted,fontSize:6,letterSpacing:1.2,paddingHorizontal:9,paddingBottom:5},
-  toolList:{alignItems:'center',paddingHorizontal:4},
+  toolDock:{position:'absolute',left:0,right:0,bottom:0,paddingTop:7,paddingBottom:8,backgroundColor:'#10101A',borderTopWidth:1,borderColor:'rgba(200,180,255,.32)',elevation:18,zIndex:20},
+  mobileCategories:{alignItems:'center',paddingHorizontal:8,paddingBottom:7,gap:6},
+  mobileCategory:{paddingHorizontal:12,paddingVertical:7,borderRadius:18,backgroundColor:C.panel2,borderWidth:1,borderColor:C.line},
+  toolList:{alignItems:'center',paddingHorizontal:4,paddingBottom:2},
   toolItem:{width:61,alignItems:'center',justifyContent:'center'},
   toolCircle:{width:39,height:39,borderRadius:21,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(255,255,255,.055)',borderWidth:1,borderColor:'rgba(205,188,255,.17)'},
   toolCircleActive:{backgroundColor:'rgba(128,232,243,.12)',borderColor:C.cyan},
