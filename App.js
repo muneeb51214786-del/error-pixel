@@ -5,6 +5,8 @@ import {
   ActivityIndicator, TextInput, useWindowDimensions, Platform, Animated, Easing, BackHandler
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 const C = {
   bg:'#070A16', panel:'#10172A', panel2:'#19213A',
@@ -239,6 +241,7 @@ function AppContent() {
   const [templateSearch,setTemplateSearch]=useState('');
   const [effectSearch,setEffectSearch]=useState('');
   const [mediaItems,setMediaItems]=useState([]);
+  const [mediaFiles,setMediaFiles]=useState([]);
   const [exportFormat,setExportFormat]=useState('MP4');
   const [creatorTab,setCreatorTab]=useState('Overview');
 
@@ -308,6 +311,30 @@ function AppContent() {
     setLastAction('Clip deleted');
   },[clips,saveHistory]);
 
+  const importMedia=async(kind='all')=>{
+    try{
+      let assets=[];
+      if(kind==='audio'){
+        const result=await DocumentPicker.getDocumentAsync({type:'audio/*',multiple:true,copyToCacheDirectory:true});
+        if(result.canceled)return;
+        assets=(result.assets||[]).map(file=>({name:file.name||'Audio file',uri:file.uri,type:'audio',mimeType:file.mimeType||'audio/*'}));
+      }else{
+        const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if(!permission.granted){setLastAction('Media library permission was not granted. Allow access in Android settings to import media.');return;}
+        const mediaTypes=kind==='video'?['videos']:kind==='image'?['images']:['images','videos'];
+        const result=await ImagePicker.launchImageLibraryAsync({mediaTypes,allowsMultipleSelection:true,quality:1,selectionLimit:0});
+        if(result.canceled)return;
+        assets=(result.assets||[]).map(file=>({name:file.fileName||file.uri?.split('/').pop()||'Media file',uri:file.uri,type:file.type||kind,mimeType:file.mimeType||null}));
+      }
+      if(!assets.length){setLastAction('No media selected');return;}
+      setMediaFiles(current=>[...current,...assets]);
+      setMediaItems(current=>[...current,...assets.map(file=>file.name)]);
+      setClips(current=>current+assets.filter(file=>file.type==='video').length);
+      setLastAction(assets.length+' media file(s) imported successfully');
+      setModal('');
+    }catch(error){setLastAction('Media import failed: '+String(error?.message||error));}
+  };
+
   const chooseTool=name=>{
     saveHistory();
     setTool(name);
@@ -317,7 +344,7 @@ function AppContent() {
       setLastAction('Split action selected — demo timeline');
     }
     if(name==='Export')setModal('export');
-    if(name==='Import')setLastAction('Media picker connection required');
+    if(name==='Import'){setModal('import');setLastAction('Choose the media type to import');}
     if(name==='Frame Interpolation')setLastAction('Choose Frame Blending, Optical Flow or AI Frame Generation in Speed / Interpolation options');
     if(name==='Keyframe'){setKeyframeActive(true);setKeyframes(v=>v.some(k=>k.track===0&&k.at===Math.round(playhead))?v:[...v,{track:0,at:Math.round(playhead)}]);}
   };
@@ -325,6 +352,12 @@ function AppContent() {
   const chooseOption=option=>{
     saveHistory();
     setLastAction(option+' selected');
+    if(tool==='Import'){
+      if(option==='Choose video')return importMedia('video');
+      if(option==='Choose image')return importMedia('image');
+      if(option==='Choose audio')return importMedia('audio');
+      if(option==='Import folder'){setLastAction('Folder import is not supported yet. Select individual media files.');return;}
+    }
     if(tool==='Split'&&option==='Split at playhead')setClips(v=>v+1);
     if(tool==='Speed'&&option==='Frame Interpolation')setTool('Frame Interpolation');
     if(/120|240/.test(option)&&/FPS/.test(option))setFps(option.split('→').pop().trim());
@@ -859,9 +892,9 @@ function AppContent() {
 
           {landscape?(
             <>
-            <View style={s.landscapeWorkspace}>
-              <View style={s.landscapeTopRow}>
-              <View style={[s.leftLibrary,s.leftLibraryPremium]}>
+            <ScrollView style={s.landscapeWorkspace} contentContainerStyle={{minHeight:Math.max(420,height*1.12)}} nestedScrollEnabled showsVerticalScrollIndicator>
+              <View style={[s.landscapeTopRow,{minHeight:Math.max(245,height*.62),flexGrow:0}]}>
+              <ScrollView style={[s.leftLibrary,s.leftLibraryPremium]} nestedScrollEnabled showsVerticalScrollIndicator={false}>
                 <View style={s.sideBrand}>
                   <EPLogo size={35}/>
                   <View><Text style={s.sideBrandTitle}>ERROR PIXEL</Text><Text style={s.sideBrandSub}>CREATIVE SUITE</Text></View>
@@ -879,7 +912,7 @@ function AppContent() {
                 <View style={s.sideSpacer}/>
                 <View style={s.tokenCard}><Text style={s.tokenLabel}>PIXEL CREDITS</Text><Text style={s.tokenValue}>03 <Text style={s.tokenUnit}>FREE</Text></Text><Text style={s.tokenHint}>Processing credits</Text></View>
                 <Text style={s.sideVersion}>ERROR PIXEL · STUDIO</Text>
-              </View>
+              </ScrollView>
 
               <View style={s.centerWorkspace}>
                 {height>400&&<View style={s.workspaceBar}>
@@ -918,7 +951,7 @@ function AppContent() {
               </View>
               </View>
               <Timeline desktop/>
-            </View>
+            </ScrollView>
             <View style={s.desktopCommandBar}>
               {[
                 ['✂','Split','Split'],['▧','Crop','Crop'],['↻','Rotate','Rotate'],['T','Text','Text'],
@@ -1032,8 +1065,8 @@ function AppContent() {
           {page==='media'&&(
             <ScrollView contentContainerStyle={s.subContent}>
               <TextInput value={mediaSearch} onChangeText={setMediaSearch} placeholder="Search videos, photos, audio and projects..." placeholderTextColor={C.muted} style={s.nameInput}/>
-              <TouchableOpacity style={s.connectButton} onPress={()=>setLastAction('Native media picker integration required to import files')}><Text style={s.claimText}>＋ IMPORT MEDIA</Text></TouchableOpacity>
-              <Text style={s.statsNote}>Imported media will appear here after a native file-picker connection is added.</Text>
+              <TouchableOpacity style={s.connectButton} onPress={()=>importMedia('all')}><Text style={s.claimText}>＋ IMPORT MEDIA</Text></TouchableOpacity>
+              <Text style={s.statsNote}>Select videos and photos from your device. Audio files can be imported from the editor's Import tool.</Text>
               {mediaItems.filter(x=>x.toLowerCase().includes(mediaSearch.toLowerCase())).map(x=><Text key={x} style={s.optionText}>{x}</Text>)}
             </ScrollView>
           )}
@@ -1173,7 +1206,7 @@ function AppContent() {
               <EPLogo size={43}/>
               <View style={{flex:1}}>
                 <Text style={s.dialogTitle}>
-                  {modal==='export'?'EXPORT SETTINGS':modal==='aihelp'?'ERROR PIXEL AI HELP':'HELP CENTER'}
+                  {modal==='export'?'EXPORT SETTINGS':modal==='aihelp'?'ERROR PIXEL AI HELP':modal==='import'?'IMPORT MEDIA':'HELP CENTER'}
                 </Text>
                 <Text style={s.brandSub}>ERROR PIXEL STUDIO</Text>
               </View>
@@ -1181,6 +1214,18 @@ function AppContent() {
                 <Text style={s.buttonGlyph}>×</Text>
               </RoundButton>
             </View>
+
+            {modal==='import'&&(
+              <View>
+                <Text style={s.body}>Choose the type of media you want to add. Android will ask for photo and video access when needed.</Text>
+                {[['Choose video','video'],['Choose image','image'],['Choose audio','audio']].map(([label,type])=>(
+                  <TouchableOpacity key={type} style={s.connectButton} onPress={()=>importMedia(type)}>
+                    <Text style={s.claimText}>{label.toUpperCase()}</Text>
+                  </TouchableOpacity>
+                ))}
+                <Text style={s.statsNote}>Your selected files will appear in Media Library. Folder import is not available yet.</Text>
+              </View>
+            )}
 
             {modal==='export'&&(
               <ScrollView style={{maxHeight:420}}>
