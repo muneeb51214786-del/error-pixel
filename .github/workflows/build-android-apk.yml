@@ -39,7 +39,13 @@ jobs:
       - name: Download the actual APK from the completed EAS build
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas-cli@latest build:download --latest --platform android --path ./ERROR-PIXEL.apk
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_JSON=$(npx eas-cli@latest build:list --platform android --limit 1 --json)
+          BUILD_ID=$(printf '%s' "$BUILD_JSON" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const v=JSON.parse(s);const a=Array.isArray(v)?v:(v.builds||[]);if(!a[0]?.id)process.exit(2);process.stdout.write(a[0].id);});")
+          echo "Downloading completed EAS build: ${BUILD_ID}"
+          npx eas-cli@latest build:download "${BUILD_ID}" --output ./ERROR-PIXEL.apk
 
       - name: Verify APK file, archive, package and signature
         shell: bash
