@@ -208,7 +208,7 @@ function TurboEngine(){
 function AppContent() {
   const {width,height}=useWindowDimensions();
   const landscape=width>height;
-  const wide=width>=900;
+  const wide=width>=1100;
 
   const [page,setPage]=useState('welcome');
   const [drawer,setDrawer]=useState(false);
@@ -533,8 +533,7 @@ function AppContent() {
 
   const Timeline=({desktop=false})=>(
     <View style={[s.timelineBox,desktop&&s.desktopTimeline,desktop&&{
-      height:Math.max(104,Math.min(190,Math.round(height*.34))),
-      flexGrow:0,flexShrink:0,minHeight:104
+      height:'100%',flex:1,flexGrow:1,flexShrink:1,minHeight:0,marginHorizontal:0
     }]}>
       <View pointerEvents="none" style={[s.playheadOverlay,{left:playhead+'%'}]}>
         <View style={s.playheadSideLeft}/>
@@ -562,7 +561,7 @@ function AppContent() {
           <ScrollView
             nestedScrollEnabled
             showsVerticalScrollIndicator={true}
-            style={{height:desktop?Math.max(38,Math.min(104,Math.round(height*.22))):190,maxHeight:desktop?Math.max(38,Math.min(104,Math.round(height*.22))):190,flexGrow:desktop?1:0}}>
+            style={desktop?{flex:1,minHeight:0}:{height:190,maxHeight:190,flexGrow:0}}>
             {Array.from({length:trackCount},(_,i)=>({
               name:['VIDEO 01','AUDIO','OVERLAY','EFFECTS','TEXT','VIDEO 02','VOICEOVER','MUSIC','CAPTIONS','GRAPHICS','MASK','ADJUSTMENT'][i],
               color:['#9877F4','#39A6A8','#C17BCB','#D39A55','#5D9BD8','#8064B8','#42A8A0','#BD8C4F','#6289C7','#9E6FA9','#A17A68','#4F9D8B'][i]
@@ -989,7 +988,7 @@ function AppContent() {
                 </View>
               </View>
 
-              <View style={{height:Math.max(108,Math.min(138,Math.round(height*.35))),marginTop:5,padding:6,borderRadius:12,backgroundColor:'#090E1D',borderWidth:1,borderTopColor:'rgba(255,255,255,.28)',borderLeftColor:'rgba(167,139,250,.52)',borderRightColor:'rgba(114,232,255,.55)',borderBottomColor:'rgba(131,110,255,.46)',shadowColor:'#8B76FF',shadowOpacity:.16,shadowRadius:10,elevation:5}}>
+              <View style={{height:Math.max(112,Math.min(166,Math.round(height*.32))),flexShrink:0,marginTop:5,padding:6,borderRadius:12,backgroundColor:'#090E1D',borderWidth:1,borderTopColor:'rgba(255,255,255,.28)',borderLeftColor:'rgba(167,139,250,.52)',borderRightColor:'rgba(114,232,255,.55)',borderBottomColor:'rgba(131,110,255,.46)',shadowColor:'#8B76FF',shadowOpacity:.16,shadowRadius:10,elevation:5}}>
                 <View style={{height:22,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
                   <View><Text style={{color:'#F3F0FF',fontSize:8,fontWeight:'900'}}>MULTI-TRACK TIMELINE</Text><Text style={{color:'#7787A8',fontSize:6}}>VIDEO · AUDIO · OVERLAY · EFFECTS · TEXT</Text></View>
                   <TouchableOpacity onPress={()=>setTrackCount(v=>Math.min(v+1,20))} style={{paddingHorizontal:10,paddingVertical:5,borderRadius:7,backgroundColor:'#19244B',borderWidth:1,borderColor:'#7B8CFF'}}><Text style={{color:'#B8F3FF',fontSize:7,fontWeight:'900'}}>＋ TRACK</Text></TouchableOpacity>
@@ -1541,8 +1540,9 @@ const s=StyleSheet.create({
   desktopToolCircle:{width:35,height:35},
   desktopToolName:{fontSize:6,textAlign:'center'},
   centerWorkspace:{flex:1,minWidth:0,minHeight:0,flexDirection:'column',justifyContent:'flex-start'},
-  desktopPreview:{height:150,flexGrow:0,flexShrink:0,margin:0,marginBottom:4,minHeight:0,borderRadius:11,borderColor:'rgba(135,157,255,.32)'},
-  desktopCanvas:{height:78,width:'75%',flexGrow:1,minHeight:65,maxHeight:100,marginVertical:3},
+  desktopPreview:{flex:1,minHeight:0,margin:0,marginBottom:4,padding:8,borderRadius:11,borderColor:'rgba(135,157,255,.32)'},
+  desktopCanvas:{aspectRatio:16/9,width:'100%',height:undefined,flexGrow:1,flexShrink:1,minHeight:0,maxHeight:'100%',alignSelf:'center',marginVertical:3},
+
   desktopTimeline:{padding:6,borderRadius:10,backgroundColor:'#0C1120',borderWidth:1,borderColor:'rgba(135,157,255,.28)',minHeight:104,marginTop:0,marginBottom:0,overflow:'hidden'},
   rightProperties:{width:150,padding:9,borderRadius:12,backgroundColor:'#100E1B',borderWidth:1,borderColor:C.line},
   rightPropertiesWide:{width:210},
