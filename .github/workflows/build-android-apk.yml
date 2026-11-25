@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-apk:
-    name: Build installable Android APK
+    name: Build and verify installable Android APK
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -31,7 +31,43 @@ jobs:
       - name: Validate Android JavaScript bundle
         run: npx expo export --platform android --output-dir /tmp/error-pixel-export
 
-      - name: Build APK with Expo EAS
+      - name: Build APK with Expo EAS and wait for completion
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas-cli@latest build --platform android --profile preview --non-interactive
+        run: npx eas-cli@latest build --platform android --profile preview --non-interactive --wait
+
+      - name: Download the actual APK from the completed EAS build
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli@latest build:download --latest --platform android --path ./ERROR-PIXEL.apk
+
+      - name: Verify APK file, archive, package and signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s ./ERROR-PIXEL.apk
+          APK_SIZE=$(stat -c%s ./ERROR-PIXEL.apk)
+          echo "APK size: ${APK_SIZE} bytes"
+          test "${APK_SIZE}" -gt 1000000
+          file ./ERROR-PIXEL.apk
+          unzip -t ./ERROR-PIXEL.apk
+          unzip -l ./ERROR-PIXEL.apk | grep -q 'AndroidManifest.xml'
+          APKSIGNER=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)
+          if [ -z "${APKSIGNER}" ]; then
+            echo "Android apksigner was not found; cannot certify APK signature."
+            exit 1
+          fi
+          "${APKSIGNER}" verify --verbose ./ERROR-PIXEL.apk
+          AAPT=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -n 1)
+          if [ -n "${AAPT}" ]; then
+            "${AAPT}" dump badging ./ERROR-PIXEL.apk | tee /tmp/error-pixel-badging.txt
+            grep -q "package: name='com.erroreditx.errorpixel'" /tmp/error-pixel-badging.txt
+          fi
+
+      - name: Upload verified APK to GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ERROR-PIXEL-verified-APK
+          path: ./ERROR-PIXEL.apk
+          if-no-files-found: error
+          retention-days: 14
