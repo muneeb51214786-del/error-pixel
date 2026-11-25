@@ -919,160 +919,142 @@ function AppContent() {
           )}
 
           {landscape?(
-            <View style={{flex:1,minHeight:0,paddingHorizontal:9,paddingTop:5,paddingBottom:8,backgroundColor:'#050914'}}>
-              <View style={{height:46,flexDirection:'row',alignItems:'center',paddingHorizontal:10,marginBottom:7,
-                borderRadius:15,overflow:'hidden',backgroundColor:'rgba(18,27,48,.82)',borderWidth:1,
-                borderTopColor:'rgba(255,255,255,.68)',borderLeftColor:'rgba(174,154,255,.55)',
-                borderRightColor:'rgba(104,231,255,.62)',borderBottomColor:'rgba(93,112,175,.62)',
-                shadowColor:'#69DFFF',shadowOpacity:.2,shadowRadius:14,elevation:7}}>
-                <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:18,backgroundColor:'rgba(255,255,255,.075)',borderTopLeftRadius:14,borderTopRightRadius:14}}/>
-                <TouchableOpacity onPress={()=>setPage('home')} style={{width:34,height:34,alignItems:'center',justifyContent:'center',borderRadius:11,backgroundColor:'rgba(255,255,255,.09)',borderWidth:1,borderTopColor:'rgba(255,255,255,.7)',borderRightColor:'rgba(103,225,255,.6)',borderBottomColor:'rgba(90,100,150,.6)'}}>
-                  <Text style={{color:'#FFFFFF',fontSize:22,fontWeight:'800'}}>‹</Text>
-                </TouchableOpacity>
-                <View style={{marginLeft:9,marginRight:12}}>
-                  <Text style={{color:'#F7FAFF',fontSize:10,fontWeight:'900',letterSpacing:1.5}}>ERROR PIXEL</Text>
-                  <Text style={{color:'#83EFFF',fontSize:6,fontWeight:'900',letterSpacing:1.6}}>CRYSTAL / DIAMOND STUDIO</Text>
+            <View style={{flex:1,minHeight:0,backgroundColor:'#030713',paddingHorizontal:5,paddingTop:3,paddingBottom:4}}>
+              <View style={{height:39,flexDirection:'row',alignItems:'center',paddingHorizontal:8,marginBottom:5,backgroundColor:'rgba(8,15,34,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.72)',borderLeftColor:'#A66BFF',borderRightColor:'#54E8FF',borderBottomColor:'rgba(94,118,190,.7)',borderRadius:12,overflow:'hidden'}}>
+                <EPLogo size={31}/>
+                <View style={{marginLeft:7,width:142}}>
+                  <Text style={{color:'#F7FAFF',fontSize:12,fontWeight:'900',fontStyle:'italic'}}>ERROR <Text style={{color:'#8C9CFF'}}>PIXEL</Text></Text>
+                  <Text style={{color:'#B9C8E8',fontSize:6,letterSpacing:1.1}}>PROFESSIONAL VIDEO EDITOR</Text>
                 </View>
-                <View style={{width:1,height:25,backgroundColor:'rgba(190,210,255,.22)',marginRight:12}}/>
-                <View style={{flex:1,minWidth:0}}>
-                  <Text numberOfLines={1} style={{color:'#F7F8FF',fontSize:10,fontWeight:'900'}}>{projectName}</Text>
-                  <Text style={{color:'#8797B8',fontSize:6,letterSpacing:1,marginTop:2}}>COMPOSITION · {resolution} · {fps}</Text>
-                </View>
-                <CrystalGlassButton small glyph="↶" label="UNDO" onPress={undo} accent="#BDA5FF"/>
-                <View style={{width:5}}/>
-                <CrystalGlassButton small glyph="↷" label="REDO" onPress={redo} accent="#79E9FF"/>
-                <View style={{width:5}}/>
-                <TouchableOpacity onPress={()=>setModal('export')} style={{height:37,paddingHorizontal:15,marginLeft:5,alignItems:'center',justifyContent:'center',borderRadius:12,overflow:'hidden',backgroundColor:'rgba(83,198,235,.22)',borderWidth:1,borderTopColor:'rgba(255,255,255,.82)',borderLeftColor:'rgba(255,255,255,.38)',borderRightColor:'#7DEBFF',borderBottomColor:'#5574A8',shadowColor:'#6CEBFF',shadowOpacity:.4,shadowRadius:12,elevation:8}}>
-                  <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:15,backgroundColor:'rgba(255,255,255,.16)'}}/>
-                  <Text style={{color:'#FFFFFF',fontSize:8,fontWeight:'900',letterSpacing:1}}>⇧ EXPORT</Text>
+                <TouchableOpacity style={{height:27,paddingHorizontal:10,justifyContent:'center',borderRadius:9,borderWidth:1,borderColor:'rgba(112,222,255,.7)',backgroundColor:'rgba(70,160,230,.12)'}} onPress={()=>setLastAction('Aspect ratio: 16:9')}>
+                  <Text style={{color:'#F4F8FF',fontSize:8,fontWeight:'800'}}>16:9⌄</Text>
                 </TouchableOpacity>
+                <View style={{flex:1}}/>
+                <TouchableOpacity onPress={undo} style={{paddingHorizontal:9}}><Text style={{color:'#E8F2FF',fontSize:20}}>↶</Text></TouchableOpacity>
+                <TouchableOpacity onPress={redo} style={{paddingHorizontal:9}}><Text style={{color:'#E8F2FF',fontSize:20}}>↷</Text></TouchableOpacity>
+                <View style={{flex:1}}/>
+                <TouchableOpacity onPress={()=>setModal('export')} style={{height:29,paddingHorizontal:15,justifyContent:'center',borderRadius:10,borderWidth:1,borderTopColor:'#FFFFFF',borderLeftColor:'#C28BFF',borderRightColor:'#67E9FF',borderBottomColor:'#586EAA',backgroundColor:'rgba(96,85,220,.26)'}}>
+                  <Text style={{color:'#FFFFFF',fontSize:8,fontWeight:'900'}}>⇧ EXPORT</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={()=>setModal('settings')} style={{paddingHorizontal:10}}><Text style={{color:'#EAF3FF',fontSize:17}}>⚙</Text></TouchableOpacity>
+                <TouchableOpacity onPress={()=>setShortcutPanel(v=>!v)} style={{paddingHorizontal:6}}><Text style={{color:'#EAF3FF',fontSize:17}}>⛶</Text></TouchableOpacity>
               </View>
 
-              <View style={{flex:1,minHeight:0,flexDirection:'row',gap:8}}>
-                <View style={{width:wide?194:154,minHeight:0,padding:9,borderRadius:17,overflow:'hidden',
-                  backgroundColor:'rgba(15,23,43,.86)',borderWidth:1,borderTopColor:'rgba(255,255,255,.55)',
-                  borderLeftColor:'rgba(185,158,255,.56)',borderRightColor:'rgba(104,230,255,.52)',
-                  borderBottomColor:'rgba(92,105,160,.65)',shadowColor:'#9D86FF',shadowOpacity:.16,shadowRadius:13,elevation:5}}>
-                  <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:25,backgroundColor:'rgba(255,255,255,.055)'}}/>
-                  <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:9}}>
-                    <View><Text style={{color:'#F4F5FF',fontSize:9,fontWeight:'900',letterSpacing:1}}>MEDIA VAULT</Text><Text style={{color:'#8193B8',fontSize:6,marginTop:3}}>PROJECT ASSETS</Text></View>
-                    <Text style={{color:'#7CEBFF',fontSize:7,fontWeight:'900'}}>{mediaFiles.length.toString().padStart(2,'0')}</Text>
-                  </View>
-                  <TouchableOpacity onPress={()=>{setTool('Import');setModal('import');}} style={{height:38,alignItems:'center',justifyContent:'center',borderRadius:12,overflow:'hidden',backgroundColor:'rgba(101,211,245,.17)',borderWidth:1,borderTopColor:'rgba(255,255,255,.78)',borderLeftColor:'rgba(255,255,255,.35)',borderRightColor:'#77E8FF',borderBottomColor:'rgba(87,107,160,.8)',marginBottom:8}}>
-                    <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:15,backgroundColor:'rgba(255,255,255,.12)'}}/>
-                    <Text style={{color:'#F7FCFF',fontSize:8,fontWeight:'900',letterSpacing:1}}>＋  IMPORT MEDIA</Text>
-                  </TouchableOpacity>
-                  <View style={{flexDirection:'row',gap:4,marginBottom:8}}>
-                    {['All','Video','Photo'].map(x=><TouchableOpacity key={x} onPress={()=>setMediaSearch(x==='All'?'':x.toLowerCase())} style={{flex:1,paddingVertical:7,alignItems:'center',borderRadius:9,backgroundColor:'rgba(255,255,255,.055)',borderWidth:1,borderTopColor:'rgba(255,255,255,.26)',borderColor:'rgba(133,173,226,.2)'}}><Text style={{color:'#D5E1F7',fontSize:7,fontWeight:'800'}}>{x}</Text></TouchableOpacity>)}
-                  </View>
-                  <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:6}}>
-                    {mediaFiles.filter(x=>!mediaSearch||x.type===mediaSearch||String(x.type).includes(mediaSearch)).map((item,i)=>(
-                      <TouchableOpacity key={item.uri||item.name+i} onPress={()=>setLastAction(item.name+' selected')} style={{width:'48%',height:wide?88:69,borderRadius:11,overflow:'hidden',backgroundColor:'rgba(255,255,255,.07)',borderWidth:1,borderTopColor:'rgba(255,255,255,.4)',borderRightColor:'rgba(107,226,255,.48)',borderBottomColor:'rgba(105,120,174,.55)'}}>
-                        {item.uri?<Image source={{uri:item.uri}} resizeMode="cover" style={{width:'100%',height:'100%'}}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center'}}><Text style={{color:'#B8A7FF',fontSize:20}}>◇</Text></View>}
-                        <View style={{position:'absolute',left:0,right:0,bottom:0,padding:4,backgroundColor:'rgba(4,8,18,.82)'}}><Text numberOfLines={1} style={{color:'#FFFFFF',fontSize:6,fontWeight:'800'}}>{item.name}</Text></View>
-                      </TouchableOpacity>
-                    ))}
-                    {mediaFiles.length===0&&<View style={{width:'100%',padding:17,alignItems:'center'}}><Text style={{color:'#B3C0D9',fontSize:18}}>◇</Text><Text style={{color:'#9AA9C7',fontSize:7,textAlign:'center',marginTop:7,lineHeight:12}}>YOUR MEDIA WILL APPEAR HERE</Text><Text style={{color:'#6F82A7',fontSize:6,marginTop:3}}>Import footage to begin</Text></View>}
-                  </ScrollView>
-                  <View style={{height:1,backgroundColor:'rgba(166,190,255,.16)',marginVertical:8}}/>
-                  <Text style={{color:'#7185AA',fontSize:6,fontWeight:'900',letterSpacing:1}}>LIBRARY STATUS</Text>
-                  <Text style={{color:'#DCE8FF',fontSize:8,fontWeight:'800',marginTop:4}}>{mediaFiles.length} ASSETS · LOCAL</Text>
+              <View style={{flex:1,minHeight:0,flexDirection:'row',gap:5}}>
+                <View style={{width:43,justifyContent:'space-around',alignItems:'center',paddingVertical:5,backgroundColor:'rgba(8,15,35,.94)',borderRadius:10,borderWidth:1,borderColor:'rgba(96,180,255,.36)'}}>
+                  {[
+                    ['⌂','Home','home'],['▶','Media','media'],['♫','Audio','audio'],['T','Text','text'],['☆','Effects','effects'],['◀▶','Transitions','transitions'],['⬡','Elements','elements'],['✧','AI Tools','ai']
+                  ].map(([g,label,key])=>(
+                    <TouchableOpacity key={key} onPress={()=>key==='Home'?setPage('home'):chooseTool(key==='Media'?'Import':label)} style={{width:38,height:34,alignItems:'center',justifyContent:'center',borderRadius:8,backgroundColor:key==='Home'?'rgba(73,145,255,.22)':'transparent',borderWidth:key==='Home'?1:0,borderColor:'#6CEBFF'}}>
+                      <Text style={{color:key==='Home'?'#8DF2FF':'#DCE8FF',fontSize:15,fontWeight:'900'}}>{g}</Text>
+                      <Text style={{color:'#D7E2F7',fontSize:5.5,marginTop:1}}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
 
-                <View style={{flex:1,minWidth:0,minHeight:0,gap:7}}>
-                  <View style={{flex:1,minHeight:0,padding:10,borderRadius:18,overflow:'hidden',
-                    backgroundColor:'rgba(12,20,37,.88)',borderWidth:1,borderTopColor:'rgba(255,255,255,.62)',
-                    borderLeftColor:'rgba(169,151,255,.52)',borderRightColor:'rgba(105,230,255,.65)',
-                    borderBottomColor:'rgba(94,108,166,.72)',shadowColor:'#63DFFF',shadowOpacity:.18,shadowRadius:16,elevation:6}}>
-                    <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:32,backgroundColor:'rgba(255,255,255,.055)'}}/>
-                    <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:7}}>
-                      <View><Text style={{color:'#F5F7FF',fontSize:9,fontWeight:'900',letterSpacing:1.4}}>COMPOSITION VIEWER</Text><Text style={{color:'#7F91B6',fontSize:6,marginTop:3}}>REAL-TIME PREVIEW MONITOR</Text></View>
-                      <View style={{paddingHorizontal:8,paddingVertical:5,borderRadius:9,backgroundColor:'rgba(100,222,239,.09)',borderWidth:1,borderColor:'rgba(112,226,255,.32)'}}><Text style={{color:'#83F0FF',fontSize:6,fontWeight:'900'}}>● {playing?'PLAYING':'READY'}</Text></View>
-                    </View>
-                    <View style={{flex:1,minHeight:65,alignItems:'center',justifyContent:'center',overflow:'hidden',borderRadius:13,backgroundColor:'#030711',borderWidth:1,borderTopColor:'rgba(255,255,255,.28)',borderLeftColor:'rgba(174,150,255,.35)',borderRightColor:'rgba(91,221,255,.5)',borderBottomColor:'rgba(91,108,164,.6)'}}>
-                      {mediaFiles.length>0&&mediaFiles[0].uri?(
-                        <Image source={{uri:mediaFiles[0].uri}} resizeMode="contain" style={{width:'100%',height:'100%'}}/>
+                <View style={{width:154,minWidth:125,minHeight:0,padding:7,borderRadius:11,backgroundColor:'rgba(10,19,42,.95)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A77BFF',borderRightColor:'#5DE6FF',borderBottomColor:'rgba(85,110,170,.7)'}}>
+                  <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+                    <Text style={{color:'#F5F8FF',fontSize:9,fontWeight:'900'}}>Media Library</Text>
+                    <Text style={{color:'#8CEBFF',fontSize:13}}>⌕</Text>
+                  </View>
+                  <View style={{flexDirection:'row',gap:3,marginBottom:6}}>
+                    {['All','Videos','Photos','Audio'].map((x,i)=><TouchableOpacity key={x} onPress={()=>setMediaSearch(i===0?'':x.toLowerCase().replace('s',''))} style={{flex:1,alignItems:'center',paddingVertical:5,borderRadius:6,backgroundColor:i===0?'rgba(100,75,255,.38)':'rgba(255,255,255,.045)',borderWidth:1,borderColor:i===0?'#6D83FF':'rgba(150,180,230,.18)'}}><Text style={{color:'#EAF2FF',fontSize:6.5,fontWeight:'800'}}>{x}</Text></TouchableOpacity>)}
+                  </View>
+                  <TouchableOpacity onPress={()=>{setTool('Import');setModal('import');}} style={{height:27,alignItems:'center',justifyContent:'center',borderRadius:7,marginBottom:6,backgroundColor:'rgba(83,166,239,.17)',borderWidth:1,borderColor:'rgba(106,224,255,.65)'}}>
+                    <Text style={{color:'#F4FAFF',fontSize:7,fontWeight:'900'}}>＋ IMPORT MEDIA</Text>
+                  </TouchableOpacity>
+                  <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{gap:5}}>
+                    {mediaFiles.filter(x=>!mediaSearch||String(x.type).toLowerCase().includes(mediaSearch)).map((item,i)=>(
+                      <TouchableOpacity key={item.uri||item.name+i} onPress={()=>setLastAction(item.name+' selected')} style={{height:48,borderRadius:7,overflow:'hidden',backgroundColor:'rgba(255,255,255,.06)',borderWidth:1,borderColor:'rgba(100,202,255,.35)'}}>
+                        {item.uri&&item.type!=='audio'?<Image source={{uri:item.uri}} resizeMode="cover" style={{width:'100%',height:'100%'}}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center'}}><Text style={{color:'#AFA0FF',fontSize:18}}>{item.type==='audio'?'♫':'◇'}</Text></View>}
+                        <View style={{position:'absolute',bottom:0,left:0,right:0,padding:3,backgroundColor:'rgba(3,7,18,.8)'}}><Text numberOfLines={1} style={{color:'#FFF',fontSize:6}}>{item.name}</Text></View>
+                      </TouchableOpacity>
+                    ))}
+                    {mediaFiles.length===0&&<View style={{flex:1,minHeight:105,alignItems:'center',justifyContent:'center',paddingHorizontal:5}}>
+                      <Text style={{color:'#7F9EFF',fontSize:25}}>▣</Text>
+                      <Text style={{color:'#F1F5FF',fontSize:8,fontWeight:'800',marginTop:6}}>No Media Files</Text>
+                      <Text style={{color:'#9AAACB',fontSize:6,textAlign:'center',marginTop:3}}>Import media to get started</Text>
+                    </View>}
+                  </ScrollView>
+                  <Text style={{color:'#7D91B8',fontSize:6,marginTop:5}}>{mediaFiles.length} ASSETS · LOCAL</Text>
+                </View>
+
+                <View style={{flex:1,minWidth:0,minHeight:0,gap:4}}>
+                  <View style={{flex:1,minHeight:0,padding:6,borderRadius:11,backgroundColor:'rgba(7,15,34,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.65)',borderLeftColor:'#A56BFF',borderRightColor:'#52E8FF',borderBottomColor:'rgba(91,113,179,.7)'}}>
+                    <View style={{flex:1,minHeight:0,alignItems:'center',justifyContent:'center',borderRadius:7,backgroundColor:'#030918',borderWidth:1,borderColor:'rgba(105,174,255,.3)',overflow:'hidden'}}>
+                      {mediaFiles.find(x=>x.type!=='audio'&&x.uri)?(
+                        <Image source={{uri:mediaFiles.find(x=>x.type!=='audio'&&x.uri).uri}} resizeMode="contain" style={{width:'100%',height:'100%'}}/>
                       ):(
                         <View style={{alignItems:'center',justifyContent:'center'}}>
-                          <View style={{width:58,height:58,alignItems:'center',justifyContent:'center',borderRadius:18,transform:[{rotate:'45deg'}],borderWidth:1,borderTopColor:'rgba(255,255,255,.9)',borderLeftColor:'rgba(184,158,255,.8)',borderRightColor:'rgba(100,232,255,.9)',borderBottomColor:'rgba(112,117,190,.7)',backgroundColor:'rgba(143,166,255,.08)',shadowColor:'#78E8FF',shadowOpacity:.5,shadowRadius:15,elevation:7}}>
-                            <View style={{transform:[{rotate:'-45deg'}]}}><EPLogo size={34}/></View>
-                          </View>
-                          <Text style={{color:'#F7FAFF',fontSize:12,fontWeight:'900',letterSpacing:3,marginTop:11}}>ERROR PIXEL</Text>
-                          <Text style={{color:'#81EFFF',fontSize:6,letterSpacing:2,marginTop:4}}>CRYSTAL CREATIVE WORKSPACE</Text>
-                          <Text style={{color:'#8292B4',fontSize:7,marginTop:5}}>Import media to begin editing</Text>
+                          <EPLogo size={58}/>
+                          <Text style={{color:'#FFFFFF',fontSize:17,fontWeight:'900',fontStyle:'italic',marginTop:9}}>ERROR <Text style={{color:'#69DFFF'}}>PIXEL</Text></Text>
+                          <Text style={{color:'#B8C7E8',fontSize:7,letterSpacing:2,marginTop:3}}>EDIT · CREATE · INSPIRE</Text>
+                          <Text style={{color:'#83E9FF',fontSize:8,marginTop:8}}>Import media to begin</Text>
                         </View>
                       )}
                     </View>
-                    <View style={{height:45,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,marginTop:6}}>
-                      <Text style={{color:'#A8B6D1',fontSize:6}}>00:00:00:00</Text>
-                      <CrystalGlassButton small glyph="↶" label="UNDO" onPress={undo} accent="#BDA5FF"/>
-                      <CrystalGlassButton small glyph="◀" label="PREV" onPress={()=>setLastAction('Previous frame')} accent="#9CB8FF"/>
-                      <CrystalGlassButton small glyph={playing?'Ⅱ':'▶'} label={playing?'PAUSE':'PLAY'} onPress={()=>setPlaying(v=>!v)} active accent="#78EFFF"/>
-                      <CrystalGlassButton small glyph="▶▶" label="NEXT" onPress={()=>setLastAction('Next frame')} accent="#9CB8FF"/>
-                      <CrystalGlassButton small glyph="◇" label="KEY" onPress={()=>setKeyframeActive(v=>!v)} active={keyframeActive} accent="#D4B2FF"/>
-                      <Text style={{color:'#A8B6D1',fontSize:6}}>00:00:15:00</Text>
+                    <View style={{height:32,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:10}}>
+                      <Text style={{color:'#DCE8FF',fontSize:7}}>00:00:00 / 00:00:00</Text>
+                      <TouchableOpacity onPress={()=>setPlayhead(v=>Math.max(0,v-1))}><Text style={{color:'#E9F2FF',fontSize:15}}>◀</Text></TouchableOpacity>
+                      <TouchableOpacity onPress={()=>setPlaying(v=>!v)} style={{width:31,height:27,alignItems:'center',justifyContent:'center',borderRadius:9,backgroundColor:'rgba(64,151,255,.3)',borderWidth:1,borderColor:'#64E8FF'}}><Text style={{color:'#FFF',fontSize:14}}>{playing?'Ⅱ':'▶'}</Text></TouchableOpacity>
+                      <TouchableOpacity onPress={()=>setPlayhead(v=>Math.min(100,v+1))}><Text style={{color:'#E9F2FF',fontSize:15}}>▶</Text></TouchableOpacity>
+                      <TouchableOpacity onPress={()=>setLastAction('Preview expanded')}><Text style={{color:'#E9F2FF',fontSize:13}}>⛶</Text></TouchableOpacity>
                     </View>
                   </View>
-
-                  <View style={{height:61,flexShrink:0,flexDirection:'row',alignItems:'center',gap:5,paddingHorizontal:7,paddingVertical:5,borderRadius:16,overflow:'hidden',backgroundColor:'rgba(19,27,48,.86)',borderWidth:1,borderTopColor:'rgba(255,255,255,.58)',borderLeftColor:'rgba(175,154,255,.5)',borderRightColor:'rgba(109,229,255,.58)',borderBottomColor:'rgba(90,106,165,.68)'}}>
-                    {[
-                      ['▣','MEDIA','Import','#8DEBFF'],['✂','SPLIT','Split','#FFB0C5'],['⟷','TRIM','Trim','#A9C7FF'],['◷','SPEED','Speed','#D7B2FF'],['T','TEXT','Text','#F2C5FF'],['✧','FX','Effects','#D7B2FF'],['◇','KEY','Keyframe','#8DEBFF'],['◐','COLOR','Color Grading','#FFD49B'],['♫','AUDIO','Audio','#8CE3C1']
-                    ].map(([glyph,label,name,accent])=>(
-                      <CrystalGlassButton key={label} glyph={glyph} label={label} accent={accent} active={tool===name} onPress={()=>chooseTool(name)}/>
-                    ))}
-                  </View>
                 </View>
 
-                <View style={{width:wide?222:166,minWidth:0,minHeight:0,padding:10,borderRadius:17,overflow:'hidden',
-                  backgroundColor:'rgba(15,23,43,.88)',borderWidth:1,borderTopColor:'rgba(255,255,255,.56)',
-                  borderLeftColor:'rgba(175,154,255,.5)',borderRightColor:'rgba(103,230,255,.6)',
-                  borderBottomColor:'rgba(92,107,166,.68)',shadowColor:'#9D86FF',shadowOpacity:.15,shadowRadius:13,elevation:5}}>
-                  <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:26,backgroundColor:'rgba(255,255,255,.055)'}}/>
-                  <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
-                    <View><Text style={{color:'#F5F7FF',fontSize:9,fontWeight:'900',letterSpacing:1}}>INSPECTOR</Text><Text style={{color:'#8293B8',fontSize:6,marginTop:3}}>CONTROL SURFACE</Text></View>
-                    <Text style={{color:'#AFA1FF',fontSize:17}}>◇</Text>
+                <View style={{width:185,minWidth:150,minHeight:0,padding:7,borderRadius:11,backgroundColor:'rgba(10,19,42,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#9E7AFF',borderRightColor:'#56E5FF',borderBottomColor:'rgba(85,110,170,.7)'}}>
+                  <View style={{flexDirection:'row',gap:3,marginBottom:7}}>
+                    {['Properties','Effects','Adjustment'].map((x,i)=><TouchableOpacity key={x} onPress={()=>setCategory(x)} style={{flex:1,alignItems:'center',paddingVertical:6,borderRadius:7,backgroundColor:(i===0?'Properties':category)===x?'rgba(82,139,255,.22)':'rgba(255,255,255,.035)',borderBottomWidth:2,borderBottomColor:(i===0?'Properties':category)===x?'#6DEBFF':'transparent'}}><Text style={{color:'#E8F1FF',fontSize:6,fontWeight:'800'}}>{x}</Text></TouchableOpacity>)}
                   </View>
-                  <View style={{flexDirection:'row',gap:4,marginTop:11,marginBottom:10}}>
-                    {['TOOL','VIDEO','AUDIO'].map((x,i)=><View key={x} style={{flex:1,paddingVertical:6,alignItems:'center',borderRadius:8,backgroundColor:i===0?'rgba(110,221,255,.13)':'rgba(255,255,255,.045)',borderWidth:1,borderColor:i===0?'rgba(110,221,255,.5)':'rgba(150,170,220,.17)'}}><Text style={{color:i===0?'#8DEEFF':'#8797B7',fontSize:6,fontWeight:'900'}}>{x}</Text></View>)}
-                  </View>
-                  <Text style={{color:'#7CEAFF',fontSize:6,fontWeight:'900',letterSpacing:1.3}}>SELECTED TOOL</Text>
-                  <Text numberOfLines={1} style={{color:'#FFFFFF',fontSize:14,fontWeight:'900',marginTop:5}}>{tool.toUpperCase()}</Text>
-                  <View style={{height:1,backgroundColor:'rgba(148,177,235,.2)',marginVertical:9}}/>
-                  <Text style={{color:'#AFA1FF',fontSize:6,fontWeight:'900',letterSpacing:1.2}}>PARAMETERS / PRESETS</Text>
-                  <ScrollView style={{flex:1,minHeight:0,marginTop:6}} showsVerticalScrollIndicator={false}>
-                    {getToolOptions(tool).map(x=>(
-                      <TouchableOpacity key={x} onPress={()=>chooseOption(x)} style={{minHeight:32,justifyContent:'center',paddingHorizontal:8,marginBottom:5,borderRadius:10,overflow:'hidden',backgroundColor:'rgba(255,255,255,.055)',borderWidth:1,borderTopColor:'rgba(255,255,255,.28)',borderRightColor:'rgba(105,226,255,.26)',borderBottomColor:'rgba(93,111,166,.48)'}}>
-                        <Text numberOfLines={2} adjustsFontSizeToFit style={{color:'#E9F0FF',fontSize:7,fontWeight:'800'}}>{x}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                  <View style={{height:1,backgroundColor:'rgba(148,177,235,.2)',marginVertical:8}}/>
-                  <Text style={{color:'#7CEAFF',fontSize:6,fontWeight:'900',letterSpacing:1}}>COMPOSITION</Text>
-                  <Text style={{color:'#D8E2F7',fontSize:7,marginTop:5}}>Resolution · {resolution}</Text>
-                  <Text style={{color:'#D8E2F7',fontSize:7,marginTop:3}}>Frame rate · {fps}</Text>
-                  <TouchableOpacity onPress={()=>setModal('export')} style={{height:34,alignItems:'center',justifyContent:'center',marginTop:8,borderRadius:11,backgroundColor:'rgba(103,212,240,.16)',borderWidth:1,borderTopColor:'rgba(255,255,255,.7)',borderRightColor:'#77E8FF',borderBottomColor:'rgba(88,108,166,.7)'}}><Text style={{color:'#FFFFFF',fontSize:7,fontWeight:'900',letterSpacing:.8}}>EXPORT SETTINGS ↗</Text></TouchableOpacity>
+                  <Text style={{color:'#F4F7FF',fontSize:8,fontWeight:'900',marginBottom:7}}>✣ Transform</Text>
+                  {['Position X','Position Y','Scale','Rotation','Opacity'].map((x,i)=>(
+                    <View key={x} style={{height:27,flexDirection:'row',alignItems:'center',gap:4}}>
+                      <Text style={{width:54,color:'#D9E4F8',fontSize:6.5}}>{x}</Text>
+                      <View style={{flex:1,height:3,borderRadius:3,backgroundColor:'#25365E'}}><View style={{width:['52%','48%','35%','50%','90%'][i],height:3,backgroundColor:'#A35CFF',borderRadius:3}}/></View>
+                      <Text style={{width:30,color:'#EAF3FF',fontSize:6.5,textAlign:'right'}}>{['540','360','100%','0°','100%'][i]}</Text>
+                    </View>
+                  ))}
+                  <View style={{height:1,backgroundColor:'rgba(143,177,235,.2)',marginVertical:5}}/>
+                  {['Color Correction','Background Blur','AI Enhance'].map((x,i)=><TouchableOpacity key={x} onPress={()=>chooseTool(x)} style={{height:27,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderBottomColor:'rgba(132,166,224,.13)'}}><Text style={{color:'#E4EDFF',fontSize:6.5}}>{['◉','♦','✦'][i]}  {x}</Text><Text style={{color:'#8BEAFF',fontSize:12}}>›</Text></TouchableOpacity>)}
+                  <Text style={{color:'#8FA1C6',fontSize:6,marginTop:6}}> {resolution} · {fps}</Text>
                 </View>
               </View>
 
-              <View style={{height:Math.max(118,Math.min(156,Math.round(height*.34))),flexShrink:0,marginTop:7,padding:8,borderRadius:17,overflow:'hidden',
-                backgroundColor:'rgba(12,20,37,.91)',borderWidth:1,borderTopColor:'rgba(255,255,255,.62)',
-                borderLeftColor:'rgba(177,154,255,.56)',borderRightColor:'rgba(105,230,255,.62)',
-                borderBottomColor:'rgba(91,107,166,.72)',shadowColor:'#7B83FF',shadowOpacity:.16,shadowRadius:14,elevation:6}}>
-                <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:25,backgroundColor:'rgba(255,255,255,.045)'}}/>
-                <View style={{height:25,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
-                  <View><Text style={{color:'#F5F7FF',fontSize:8,fontWeight:'900',letterSpacing:1.3}}>SEQUENCE TIMELINE</Text><Text style={{color:'#8192B6',fontSize:6,marginTop:2}}>VIDEO · AUDIO · OVERLAYS · EFFECTS · TITLES</Text></View>
-                  <View style={{flexDirection:'row',alignItems:'center',gap:7}}>
-                    <Text style={{color:'#8DEEFF',fontSize:6,fontWeight:'900'}}>12 TRACKS</Text>
-                    <TouchableOpacity onPress={()=>setTrackCount(v=>Math.min(v+1,20))} style={{paddingHorizontal:10,paddingVertical:6,borderRadius:9,backgroundColor:'rgba(110,211,246,.13)',borderWidth:1,borderTopColor:'rgba(255,255,255,.5)',borderRightColor:'#7DEBFF',borderBottomColor:'rgba(91,108,160,.6)'}}><Text style={{color:'#DDFBFF',fontSize:7,fontWeight:'900'}}>＋ ADD TRACK</Text></TouchableOpacity>
+              <View style={{height:Math.max(104,Math.min(132,Math.round(height*.30))),flexShrink:0,marginTop:5,padding:6,borderRadius:10,backgroundColor:'rgba(7,15,34,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A46DFF',borderRightColor:'#55E7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
+                <View style={{height:20,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
+                  <View style={{flexDirection:'row',gap:10}}>
+                    <TouchableOpacity onPress={undo}><Text style={{color:'#EAF2FF',fontSize:14}}>↶</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={redo}><Text style={{color:'#EAF2FF',fontSize:14}}>↷</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={deleteClip}><Text style={{color:'#EAF2FF',fontSize:14}}>▤</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={()=>chooseTool('Split')}><Text style={{color:'#EAF2FF',fontSize:14}}>✂</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={()=>chooseTool('Import')}><Text style={{color:'#EAF2FF',fontSize:14}}>⊞</Text></TouchableOpacity>
                   </View>
+                  <Text style={{color:'#8BEAFF',fontSize:6,fontWeight:'900'}}>TIMELINE · {mediaFiles.length} MEDIA</Text>
+                  <TouchableOpacity onPress={()=>setTrackCount(v=>Math.min(v+1,12))}><Text style={{color:'#8BEAFF',fontSize:7}}>＋ TRACK</Text></TouchableOpacity>
                 </View>
-                <View style={{flex:1,minHeight:0,overflow:'hidden'}}>
-                  <Timeline desktop/>
+                <View style={{flex:1,minHeight:0}}>
+                  {['Video 1','Video 2','Audio 1','Audio 2'].map((x,i)=>(
+                    <View key={x} style={{height:'25%',minHeight:13,flexDirection:'row',alignItems:'center',borderTopWidth:1,borderTopColor:'rgba(119,153,218,.16)'}}>
+                      <View style={{width:76,flexDirection:'row',alignItems:'center',gap:5}}><Text style={{color:'#91A5CC',fontSize:8}}>{['▣','▧','♫','≋'][i]}</Text><Text style={{color:'#DCE7FB',fontSize:6.5}}>{x}</Text></View>
+                      <View style={{flex:1,height:'72%',borderRadius:4,backgroundColor:i<2?'rgba(56,112,201,.055)':i===2?'rgba(23,190,135,.055)':'rgba(137,72,225,.055)',borderWidth:1,borderColor:'rgba(102,155,236,.22)'}}/>
+                    </View>
+                  ))}
                 </View>
+              </View>
+
+              <View style={{height:47,flexShrink:0,flexDirection:'row',alignItems:'center',gap:3,marginTop:4,paddingHorizontal:4,borderRadius:10,backgroundColor:'rgba(10,17,39,.98)',borderWidth:1,borderTopColor:'rgba(255,255,255,.7)',borderLeftColor:'#A46DFF',borderRightColor:'#5BE7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
+                {[
+                  ['✂','Split','Split'],['⌗','Trim','Trim'],['◩','Crop','Crop'],['◷','Speed','Speed'],['60','FPS','FPS'],['◇','Keyframes','Keyframe'],['♧','Motion Blur','Motion Blur'],['✦','AI Enhance','AI Enhance'],['⬡','3D','3D'],['⌖','Tracking','Motion Tracking'],['▧','Masking','Masking'],['◉','Color','Color Grading'],['♫','Audio','Audio']
+                ].map(([g,label,name])=>(
+                  <TouchableOpacity key={label} onPress={()=>chooseTool(name)} style={{flex:1,minWidth:0,height:38,alignItems:'center',justifyContent:'center',borderRadius:7,backgroundColor:tool===name?'rgba(86,157,255,.2)':'rgba(255,255,255,.025)',borderWidth:1,borderTopColor:'rgba(255,255,255,.55)',borderLeftColor:'rgba(172,145,255,.35)',borderRightColor:'rgba(91,223,255,.38)',borderBottomColor:'rgba(100,112,160,.45)'}}>
+                    <Text style={{color:'#8DEBFF',fontSize:13,fontWeight:'900'}}>{g}</Text>
+                    <Text numberOfLines={1} style={{color:'#F0F5FF',fontSize:5.5,fontWeight:'800',marginTop:1}}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          ):(
-            <View style={s.mobileEditor}>
+          ):(            <View style={s.mobileEditor}>
               <PreviewMonitor/>
               <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-around',marginHorizontal:9,marginTop:2,marginBottom:5,paddingVertical:8,borderRadius:12,backgroundColor:'rgba(18,22,42,.96)',borderWidth:1,borderColor:C.line}}>
                 {[
