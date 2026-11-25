@@ -12,6 +12,9 @@ on:
       - "eas.json"
       - ".github/workflows/build-android-apk.yml"
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     name: Build and verify installable Android APK
