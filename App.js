@@ -1048,15 +1048,21 @@ function AppContent() {
                 </View>
               </View>
 
-              <View style={{height:47,flexShrink:0,flexDirection:'row',alignItems:'center',gap:3,marginTop:4,paddingHorizontal:4,borderRadius:10,backgroundColor:'rgba(10,17,39,.98)',borderWidth:1,borderTopColor:'rgba(255,255,255,.7)',borderLeftColor:'#A46DFF',borderRightColor:'#5BE7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
-                {[
-                  ['✂','Split','Split'],['⌗','Trim','Trim'],['◩','Crop','Crop'],['◷','Speed','Speed'],['60','FPS','FPS'],['◇','Keyframes','Keyframe'],['♧','Motion Blur','Motion Blur'],['✦','AI Enhance','AI Enhance'],['⬡','3D','3D'],['⌖','Tracking','Motion Tracking'],['▧','Masking','Masking'],['◉','Color','Color Grading'],['♫','Audio','Audio']
-                ].map(([g,label,name])=>(
-                  <TouchableOpacity key={label} onPress={()=>chooseTool(name)} style={{flex:1,minWidth:0,height:38,alignItems:'center',justifyContent:'center',borderRadius:7,backgroundColor:tool===name?'rgba(86,157,255,.2)':'rgba(255,255,255,.025)',borderWidth:1,borderTopColor:'rgba(255,255,255,.55)',borderLeftColor:'rgba(172,145,255,.35)',borderRightColor:'rgba(91,223,255,.38)',borderBottomColor:'rgba(100,112,160,.45)'}}>
-                    <Text style={{color:'#8DEBFF',fontSize:13,fontWeight:'900'}}>{g}</Text>
-                    <Text numberOfLines={1} style={{color:'#F0F5FF',fontSize:5.5,fontWeight:'800',marginTop:1}}>{label}</Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={{height:66,flexShrink:0,marginTop:4,paddingHorizontal:5,paddingVertical:4,borderRadius:13,backgroundColor:'rgba(19,28,59,.94)',borderWidth:1.3,borderTopColor:'rgba(255,255,255,.86)',borderLeftColor:'#A66BFF',borderRightColor:'#55E8FF',borderBottomColor:'rgba(86,108,172,.9)',shadowColor:'#6DE8FF',shadowOpacity:.32,shadowRadius:13,elevation:10}}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{alignItems:'center',gap:5,paddingHorizontal:2}}>
+                  {['Edit','Audio','Text','Effects','Transitions','Color','Motion','AI','Photo','Advanced','Output'].map(x=>(
+                    <TouchableOpacity key={x} onPress={()=>setCategory(x)} style={{paddingHorizontal:10,paddingVertical:5,borderRadius:10,backgroundColor:category===x?'rgba(111,118,255,.42)':'rgba(255,255,255,.045)',borderWidth:1,borderTopColor:'rgba(255,255,255,.65)',borderLeftColor:'rgba(171,145,255,.55)',borderRightColor:'rgba(92,228,255,.55)',borderBottomColor:'rgba(79,91,159,.8)'}}>
+                      <Text style={{color:category===x?'#FFFFFF':'#BFCDEB',fontSize:7,fontWeight:'900'}}>{x.toUpperCase()}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{alignItems:'center',gap:5,paddingHorizontal:2,paddingTop:4}}>
+                  {TOOLS.filter(x=>x[2]===category).map(x=>(
+                    <TouchableOpacity key={x[0]} onPress={()=>chooseTool(x[0])} style={{minWidth:52,height:30,paddingHorizontal:7,alignItems:'center',justifyContent:'center',borderRadius:10,backgroundColor:tool===x[0]?'rgba(76,166,255,.34)':'rgba(255,255,255,.055)',borderWidth:1,borderTopColor:'rgba(255,255,255,.76)',borderLeftColor:'rgba(174,145,255,.66)',borderRightColor:'rgba(91,226,255,.72)',borderBottomColor:'rgba(75,88,155,.9)',shadowColor:tool===x[0]?'#62E8FF':'#8D75FF',shadowOpacity:tool===x[0]?.55:.16,shadowRadius:tool===x[0]?10:5,elevation:tool===x[0]?8:3}}>
+                      <Text numberOfLines={1} style={{color:tool===x[0]?'#FFFFFF':'#DDE8FF',fontSize:7,fontWeight:'900'}}>{x[0]}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             </View>
           ):(            <View style={s.mobileEditor}>
