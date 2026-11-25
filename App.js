@@ -25,8 +25,8 @@ const SOCIAL = [
 ];
 
 const TOOL_GROUPS = {
-  Edit: ['Selection','Hand','Import','Media Library','Media Search','Trim','Cut','Split','Slice','Crop','Resize','Rotate','Flip','Mirror','Reverse','Freeze Frame','Loop','Duplicate','Merge','Join','Razor Tool','Ripple Edit','Roll Edit','Slip','Slide','Delete','Speed','Speed Ramp','Time Remap','Frame Hold'],
-  Motion: ['Keyframe','Graph Editor','Curve Editor','Velocity Curve','Ease In','Ease Out','Motion Blur','Motion Paths','Parenting','Anchor Point','Null Object','Expressions','Camera Tracking','3D Tracking'],
+  Edit: ['Selection','Hand','Import','Media Library','Media Search','Trim','Cut','Split','Slice','Crop','Resize','Rotate','Flip','Mirror','Reverse','Freeze Frame','Loop','Duplicate','Merge','Join','Razor Tool','Ripple Edit','Roll Edit','Slip','Slide','Delete','Speed','Speed Ramp','Time Remap','Frame Hold','Track Select Forward','Track Select Backward','Rate Stretch','Ripple Delete','Lift','Extract','Add Edit','Extend Edit','Replace Clip','Synchronize Clips','Link Clips','Unlink Clips','Nest Sequence','Proxy Workflow','Multi-Camera Editing','Scene Edit Detection','Auto Reframe','Adjustment Layer','Essential Sound','Essential Graphics','Lumetri Color','Audio Gain','Audio Mixer','Markers','Source Monitor','Program Monitor'],
+  Motion: ['Keyframe','Graph Editor','Curve Editor','Velocity Curve','Ease In','Ease Out','Motion Blur','Motion Paths','Parenting','Anchor Point','Null Object','Expressions','Camera Tracking','3D Tracking','Position','Scale','Rotation','Opacity','Puppet Pin','Shape Layers','Shape Morphing','Mask Path Animation','Track Matte','Time Remapping','3D Camera','3D Lights','3D Layers','Pre-compose','Motion Tile','Repeater','Trim Paths','Wiggle','Loop Expression','Bezier Handles','Speed Graph','Value Graph','Roto Brush','Content-Aware Fill Video','Stabilize Motion'],
   Color: ['Color Correction','Color Grading','LUTs','HSL','Curves','Brightness','Contrast','Saturation','Exposure','Temperature','Tint','Shadows','Highlights','HDR','SDR','LOG to Rec.709','Sharpen','Blur','Denoise','Color Wheels','Vectorscope','Waveform Monitor','RGB Parade'],
   Audio: ['MP3 Cutter','MP4 Audio Extractor','Fade In','Fade Out','Equalizer','Reverb','Echo','Compressor','Limiter','Pitch Changer','Tempo Changer','Auto Tune','Noise Gate','Voice Changer','Voice Generator','Text to Speech','Speech to Text','Voice Cloning','AI Cover','AI Music Generator','Vocal Remover','Audacity AI Tools','CapCut Voice Changer','Noise Reduction','Auto Beat Sync','Bass Boost','Audio Ducking','Multitrack Audio'],
   Effects: ['Glitch','VHS','Old Film','Lens Flare','Light Leak','Bokeh','Chromatic Aberration','Distortion','Warp','Shake','Earthquake','3D','Particles','Smoke','Fire','Rain','Snow','Sky Replacement','Glow','Film Grain','Lens Blur'],
@@ -34,7 +34,7 @@ const TOOL_GROUPS = {
   Text: ['Title Tool','Kinetic Typography','Auto Captions','Subtitle Generator','Logo Animation','Lower Third','Motion Graphics','Shape Tool','Vector Drawing','Pen Tool','3D Text','Text Tracking'],
   Advanced: ['Masking','Rotoscoping','Chroma Key','Green Screen','Motion Tracking','Face Tracking','Body Tracking','Camera Tracking','3D Tracking','Stabilization','Hyperlapse','Proxy Editing','Multi-Camera','Nested Sequences','Scene Detection','Beat Markers'],
   AI: ['AI Video Enhancer','AI Quality Upscaler','FPS Booster','RIFE AI','Flowframes','DAIN','CAIN','FLAVR','Real-ESRGAN','Waifu2x','ESRGAN','Remini AI','HitPaw Video Enhancer','Wink AI','AI Object Removal','AI Background Removal','AI Auto Reframe','AI Scene Generator','Image to Video','Video to Video','AI Denoiser','AI Stabilizer','AI Captions','AI Voice','AI Photo Enhancer'],
-  Photo: ['Photo Crop','Photo Resize','Photo Rotate','Layers','Blend Modes','Healing Brush','Clone Stamp','Liquify','Perspective Correction','RAW Editing','Background Removal','Background Replacement','Photo Filters','Photo Color Grade','Photo Curves','Photo HSL','Photo Sharpen','Photo Denoise','Photo Upscale','Object Removal','Portrait Retouch','3D Photo'],
+  Photo: ['Photo Crop','Photo Resize','Photo Rotate','Layers','Blend Modes','Healing Brush','Clone Stamp','Liquify','Perspective Correction','RAW Editing','Background Removal','Background Replacement','Photo Filters','Photo Color Grade','Photo Curves','Photo HSL','Photo Sharpen','Photo Denoise','Photo Upscale','Object Removal','Portrait Retouch','3D Photo','Move Tool','Marquee Selection','Lasso Tool','Quick Selection','Magic Wand','Brush Tool','Pencil Tool','Eraser Tool','Gradient Tool','Paint Bucket','Eyedropper','Spot Healing Brush','Patch Tool','Content-Aware Fill','Dodge Tool','Burn Tool','Sponge Tool','Smudge Tool','Blur Tool','Sharpen Tool','Shape Layers','Smart Objects','Layer Masks','Adjustment Layers','Clipping Masks','Typography','Perspective Warp','Vanishing Point','Camera RAW','Lens Correction','Selective Color','Photo Compositing','Frequency Separation'],
   Output: ['Export','Export Presets','Bitrate','Codec','Color Space','Chroma Subsampling','Audio Sample Rate','Project Backup','Cloud Storage','Account Sync']
 };
 const TOOL_ICONS = {
@@ -82,7 +82,7 @@ const OPTIONS = {
   Import:['Choose video','Choose audio','Choose image','Import folder','Search imported media'],
   Split:['Split at playhead','Split all tracks','Split selected track'],
   Trim:['Trim start','Trim end','Trim both sides'],
-  Speed:['0.1×','0.25×','0.5×','0.75×','1×','1.5×','2×','4×','10×','25×','50×','100×','Speed curve','Frame Interpolation'],
+  Speed:['0.1×','0.2×','0.25×','0.3×','0.5×','0.75×','1×','1.25×','1.5×','2×','3×','4×','5×','8×','10×','20×','25×','50×','75×','100×','Speed Ramp','Custom Speed Curve','Reverse Speed','Freeze Frame','Frame Interpolation','Frame Blending','Optical Flow','RIFE AI','DAIN AI','CAIN AI','FLAVR AI','30 FPS','60 FPS','90 FPS','120 FPS','240 FPS'],
   'Frame Interpolation':['Off','Frame Blending','Optical Flow','AI Frame Generation','30 → 60 FPS','30 → 120 FPS','60 → 120 FPS','120 → 240 FPS','RIFE AI · 120 FPS','RIFE AI · 240 FPS','DAIN AI · 120 FPS','DAIN AI · 240 FPS'],
   'AI Video Enhancer':['Topaz Video AI · Proteus','Topaz Video AI · Iris','Topaz Video AI · Artemis','Enhance fine details','Recover texture','Denoise video','Deblur motion','Improve clarity','AI processing service required'],
   'AI Quality Upscaler':['2× AI Upscale','4× AI Upscale','8K Ultra HD Upscale','Topaz-style detail recovery','Face refinement','Texture recovery','AI processing service required'],
@@ -510,7 +510,7 @@ function AppContent() {
     Output:['Open export settings','Save preset','Export settings']
   }[TOOLS.find(x=>x[0]===name)?.[2]]||['Apply','Adjust settings','Reset tool']);
   const activeRank=CREATOR_LEVELS[Math.max(0,Math.min(7,creatorLevel-1))];
-  const openTool=name=>{setPage('editor');setTool(name);};
+  const openTool=name=>{setPage('editor');chooseTool(name);};
   const addCreatorPoints=async amount=>{const n=creatorPoints+amount;setCreatorPoints(n);const rank=CREATOR_LEVELS.filter(x=>n>=x.points).slice(-1)[0]?.level||1;setCreatorLevel(rank);try{await AsyncStorage.multiSet([['ERROR_PIXEL_CREATOR_POINTS',String(n)],['ERROR_PIXEL_CREATOR_ID',creatorId]]);}catch(e){}};
 
   if(page==='welcome'){
@@ -793,7 +793,7 @@ function AppContent() {
             <View style={s.previewGrid}>
               {PREVIEWS.map(item=>(
                 <PreviewCard key={item.name} item={item} onPress={()=>{
-                  setPage('editor');setTool(item.tool);
+                  setPage('editor');chooseTool(item.tool);
                 }}/>
               ))}
             </View>
@@ -1017,6 +1017,11 @@ function AppContent() {
                   ))}
                   <View style={{height:1,backgroundColor:'rgba(143,177,235,.2)',marginVertical:5}}/>
                   {['Color Correction','Background Blur','AI Enhance'].map((x,i)=><TouchableOpacity key={x} onPress={()=>chooseTool(x)} style={{height:27,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:1,borderBottomColor:'rgba(132,166,224,.13)'}}><Text style={{color:'#E4EDFF',fontSize:6.5}}>{['◉','♦','✦'][i]}  {x}</Text><Text style={{color:'#8BEAFF',fontSize:12}}>›</Text></TouchableOpacity>)}
+                  <View style={{height:1,backgroundColor:'rgba(143,177,235,.2)',marginVertical:6}}/>
+                  <Text style={{color:'#8BEAFF',fontSize:7,fontWeight:'900',marginBottom:5}}>{tool.toUpperCase()} OPTIONS</Text>
+                  <ScrollView style={{maxHeight:Math.max(90,Math.min(190,Math.round(height*.23)))}} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                    {getToolOptions(tool).map(option=><TouchableOpacity key={option} onPress={()=>chooseOption(option)} style={{minHeight:25,justifyContent:'center',paddingVertical:4,borderBottomWidth:1,borderBottomColor:'rgba(132,166,224,.13)'}}><Text style={{color:'#E4EDFF',fontSize:6.5}}>{option}</Text></TouchableOpacity>)}
+                  </ScrollView>
                   <Text style={{color:'#8FA1C6',fontSize:6,marginTop:6}}> {resolution} · {fps}</Text>
                 </View>
               </View>
@@ -1117,7 +1122,7 @@ function AppContent() {
               </View>
               <View style={s.quickGrid}>
                 {TOOL_GROUPS.Photo.map(x=>(
-                  <TouchableOpacity key={x} style={s.option} onPress={()=>setLastAction(x+' selected — image processing engine may be required')}>
+                  <TouchableOpacity key={x} style={s.option} onPress={()=>{setPage('editor');chooseTool(x);}}>
                     <Text style={s.optionText}>{x}</Text>
                   </TouchableOpacity>
                 ))}
@@ -1178,7 +1183,7 @@ function AppContent() {
           {page==='effects'&&(
             <ScrollView contentContainerStyle={s.subContent}>
               <TextInput value={effectSearch} onChangeText={setEffectSearch} placeholder="Search effects, filters and transitions..." placeholderTextColor={C.muted} style={s.nameInput}/>
-              {TOOL_GROUPS.Effects.concat(TOOL_GROUPS.Transitions).filter(x=>x.toLowerCase().includes(effectSearch.toLowerCase())).map(x=><TouchableOpacity key={x} style={s.option} onPress={()=>{setPage('editor');setTool(x);}}><Text style={s.optionText}>{x}</Text></TouchableOpacity>)}
+              {TOOL_GROUPS.Effects.concat(TOOL_GROUPS.Transitions).filter(x=>x.toLowerCase().includes(effectSearch.toLowerCase())).map(x=><TouchableOpacity key={x} style={s.option} onPress={()=>{setPage('editor');chooseTool(x);}}><Text style={s.optionText}>{x}</Text></TouchableOpacity>)}
               <TouchableOpacity style={s.connectButton} onPress={()=>setLastAction('Effect upload requires approved Creator account and validated effect runtime')}><Text style={s.claimText}>＋ UPLOAD CREATOR EFFECT</Text></TouchableOpacity>
               <Text style={s.statsNote}>Creator-uploaded effect packages need a validated effect runtime before they can execute inside the editor.</Text>
             </ScrollView>
