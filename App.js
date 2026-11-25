@@ -676,223 +676,118 @@ function AppContent() {
               <View style={s.brandRow}>
                 <EPLogo size={48}/>
                 <View>
-                  <Text style={s.brand}>ERROR <Text style={{color:C.violet}}>PIXEL</Text></Text>
-                  <Text style={s.brandSub}>PRO CREATIVE WORKSPACE</Text>
+                  <Text style={s.brand}>ERROR <Text style={{color:C.cyan}}>PIXEL</Text></Text>
+                  <Text style={s.brandSub}>THE CREATOR'S UNIVERSE</Text>
                 </View>
               </View>
               <View style={s.topActions}>
-                <RoundButton onPress={()=>setPage('editor')}>
-                  <Text style={s.buttonGlyph}>＋</Text>
-                </RoundButton>
-                <RoundButton onPress={()=>setDrawer(true)}>
-                  <Text style={s.buttonGlyph}>☰</Text>
-                </RoundButton>
+                <RoundButton onPress={()=>setPage('projects')}><Text style={s.buttonGlyph}>▤</Text></RoundButton>
+                <RoundButton onPress={()=>setDrawer(true)}><Text style={s.buttonGlyph}>☰</Text></RoundButton>
               </View>
             </View>
 
-            <View style={s.hero}>
-              <View style={s.heroTop}><Text style={s.eyebrow}>FEATURED VIDEO SHOWCASE</Text><Text style={s.proBadge}>✦ PLAYLIST</Text></View>
-              <View style={s.heroCenter}><EPLogo size={72}/><Text style={s.heroTitle}>CREATE WITHOUT LIMITS</Text><Text style={s.heroAccent}>VIDEO · PHOTO · AI</Text><Text style={s.heroCopy}>Featured creator videos and editing inspiration appear here when media is connected.</Text></View>
-            </View>
-            <View style={s.sectionRow}><View><Text style={s.eyebrow}>START CREATING</Text><Text style={s.sectionTitle}>New Project</Text></View></View>
-            <View style={s.workspaceGrid}>
-              <TouchableOpacity style={s.videoCard} onPress={()=>{setProjectType('video');setPage('editor');}}><Text style={s.cardIcon}>▶</Text><View><Text style={s.cardTitle}>NEW VIDEO</Text><Text style={s.cardTitle}>PROJECT</Text><Text style={s.cardSub}>MULTI-TRACK EDITOR</Text></View><Text style={s.cardArrow}>↗</Text></TouchableOpacity>
-              <View style={s.sideCards}><TouchableOpacity style={s.smallCard} onPress={()=>{setProjectType('photo');setPage('photo');}}><Text style={s.cardIcon}>▧</Text><Text style={s.smallCardTitle}>EDIT PHOTO</Text></TouchableOpacity><TouchableOpacity style={s.smallCard} onPress={()=>setPage('templates')}><Text style={s.cardIcon}>▦</Text><Text style={s.smallCardTitle}>TEMPLATES</Text></TouchableOpacity></View>
-            </View>
-            <TouchableOpacity style={s.notification} onPress={()=>setPage('creator')}>
-              <Text style={s.notificationGlyph}>✦</Text><View style={{flex:1}}><Text style={s.notificationHead}>YOUR CREATOR PROFILE · {activeRank.name.toUpperCase()}</Text><Text style={s.notificationText}>{creatorId} · {creatorPoints.toLocaleString()} Creator Points · {activeRank.reward} Premium reward</Text></View><Text style={s.link}>VIEW ↗</Text>
-            </TouchableOpacity>
-            <View style={s.dashboardMetrics}>
-              {[
-                ['PROJECTS',String(projects.length).padStart(2,'0'),'▣'],
-                ['MEDIA ASSETS',String(mediaItems.length).padStart(2,'0'),'▤'],
-                ['CREATOR LEVEL',activeRank.name,'✦']
-              ].map(item=>(
-                <View key={item[0]} style={s.metricCard}>
-                  <Text style={s.metricIcon}>{item[2]}</Text>
-                  <Text style={s.metricValue}>{item[1]}</Text>
-                  <Text style={s.metricLabel}>{item[0]}</Text>
+            <View style={s.dashHero}>
+              <View style={s.heroOrbOne}/>
+              <View style={s.heroOrbTwo}/>
+              <View style={s.dashHeroTop}>
+                <View style={s.liveChip}><View style={s.liveDot}/><Text style={s.liveChipText}>CREATIVE STUDIO · ONLINE</Text></View>
+                <Text style={s.heroEdition}>EDITION 01</Text>
+              </View>
+              <View style={s.dashHeroMain}>
+                <View style={{flex:1}}>
+                  <Text style={s.dashKicker}>YOUR VISION. YOUR PIXEL.</Text>
+                  <Text style={s.dashHeadline}>CREATE</Text>
+                  <Text style={s.dashHeadlineAccent}>BEYOND LIMITS.</Text>
+                  <Text style={s.dashDescription}>A powerful space for video, photo and next-generation creativity.</Text>
+                  <TouchableOpacity style={s.dashPrimary} onPress={()=>{setProjectType('video');setPage('editor');}}>
+                    <Text style={s.dashPrimaryText}>＋  START CREATING</Text><Text style={s.dashPrimaryArrow}>↗</Text>
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </View>
-            <View style={s.dashboardStatus}>
-              <View style={{flex:1}}>
-                <Text style={s.eyebrow}>WORKSPACE STATUS</Text>
-                <Text style={s.dashboardStatusTitle}>Your creative studio is ready</Text>
-                <Text style={s.smallMuted}>Video, photo and AI tools in one professional workspace</Text>
-              </View>
-              <View style={s.statusPill}><Text style={s.statusPillText}>READY</Text></View>
-            </View>
-
-            <View style={s.welcomeText}>
-              <Text style={s.eyebrow}>WELCOME TO YOUR STUDIO</Text>
-              <Text style={s.heading}>Your Studio.</Text>
-              <Text style={s.body}>Professional tools. One creative environment.</Text>
-            </View>
-
-            <View style={s.hero}>
-              <View style={s.heroTop}>
-                <Text style={s.eyebrow}>ERROR PIXEL PRESENTS</Text>
-                <Text style={s.proBadge}>✦ CREATOR</Text>
-              </View>
-              <View style={s.heroCenter}>
-                <EPLogo size={100}/>
-                <Text style={s.heroTitle}>MAKE EVERY</Text>
-                <Text style={s.heroAccent}>FRAME COUNT.</Text>
-                <Text style={s.heroCopy}>Edit videos, design visuals and explore advanced creative tools.</Text>
-              </View>
-              <TouchableOpacity style={s.newProject} onPress={()=>setPage('editor')}>
-                <RoundButton onPress={()=>setPage('editor')}>
-                  <Text style={s.buttonGlyph}>＋</Text>
-                </RoundButton>
-                <View style={{flex:1,marginLeft:12}}>
-                  <Text style={s.newProjectTitle}>CREATE NEW PROJECT</Text>
-                  <Text style={s.smallMuted}>Open professional editing workspace</Text>
+                <View style={s.heroEmblem}>
+                  <View style={s.heroEmblemRing}><EPLogo size={82}/></View>
+                  <Text style={s.emblemCaption}>EP / STUDIO</Text>
                 </View>
-                <Text style={s.arrow}>↗</Text>
+              </View>
+              <View style={s.heroBottomLine}>
+                <Text style={s.heroBottomText}>VIDEO  /  PHOTO  /  MOTION  /  AI</Text>
+                <Text style={s.heroBottomText}>POWERED BY MUNEEB HASSAN</Text>
+              </View>
+            </View>
+
+            <View style={s.dashSectionHead}>
+              <View><Text style={s.eyebrow}>YOUR CREATIVE SPACE</Text><Text style={s.sectionTitle}>Choose a studio</Text></View>
+              <Text style={s.dashIndex}>01 — 03</Text>
+            </View>
+            <View style={s.dashStudioGrid}>
+              <TouchableOpacity style={s.dashVideoStudio} onPress={()=>{setProjectType('video');setPage('editor');}}>
+                <View style={s.studioTopline}><Text style={s.studioTag}>01 / MOTION</Text><Text style={s.studioArrow}>↗</Text></View>
+                <View style={s.studioGraphic}><View style={s.studioPlay}><Text style={s.studioPlayGlyph}>▶</Text></View><View style={s.studioWave}/></View>
+                <Text style={s.studioTitle}>VIDEO EDITOR</Text><Text style={s.studioSub}>MULTI-TRACK · EFFECTS · EXPORT</Text>
               </TouchableOpacity>
-            </View>
-
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>CHOOSE YOUR WORKSPACE</Text>
-                <Text style={s.sectionTitle}>Creative Studio</Text>
-              </View>
-              <Text style={s.counter}>01 / 03</Text>
-            </View>
-            <View style={s.workspaceGrid}>
-              <TouchableOpacity style={s.videoCard} onPress={()=>setPage('editor')}>
-                <Text style={s.cardIcon}>▣</Text>
-                <View>
-                  <Text style={s.cardTitle}>VIDEO</Text>
-                  <Text style={s.cardTitle}>EDITOR</Text>
-                  <Text style={s.cardSub}>EDIT · EFFECTS · EXPORT</Text>
-                </View>
-                <Text style={s.cardArrow}>↗</Text>
-              </TouchableOpacity>
-              <View style={s.sideCards}>
-                <TouchableOpacity style={s.smallCard} onPress={()=>setPage('photo')}>
-                  <Text style={s.cardIcon}>◇</Text>
-                  <Text style={s.smallCardTitle}>PHOTO STUDIO</Text>
+              <View style={s.dashStudioSide}>
+                <TouchableOpacity style={s.dashPhotoStudio} onPress={()=>{setProjectType('photo');setPage('photo');}}>
+                  <View style={s.studioTopline}><Text style={s.studioTag}>02 / VISUAL</Text><Text style={s.studioArrow}>↗</Text></View>
+                  <Text style={s.sideStudioGlyph}>◈</Text><Text style={s.sideStudioTitle}>PHOTO STUDIO</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[s.smallCard,{borderColor:'rgba(227,169,242,.4)'}]}
-                  onPress={()=>{setPage('editor');setTool('AI Enhance');}}>
-                  <Text style={[s.cardIcon,{color:C.pink}]}>✦</Text>
-                  <Text style={s.smallCardTitle}>AI STUDIO</Text>
+                <TouchableOpacity style={s.dashAIStudio} onPress={()=>{setPage('editor');setTool('AI Enhance');}}>
+                  <View style={s.studioTopline}><Text style={s.studioTag}>03 / INTELLIGENCE</Text><Text style={s.studioArrow}>↗</Text></View>
+                  <Text style={s.sideStudioGlyph}>✧</Text><Text style={s.sideStudioTitle}>AI LAB</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>FEATURE SHOWCASE</Text>
-                <Text style={s.sectionTitle}>Explore Features</Text>
-              </View>
-              <Text style={s.link}>FEATURE PREVIEWS</Text>
+            <View style={s.dashMetricsRow}>
+              <View style={s.dashMetric}><Text style={s.dashMetricIcon}>▣</Text><Text style={s.dashMetricValue}>{String(projects.length).padStart(2,'0')}</Text><Text style={s.dashMetricLabel}>PROJECTS</Text></View>
+              <View style={s.dashMetric}><Text style={s.dashMetricIcon}>▤</Text><Text style={s.dashMetricValue}>{String(mediaItems.length).padStart(2,'0')}</Text><Text style={s.dashMetricLabel}>MEDIA ASSETS</Text></View>
+              <TouchableOpacity style={s.dashMetric} onPress={()=>setPage('creator')}><Text style={s.dashMetricIcon}>✦</Text><Text style={s.dashMetricValueSmall}>{activeRank.name}</Text><Text style={s.dashMetricLabel}>CREATOR LEVEL</Text></TouchableOpacity>
+            </View>
+
+            <View style={s.dashSectionHead}>
+              <View><Text style={s.eyebrow}>POWER TOOLS</Text><Text style={s.sectionTitle}>Explore the toolkit</Text></View>
+              <TouchableOpacity onPress={()=>setPage('editor')}><Text style={s.link}>ALL TOOLS ↗</Text></TouchableOpacity>
             </View>
             <View style={s.previewGrid}>
               {PREVIEWS.map(item=>(
-                <PreviewCard key={item.name} item={item} onPress={()=>{
-                  setPage('editor');chooseTool(item.tool);
-                }}/>
+                <PreviewCard key={item.name} item={item} onPress={()=>{setPage('editor');chooseTool(item.tool);}}/>
               ))}
             </View>
 
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>CREATIVE TOOLKIT</Text>
-                <Text style={s.sectionTitle}>Quick Tools</Text>
-              </View>
-              <TouchableOpacity onPress={()=>setPage('editor')}>
-                <Text style={s.link}>OPEN EDITOR ↗</Text>
-              </TouchableOpacity>
+            <View style={s.dashSectionHead}>
+              <View><Text style={s.eyebrow}>FAST ACCESS</Text><Text style={s.sectionTitle}>Quick tools</Text></View>
+              <Text style={s.dashIndex}>11 TOOLS</Text>
             </View>
             <View style={s.quickGrid}>
               {QUICK_TOOLS.map((name,i)=>(
-                <TouchableOpacity key={name} style={s.quickTool} onPress={()=>{
-                  setPage('editor');
-                  setTool(name);
-                }}>
-                  <Text style={s.quickIcon}>{['✦','⤢','⏩','⌁','▧','⁙','⌖','◌','◐','▤','♫','⌫'][i]}</Text>
+                <TouchableOpacity key={name} style={s.quickTool} onPress={()=>{setPage('editor');setTool(name);}}>
+                  <Text style={s.quickIcon}>{['✦','⤢','⏩','▧','◌','⌖','◈','◐','▤','♫','⌫'][i]}</Text>
                   <Text style={s.quickLabel}>{name.toUpperCase()}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>SUPPORT</Text>
-                <Text style={s.sectionTitle}>Need Help?</Text>
-              </View>
-            </View>
-            <View style={s.helpRow}>
-              <TouchableOpacity style={s.helpCard} onPress={()=>setPage('help')}>
-                <Text style={s.helpIcon}>ⓘ</Text>
-                <Text style={s.helpTitle}>HELP CENTER</Text>
-                <Text style={s.smallMuted}>Guides and support</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.helpCard} onPress={()=>setModal('aihelp')}>
-                <Text style={[s.helpIcon,{color:C.pink}]}>✦</Text>
-                <Text style={s.helpTitle}>AI HELP</Text>
-                <Text style={s.smallMuted}>Ask editing questions</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={s.creatorBanner} onPress={()=>setPage('creator')}>
+              <View style={s.creatorBannerIcon}><Text style={s.creatorBannerGlyph}>✦</Text></View>
+              <View style={{flex:1}}><Text style={s.creatorBannerKicker}>CREATOR PROFILE · {activeRank.name.toUpperCase()}</Text><Text style={s.creatorBannerTitle}>{creatorId}</Text><Text style={s.creatorBannerSub}>{creatorPoints.toLocaleString()} Creator Points · {activeRank.reward}</Text></View>
+              <Text style={s.creatorBannerArrow}>↗</Text>
+            </TouchableOpacity>
 
-            <View style={s.sectionRow}>
-              <View>
-                <Text style={s.eyebrow}>YOUR WORKSPACE</Text>
-                <Text style={s.sectionTitle}>Recent Projects</Text>
-              </View>
-              <TouchableOpacity onPress={()=>setPage('projects')}>
-                <Text style={s.link}>SEE ALL ↗</Text>
-              </TouchableOpacity>
+            <View style={s.dashSectionHead}>
+              <View><Text style={s.eyebrow}>YOUR WORKSPACE</Text><Text style={s.sectionTitle}>Recent projects</Text></View>
+              <TouchableOpacity onPress={()=>setPage('projects')}><Text style={s.link}>VIEW ALL ↗</Text></TouchableOpacity>
             </View>
             {projects.length===0?(
-              <View style={s.emptyCard}>
-                <EPLogo size={54}/>
-                <Text style={s.emptyTitle}>Your next masterpiece starts here.</Text>
-                <Text style={s.smallMuted}>Your saved projects will appear here.</Text>
-              </View>
+              <View style={s.emptyCard}><EPLogo size={54}/><Text style={s.emptyTitle}>Your next masterpiece starts here.</Text><Text style={s.smallMuted}>Your saved projects will appear here.</Text></View>
             ):projects.slice(-3).reverse().map((p,i)=>(
-              <TouchableOpacity key={i} style={s.projectRow} onPress={()=>setPage('editor')}>
-                <EPLogo size={38}/>
-                <View style={{flex:1}}>
-                  <Text style={s.helpTitle}>{p.name}</Text>
-                  <Text style={s.smallMuted}>{p.date}</Text>
-                </View>
-                <Text style={s.link}>OPEN ↗</Text>
-              </TouchableOpacity>
+              <TouchableOpacity key={i} style={s.projectRow} onPress={()=>setPage('editor')}><EPLogo size={38}/><View style={{flex:1}}><Text style={s.helpTitle}>{p.name}</Text><Text style={s.smallMuted}>{p.date}</Text></View><Text style={s.link}>OPEN ↗</Text></TouchableOpacity>
             ))}
 
             <View style={s.tiktokStats}>
-              <View style={s.tiktokHead}>
-                <View>
-                  <Text style={s.eyebrow}>CREATOR SOCIAL DASHBOARD</Text>
-                  <Text style={s.tiktokTitle}>TikTok Live Stats</Text>
-                </View>
-                <Text style={s.tiktokLogo}>♪</Text>
-              </View>
-              <View style={s.statsGrid}>
-                {['FOLLOWERS','TOTAL LIKES','LIVE STATUS'].map(x=>(
-                  <View key={x} style={s.statBox}>
-                    <Text style={s.statNumber}>—</Text>
-                    <Text style={s.statLabel}>{x}</Text>
-                  </View>
-                ))}
-              </View>
-              <Text style={s.statsNote}>Real-time account statistics and live streaming require an authorized TikTok integration.</Text>
-              <TouchableOpacity style={s.connectButton} onPress={()=>openSocial(TIKTOK)}>
-                <Text style={s.claimText}>OPEN TIKTOK PROFILE ↗</Text>
-              </TouchableOpacity>
+              <View style={s.tiktokHead}><View><Text style={s.eyebrow}>CREATOR SOCIAL DASHBOARD</Text><Text style={s.tiktokTitle}>TikTok Live Stats</Text></View><Text style={s.tiktokLogo}>♪</Text></View>
+              <View style={s.statsGrid}>{['FOLLOWERS','TOTAL LIKES','LIVE STATUS'].map(x=><View key={x} style={s.statBox}><Text style={s.statNumber}>—</Text><Text style={s.statLabel}>{x}</Text></View>)}</View>
+              <Text style={s.statsNote}>Real-time account statistics require an authorized TikTok integration.</Text>
+              <TouchableOpacity style={s.connectButton} onPress={()=>openSocial(TIKTOK)}><Text style={s.claimText}>OPEN TIKTOK PROFILE ↗</Text></TouchableOpacity>
             </View>
-
-            <View style={s.footer}>
-              <Text style={s.brand}>ERROR PIXEL</Text>
-              <Text style={s.brandSub}>POWERED BY MUNEEB HASSAN</Text>
-              <TouchableOpacity onPress={()=>openSocial(TIKTOK)}>
-                <Text style={s.channel}>ERROR EDITX99 · OPEN CHANNEL ↗</Text>
-              </TouchableOpacity>
-            </View>
+            <View style={s.footer}><Text style={s.brand}>ERROR PIXEL</Text><Text style={s.brandSub}>POWERED BY MUNEEB HASSAN</Text><TouchableOpacity onPress={()=>openSocial(TIKTOK)}><Text style={s.channel}>ERROR EDITX99 · OPEN CHANNEL ↗</Text></TouchableOpacity></View>
           </ScrollView>
           <SocialDock onOpen={openSocial}/>
         </View>
@@ -1415,7 +1310,63 @@ const s=StyleSheet.create({
   loadingText:{color:C.cyan,fontSize:8,letterSpacing:1.4},
   powered:{color:C.muted,fontSize:8,letterSpacing:1.5,marginTop:24},
   channel:{color:C.violet,fontSize:10,fontWeight:'900',letterSpacing:2,marginTop:8},
-  homeContent:{padding:18,paddingBottom:56},
+  homeContent:{padding:15,paddingBottom:72},
+  dashHero:{minHeight:286,padding:17,borderRadius:27,overflow:'hidden',backgroundColor:'#101A35',borderWidth:1,borderTopColor:'rgba(255,255,255,.72)',borderLeftColor:'rgba(174,133,255,.8)',borderRightColor:'rgba(89,226,255,.9)',borderBottomColor:'rgba(76,93,159,.9)',shadowColor:'#56DFFF',shadowOpacity:.28,shadowRadius:24,elevation:13},
+  heroOrbOne:{position:'absolute',width:230,height:230,borderRadius:115,right:-70,top:35,backgroundColor:'rgba(105,91,255,.20)',borderWidth:1,borderColor:'rgba(150,139,255,.18)'},
+  heroOrbTwo:{position:'absolute',width:150,height:150,borderRadius:75,right:10,top:70,backgroundColor:'rgba(71,207,255,.10)',borderWidth:1,borderColor:'rgba(114,232,255,.25)'},
+  dashHeroTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
+  liveChip:{flexDirection:'row',alignItems:'center',gap:7,paddingHorizontal:10,paddingVertical:7,borderRadius:20,backgroundColor:'rgba(74,220,203,.10)',borderWidth:1,borderColor:'rgba(102,237,220,.35)'},
+  liveDot:{width:6,height:6,borderRadius:3,backgroundColor:'#70F2D5'},
+  liveChipText:{color:'#9DF5E5',fontSize:7,fontWeight:'900',letterSpacing:1},
+  heroEdition:{color:'#AEBBE0',fontSize:7,fontWeight:'800',letterSpacing:1.2},
+  dashHeroMain:{flexDirection:'row',alignItems:'center',paddingTop:24,paddingBottom:19},
+  dashKicker:{color:C.cyan,fontSize:8,fontWeight:'900',letterSpacing:2},
+  dashHeadline:{color:'#FFFFFF',fontSize:34,fontWeight:'900',letterSpacing:-1.5,marginTop:10},
+  dashHeadlineAccent:{color:'#B7A2FF',fontSize:23,fontWeight:'900',letterSpacing:.2,marginTop:-2},
+  dashDescription:{color:'#B5C3E2',fontSize:9,lineHeight:15,marginTop:10,maxWidth:210},
+  dashPrimary:{height:39,alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:13,paddingHorizontal:14,marginTop:17,borderRadius:22,backgroundColor:'rgba(111,220,255,.17)',borderWidth:1,borderTopColor:'rgba(255,255,255,.85)',borderLeftColor:'#B89AFF',borderRightColor:'#70E8FF',borderBottomColor:'rgba(100,140,220,.7)',shadowColor:C.cyan,shadowOpacity:.42,shadowRadius:13,elevation:8},
+  dashPrimaryText:{color:'#F7FCFF',fontSize:8,fontWeight:'900',letterSpacing:.8},
+  dashPrimaryArrow:{color:C.cyan,fontSize:16,fontWeight:'900'},
+  heroEmblem:{width:112,alignItems:'center',marginLeft:3},
+  heroEmblemRing:{width:105,height:105,borderRadius:53,alignItems:'center',justifyContent:'center',borderWidth:1.5,borderColor:'rgba(113,232,255,.55)',backgroundColor:'rgba(117,105,255,.13)',shadowColor:'#9D8AFF',shadowOpacity:.65,shadowRadius:20,elevation:12},
+  emblemCaption:{color:'#AABDE5',fontSize:6,fontWeight:'900',letterSpacing:2,marginTop:9},
+  heroBottomLine:{paddingTop:11,borderTopWidth:1,borderTopColor:'rgba(176,201,255,.18)',flexDirection:'row',justifyContent:'space-between'},
+  heroBottomText:{color:'#94A8D0',fontSize:6,fontWeight:'800',letterSpacing:.8},
+  dashSectionHead:{flexDirection:'row',alignItems:'flex-end',justifyContent:'space-between',marginTop:25,marginBottom:12},
+  dashIndex:{color:'#7889B4',fontSize:7,fontWeight:'900',letterSpacing:1},
+  dashStudioGrid:{flexDirection:'row',gap:10,minHeight:208},
+  dashVideoStudio:{flex:1.08,padding:13,borderRadius:20,backgroundColor:'#111D3A',borderWidth:1,borderTopColor:'rgba(255,255,255,.58)',borderLeftColor:'rgba(173,137,255,.65)',borderRightColor:'rgba(114,232,255,.72)',borderBottomColor:'rgba(83,103,170,.65)',justifyContent:'space-between',shadowColor:'#72E8FF',shadowOpacity:.18,shadowRadius:15,elevation:7},
+  dashStudioSide:{flex:1,gap:10},
+  dashPhotoStudio:{flex:1,padding:11,borderRadius:18,backgroundColor:'#171B3A',borderWidth:1,borderColor:'rgba(177,151,255,.55)',justifyContent:'space-between'},
+  dashAIStudio:{flex:1,padding:11,borderRadius:18,backgroundColor:'#10263A',borderWidth:1,borderColor:'rgba(114,232,255,.55)',justifyContent:'space-between'},
+  studioTopline:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
+  studioTag:{color:'#A9B9DE',fontSize:6,fontWeight:'900',letterSpacing:1},
+  studioArrow:{color:C.cyan,fontSize:17,fontWeight:'900'},
+  studioGraphic:{height:95,alignItems:'center',justifyContent:'center',borderRadius:15,backgroundColor:'rgba(102,126,220,.10)',borderWidth:1,borderColor:'rgba(124,205,255,.2)',overflow:'hidden'},
+  studioPlay:{width:48,height:48,borderRadius:24,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(105,221,255,.18)',borderWidth:1.5,borderColor:'rgba(133,235,255,.8)',shadowColor:C.cyan,shadowOpacity:.7,shadowRadius:13,elevation:7},
+  studioPlayGlyph:{color:'#FFFFFF',fontSize:18,marginLeft:3},
+  studioWave:{position:'absolute',height:2,width:'80%',bottom:17,backgroundColor:'rgba(126,218,255,.55)'},
+  studioTitle:{color:'#FFFFFF',fontSize:14,fontWeight:'900',letterSpacing:.5,marginTop:8},
+  studioSub:{color:C.cyan,fontSize:6,fontWeight:'800',letterSpacing:.6,marginTop:4},
+  sideStudioGlyph:{color:'#C0A7FF',fontSize:27,fontWeight:'900'},
+  sideStudioTitle:{color:'#FFFFFF',fontSize:9,fontWeight:'900',letterSpacing:.5},
+  dashMetricsRow:{flexDirection:'row',gap:8,marginTop:12},
+  dashMetric:{flex:1,minWidth:0,padding:11,borderRadius:15,backgroundColor:'rgba(19,29,55,.92)',borderWidth:1,borderTopColor:'rgba(255,255,255,.32)',borderLeftColor:'rgba(165,140,255,.35)',borderRightColor:'rgba(114,232,255,.38)',borderBottomColor:'rgba(79,100,158,.55)'},
+  dashMetricIcon:{color:C.cyan,fontSize:13},
+  dashMetricValue:{color:'#FFFFFF',fontSize:20,fontWeight:'900',marginTop:7},
+  dashMetricValueSmall:{color:'#FFFFFF',fontSize:12,fontWeight:'900',marginTop:11},
+  dashMetricLabel:{color:'#91A3C8',fontSize:6,fontWeight:'900',letterSpacing:.8,marginTop:5},
+  creatorBanner:{flexDirection:'row',alignItems:'center',gap:12,padding:14,marginTop:24,borderRadius:18,backgroundColor:'rgba(102,81,176,.16)',borderWidth:1,borderTopColor:'rgba(255,255,255,.42)',borderLeftColor:'rgba(181,146,255,.65)',borderRightColor:'rgba(114,232,255,.48)',borderBottomColor:'rgba(102,86,168,.6)'},
+  creatorBannerIcon:{width:39,height:39,borderRadius:20,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(181,146,255,.18)',borderWidth:1,borderColor:'rgba(193,169,255,.55)'},
+  creatorBannerGlyph:{color:'#D2C1FF',fontSize:20},
+  creatorBannerKicker:{color:C.cyan,fontSize:6,fontWeight:'900',letterSpacing:1},
+  creatorBannerTitle:{color:'#FFFFFF',fontSize:13,fontWeight:'900',marginTop:4},
+  creatorBannerSub:{color:'#AAB9D8',fontSize:7,marginTop:4},
+  creatorBannerArrow:{color:C.cyan,fontSize:22,fontWeight:'900'},
+  quickTool:{width:'30%',minHeight:82,alignItems:'center',justifyContent:'center',paddingVertical:13,borderRadius:17,backgroundColor:'rgba(21,31,58,.94)',borderWidth:1,borderTopColor:'rgba(255,255,255,.32)',borderLeftColor:'rgba(167,139,250,.38)',borderRightColor:'rgba(114,232,255,.42)',borderBottomColor:'rgba(83,103,170,.55)',shadowColor:'#7E8BFF',shadowOpacity:.13,shadowRadius:10,elevation:5},
+  quickIcon:{color:C.cyan,fontSize:22},
+  quickLabel:{color:'#E8F0FF',fontSize:6.5,fontWeight:'900',letterSpacing:.3,marginTop:8,textAlign:'center',paddingHorizontal:3},
+
   dashboardMetrics:{flexDirection:'row',gap:9,marginTop:18},
   metricCard:{flex:1,minWidth:0,minHeight:108,padding:12,borderRadius:17,backgroundColor:'rgba(20,31,55,.94)',borderWidth:1,borderTopColor:'rgba(235,248,255,.42)',borderLeftColor:'rgba(167,139,250,.46)',borderRightColor:'rgba(114,232,255,.48)',borderBottomColor:'rgba(86,116,184,.55)',shadowColor:'#72E8FF',shadowOpacity:.16,shadowRadius:12,elevation:6},
   metricIcon:{color:C.cyan,fontSize:16,fontWeight:'900'},
