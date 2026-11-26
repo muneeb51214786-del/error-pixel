@@ -7,6 +7,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import {VideoView, useVideoPlayer} from 'expo-video';
 import Svg, {Path, Circle, Rect, Polygon} from 'react-native-svg';
 
 const C = {
@@ -245,6 +246,12 @@ function PreviewCard({item,onPress}) {
   );
 }
 
+function MediaVideoPreview({uri}) {
+  const player = useVideoPlayer({uri}, player => { player.loop = false; });
+  return (
+    <VideoView player={player} style={{width:'100%',height:'100%'}} contentFit="contain" nativeControls />
+  );
+}
 function getToolButtonShape(item) {
   const group=item[2],name=item[0];
   let hash=0;for(let i=0;i<name.length;i++)hash=(hash*31+name.charCodeAt(i))>>>0;
@@ -743,8 +750,10 @@ function AppContent() {
         height:undefined,minHeight:90,maxHeight:undefined,
         flexGrow:1,flexShrink:1,marginVertical:2,overflow:'hidden',width:'100%'
       }]}>
-        {mediaFiles.length>0&&mediaFiles[0].uri ? (
-          <Image source={{uri:mediaFiles[0].uri}} resizeMode="contain" style={{width:'100%',height:'100%',position:'absolute'}}/>
+        {mediaFiles.find(file=>file.type==='video'&&file.uri) ? (
+          <MediaVideoPreview uri={mediaFiles.find(file=>file.type==='video'&&file.uri).uri}/>
+        ) : mediaFiles.find(file=>file.type==='image'&&file.uri) ? (
+          <Image source={{uri:mediaFiles.find(file=>file.type==='image'&&file.uri).uri}} resizeMode="contain" style={{width:'100%',height:'100%',position:'absolute'}}/>
         ) : (
           <FogBrandPreview desktop={desktop}/>
         )}
