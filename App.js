@@ -60,6 +60,9 @@ const TOOL_ICONS = {
   'Photo Crop':'⌗','Photo Resize':'⤢','Photo Rotate':'⟳','Layers':'▤',
   'Export':'⇧','Export Presets':'▦','Bitrate':'▥','Codec':'▧'
 };
+const UNIQUE_TOOL_GLYPHS = ['⌖','✂','⤢','⟳','⇋','◩','❄','▣','⊕','⊔','╱','◷','∿','≋','⊙','◐','◒','▦','◉','☼','◑','☀','♨','◈','✧','◌','▧','♫','♬','▥','〰','∿','▤','♩','▨','❖','↝','⁙','➜','⊖','✎','⬡','T³','◍','◒','⌗','✦','⏩','R','F','D','◫','⌁','◉','♧','◉','◌','▤','◈','⌘','⌑','⌗','◭','◮','◬','⬡','◇','◈','✣','✥','✺','✹','✸','✷','✶','✵','✴','✳','✲','✱','✧','✦','✪','✫','✬','✭','✮','✯','✰','⟲','⟳','⤴','⤵','⇄','⇆','⇅','⇵','⤢','⤡','⤧','⤨','⤩','⤪','⤫','⤬','⌁','⌇','⌖','⌗','⌘','⌥','⌦','⌫','⏱','⏲','⏵','⏸','⏹','⏺','◉','◎','◌','◍','◐','◑','◒','◓','◔','◕','◖','◗','◘','◙','◚','◛','◜','◝','◞','◟','◠','◡','◢','◣','◤','◥','◦','◧','◨','◩','◪','◫','◬','◭','◮','◯','⬟','⬢','⬣','⬡','⬠','⬤','⬥','⬦','⬧','⬨','⬩','⬪','⬫','⬬','⬭','⬮','⬯'];
+let glyphIndex=0;
+Object.values(TOOL_GROUPS).flat().forEach(name=>{if(!TOOL_ICONS[name])TOOL_ICONS[name]=UNIQUE_TOOL_GLYPHS[glyphIndex++%UNIQUE_TOOL_GLYPHS.length];});
 const groupGlyphs = {Edit:'⌁',Motion:'◇',Color:'◉',Audio:'♫',Effects:'✣',Transitions:'⇢',Text:'T',Advanced:'⌖',AI:'✧',Photo:'▧',Output:'⇧'};
 const TOOLS = Object.entries(TOOL_GROUPS).flatMap(([group,names])=>names.map(name=>[name,TOOL_ICONS[name]||groupGlyphs[group]||'⌁',group]));
 const RESOLUTIONS = ['144p','240p','360p','480p','720p HD','1080p Full HD','2K QHD','4K Ultra HD','5K','6K','8K Ultra HD','12K','16K Ultra HD'];
@@ -80,6 +83,14 @@ const QUICK_TOOLS = ['AI Video Enhancer','AI Quality Upscaler','FPS Booster','AI
 
 
 const OPTIONS = {
+  'HSL':['Hue','Saturation','Luminance','Red channel','Orange channel','Yellow channel','Green channel','Cyan channel','Blue channel','Purple channel','Magenta channel','Reset HSL'],
+  'Chroma Key':['Select key color','Green screen preset','Blue screen preset','Key intensity','Spill suppression','Edge feather','Shadow cleanup','Preview key'],
+  'Masking':['Rectangle mask','Ellipse mask','Linear mask','Custom pen mask','Feather','Expansion','Invert mask','Track mask'],
+  'Color Correction':['Auto correction','White balance','Exposure','Contrast','Highlights','Shadows','Whites','Blacks','Temperature','Tint','Saturation','Vibrance'],
+  'Color Grading':['Basic correction','Color wheels','HSL','Curves','LUT library','LOG to Rec.709','Split toning','Film look'],
+  'Filters':['Cinematic','Vintage','Portrait','Warm','Cool','Black & White','Fade','Film','Retro','Neon','Apply filter intensity'],
+  'Effects':['Video effects','Lens effects','Light effects','Glitch effects','Blur effects','Distortion effects','Particles','Film grain','Glow','Preview effect'],
+  'Transitions':['Dissolve','Fade','Zoom','Whip','Spin','Glitch','Mask reveal','Light leak','Duration 0.5s','Duration 1.0s'],
   Import:['Choose video','Choose audio','Choose image','Import folder','Search imported media'],
   Split:['Split at playhead','Split all tracks','Split selected track'],
   Trim:['Trim start','Trim end','Trim both sides'],
@@ -233,20 +244,20 @@ function PreviewCard({item,onPress}) {
 }
 
 function getToolButtonShape(item) {
-  const group=item[2];
-  const name=item[0];
-  if(group==='Audio') return {width:46,height:34,borderRadius:10,transform:[{skewX:'-9deg'}],borderColor:'rgba(101,214,176,.48)',backgroundColor:'rgba(101,214,176,.10)'};
-  if(group==='Text') return {width:36,height:36,borderRadius:7,borderWidth:2,borderColor:'rgba(215,167,255,.55)',backgroundColor:'rgba(215,167,255,.10)'};
-  if(group==='Effects'||group==='Transitions') return {width:36,height:36,borderRadius:9,transform:[{rotate:'45deg'}],borderColor:'rgba(255,157,210,.55)',backgroundColor:'rgba(255,157,210,.10)'};
-  if(group==='Color') return {width:39,height:39,borderRadius:20,borderWidth:2,borderColor:'rgba(255,194,112,.58)',backgroundColor:'rgba(255,194,112,.10)'};
-  if(group==='Motion') return {width:36,height:36,borderRadius:5,transform:[{rotate:'45deg'}],borderColor:'rgba(110,167,232,.62)',backgroundColor:'rgba(110,167,232,.12)'};
-  if(group==='AI') return {width:40,height:36,borderRadius:13,borderTopLeftRadius:5,borderBottomRightRadius:5,borderColor:'rgba(167,139,250,.62)',backgroundColor:'rgba(167,139,250,.12)'};
-  if(group==='Output') return {width:34,height:40,borderRadius:8,borderTopLeftRadius:16,borderTopRightRadius:16,borderColor:'rgba(233,211,159,.62)',backgroundColor:'rgba(233,211,159,.10)'};
-  if(group==='Photo') return {width:38,height:34,borderRadius:5,transform:[{skewY:'-7deg'}],borderColor:'rgba(128,190,255,.58)',backgroundColor:'rgba(128,190,255,.10)'};
-  if(group==='Advanced') return {width:38,height:38,borderRadius:4,transform:[{rotate:'45deg'}],borderColor:'rgba(114,232,255,.52)',backgroundColor:'rgba(114,232,255,.09)'};
-  if(['Split','Cut','Razor Tool','Trim','Slice'].includes(name)) return {width:43,height:32,borderRadius:6,transform:[{skewX:'-12deg'}],borderColor:'rgba(255,130,145,.58)',backgroundColor:'rgba(255,130,145,.10)'};
-  if(['Crop','Resize','Rotate','Flip','Mirror'].includes(name)) return {width:36,height:36,borderRadius:5,borderWidth:2,borderColor:'rgba(114,232,255,.55)',backgroundColor:'rgba(114,232,255,.09)'};
-  return {width:38,height:34,borderRadius:11,borderColor:'rgba(180,190,220,.35)',backgroundColor:'rgba(255,255,255,.055)'};
+  const group=item[2],name=item[0];
+  let hash=0;for(let i=0;i<name.length;i++)hash=(hash*31+name.charCodeAt(i))>>>0;
+  const variants=[
+    {width:36,height:36,borderRadius:18},
+    {width:42,height:32,borderRadius:7,transform:[{skewX:'-10deg'}]},
+    {width:34,height:40,borderRadius:9,borderTopLeftRadius:18},
+    {width:38,height:34,borderRadius:5,transform:[{rotate:'-8deg'}]},
+    {width:36,height:36,borderRadius:4,borderWidth:2},
+    {width:40,height:34,borderRadius:12,borderBottomRightRadius:3},
+    {width:34,height:38,borderRadius:8,transform:[{rotate:'8deg'}]},
+    {width:42,height:34,borderRadius:17,borderTopRightRadius:4}
+  ];
+  const tint=group==='Audio'?'rgba(101,214,176,.48)':group==='Text'?'rgba(215,167,255,.55)':group==='Effects'||group==='Transitions'?'rgba(255,157,210,.55)':group==='Color'?'rgba(255,194,112,.58)':group==='Motion'?'rgba(110,167,232,.62)':group==='AI'?'rgba(167,139,250,.62)':group==='Output'?'rgba(233,211,159,.62)':group==='Photo'?'rgba(128,190,255,.58)':group==='Advanced'?'rgba(114,232,255,.52)':'rgba(180,190,220,.42)';
+  return {...variants[hash%variants.length],borderWidth:1.5,borderColor:tint,backgroundColor:tint.replace(/,\\.\\d+\\)/,',.10)')};
 }
 function ToolButton({item,active,onPress,compact=false}) {
   const shape=getToolButtonShape(item);
@@ -1140,11 +1151,16 @@ function AppContent() {
           )}
           {page==='templates'&&(
             <ScrollView contentContainerStyle={s.subContent}>
-              <TextInput value={templateSearch} onChangeText={setTemplateSearch} placeholder="Search templates and creator packs..." placeholderTextColor={C.muted} style={s.nameInput}/>
-              <View style={s.hero}><Text style={s.heroTitle}>TEMPLATE MARKETPLACE</Text><Text style={s.heroCopy}>Discover creator templates, transitions, presets and effects.</Text></View>
-              {['Trending Templates','New Releases','Popular Creator Packs','My Uploaded Templates'].map(x=><TouchableOpacity key={x} style={s.projectRow} onPress={()=>setLastAction(x+' — marketplace backend required')}><Text style={s.cardIcon}>▦</Text><Text style={s.helpTitle}>{x}</Text><Text style={s.link}>OPEN ↗</Text></TouchableOpacity>)}
-              <TouchableOpacity style={s.connectButton} onPress={()=>setLastAction('Template upload requires verified Template Creator access and cloud storage')}><Text style={s.claimText}>＋ UPLOAD TEMPLATE</Text></TouchableOpacity>
-              <Text style={s.statsNote}>Publishing and downloading templates requires cloud storage, moderation and marketplace APIs.</Text>
+              <TextInput value={templateSearch} onChangeText={setTemplateSearch} placeholder="Search templates, styles and creator packs..." placeholderTextColor={C.muted} style={s.nameInput}/>
+              <View style={s.hero}><Text style={s.heroTitle}>TEMPLATE MARKETPLACE</Text><Text style={s.heroCopy}>Choose a category, preview a style and start a project. Downloadable template files connect when marketplace storage is enabled.</Text></View>
+              <View style={{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:14}}>{[['🔥','Trending'],['✨','New'],['🎬','Video'],['📱','Reels'],['🎨','Photo'],['🏏','Sports'],['💫','Transitions'],['👑','Creator Packs']].map(([g,n])=><TouchableOpacity key={n} onPress={()=>setLastAction(n+' templates selected')} style={{width:'23%',minWidth:72,paddingVertical:12,alignItems:'center',borderRadius:12,backgroundColor:'#151D35',borderWidth:1,borderColor:'#435078'}}><Text style={{fontSize:20}}>{g}</Text><Text style={{color:C.white,fontSize:10,fontWeight:'800',marginTop:5}}>{n}</Text></TouchableOpacity>)}</View>
+              {[
+                ['TRENDING NOW',[['CITY LIGHTS','▥','#182E68','#A54DFF'],['CRICKET EDIT','♛','#102D58','#0BE2EF'],['NEON PORTRAIT','✦','#35145E','#0A9DCB'],['CINEMATIC','◈','#12384E','#7443C5']]],
+                ['VIDEO TEMPLATES',[['SPORTS INTRO','🏏','#102D58','#0BE2EF'],['TRAVEL REEL','✈','#18385C','#50D9EF'],['BEAT SYNC','♫','#28184C','#B56DFF']]],
+                ['PHOTO & CREATOR PACKS',[['PORTRAIT GLOW','✧','#35145E','#A54DFF'],['DARK MOOD','◉','#17243C','#69CFFF'],['GOLD LUXE','♛','#40301B','#E9D39F']]]
+              ].map(([section,cards])=><View key={section} style={{marginBottom:18}}><Text style={s.sectionTitle}>{section}</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:10}}>{cards.filter(c=>c[0].toLowerCase().includes(templateSearch.toLowerCase())).map(([name,glyph,bg,edge])=><TouchableOpacity key={name} onPress={()=>{setProjectType('video');setProjectName(name+' Project');setPage('editor');setLastAction(name+' template preview selected — template package engine required to apply');}} style={{width:wide?'31%':'47%',minHeight:112,borderRadius:14,overflow:'hidden',alignItems:'center',justifyContent:'center',backgroundColor:bg,borderWidth:1.3,borderColor:edge}}><Text style={{fontSize:36,color:'#FFFFFF'}}>{glyph}</Text><Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900',marginTop:7}}>{name}</Text><Text style={{color:'#B9D6F7',fontSize:8,marginTop:4}}>PREVIEW STYLE</Text></TouchableOpacity>)}</View></View>)}
+              <TouchableOpacity style={s.connectButton} onPress={()=>setLastAction('Template upload requires verified Creator access and connected cloud storage')}><Text style={s.claimText}>＋ UPLOAD TEMPLATE</Text></TouchableOpacity>
+              <Text style={s.statsNote}>These are visible template-style previews, not downloadable project packages yet. Applying editable templates requires the template engine and marketplace storage.</Text>
             </ScrollView>
           )}
           {page==='aimodels'&&(
