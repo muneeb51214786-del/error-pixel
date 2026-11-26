@@ -257,7 +257,7 @@ function getToolButtonShape(item) {
     {width:42,height:34,borderRadius:17,borderTopRightRadius:4}
   ];
   const tint=group==='Audio'?'rgba(101,214,176,.48)':group==='Text'?'rgba(215,167,255,.55)':group==='Effects'||group==='Transitions'?'rgba(255,157,210,.55)':group==='Color'?'rgba(255,194,112,.58)':group==='Motion'?'rgba(110,167,232,.62)':group==='AI'?'rgba(167,139,250,.62)':group==='Output'?'rgba(233,211,159,.62)':group==='Photo'?'rgba(128,190,255,.58)':group==='Advanced'?'rgba(114,232,255,.52)':'rgba(180,190,220,.42)';
-  return {...variants[hash%variants.length],borderWidth:1.5,borderColor:tint,backgroundColor:tint.replace(/,\\.\\d+\\)/,',.10)')};
+  return {...variants[hash%variants.length],borderWidth:1.5,borderColor:tint,backgroundColor:'rgba(255,255,255,.055)'};
 }
 function ToolButton({item,active,onPress,compact=false}) {
   const shape=getToolButtonShape(item);
