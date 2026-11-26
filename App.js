@@ -989,7 +989,7 @@ function AppContent() {
                 </View>
               </View>
 
-              <View style={{height:Math.max(104,Math.min(132,Math.round(height*.30))),flexShrink:0,marginTop:5,padding:6,borderRadius:10,backgroundColor:'rgba(7,15,34,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A46DFF',borderRightColor:'#55E7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
+              <View style={{height:Math.max(112,Math.min(150,Math.round(height*.255))),flexShrink:0,marginTop:4,padding:5,borderRadius:10,backgroundColor:'rgba(7,15,34,.97)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A46DFF',borderRightColor:'#55E7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
                 <View style={{height:20,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
                   <View style={{flexDirection:'row',gap:10}}>
                     <TouchableOpacity onPress={undo}><Text style={{color:'#EAF2FF',fontSize:14}}>↶</Text></TouchableOpacity>
@@ -1005,13 +1005,17 @@ function AppContent() {
                   {['Video 1','Video 2','Audio 1','Audio 2'].map((x,i)=>(
                     <View key={x} style={{height:'25%',minHeight:13,flexDirection:'row',alignItems:'center',borderTopWidth:1,borderTopColor:'rgba(119,153,218,.16)'}}>
                       <View style={{width:76,flexDirection:'row',alignItems:'center',gap:5}}><Text style={{color:'#91A5CC',fontSize:8}}>{['▣','▧','♫','≋'][i]}</Text><Text style={{color:'#DCE7FB',fontSize:6.5}}>{x}</Text></View>
-                      <View style={{flex:1,height:'72%',borderRadius:4,backgroundColor:i<2?'rgba(56,112,201,.055)':i===2?'rgba(23,190,135,.055)':'rgba(137,72,225,.055)',borderWidth:1,borderColor:'rgba(102,155,236,.22)'}}/>
+                      <View style={{flex:1,height:'76%',borderRadius:4,overflow:'hidden',backgroundColor:i<2?'rgba(56,112,201,.12)':i===2?'rgba(23,190,135,.14)':'rgba(137,72,225,.14)',borderWidth:1,borderColor:i===2?'rgba(34,232,177,.68)':i===3?'rgba(174,104,255,.72)':'rgba(102,185,255,.62)',flexDirection:'row',alignItems:'center',paddingHorizontal:4}}>
+                        {mediaFiles.length>0?(
+                          <Text numberOfLines={1} style={{color:i===2?'#71F0C8':i===3?'#D4A5FF':'#B9E9FF',fontSize:6,fontWeight:'900'}}>{mediaFiles.filter(m=>i===0?m.type!=='audio':i===1?m.type==='image':i===2?m.type==='audio':m.type==='audio').map(m=>m.name).join('  ·  ')||'Empty track'}</Text>
+                        ):<Text style={{color:i===2?'#53E9BC':i===3?'#C18CFF':'#8ACFFF',fontSize:6,fontWeight:'800'}}>{i<2?'DROP VIDEO / IMAGE CLIPS HERE':'DROP AUDIO CLIPS HERE'}</Text>}
+                      </View>
                     </View>
                   ))}
                 </View>
               </View>
 
-              <View style={{height:66,flexShrink:0,marginTop:4,paddingHorizontal:5,paddingVertical:4,borderRadius:13,backgroundColor:'rgba(19,28,59,.94)',borderWidth:1.3,borderTopColor:'rgba(255,255,255,.86)',borderLeftColor:'#A66BFF',borderRightColor:'#55E8FF',borderBottomColor:'rgba(86,108,172,.9)',shadowColor:'#6DE8FF',shadowOpacity:.32,shadowRadius:13,elevation:10}}>
+              <View style={{height:58,flexShrink:0,marginTop:3,paddingHorizontal:4,paddingVertical:3,borderRadius:13,backgroundColor:'rgba(19,28,59,.97)',borderWidth:1.3,borderTopColor:'rgba(255,255,255,.86)',borderLeftColor:'#A66BFF',borderRightColor:'#55E8FF',borderBottomColor:'rgba(86,108,172,.9)',shadowColor:'#6DE8FF',shadowOpacity:.32,shadowRadius:13,elevation:10}}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{alignItems:'center',gap:5,paddingHorizontal:2}}>
                   {['Edit','Audio','Text','Effects','Transitions','Color','Motion','AI','Photo','Advanced','Output'].map(x=>(
                     <TouchableOpacity key={x} onPress={()=>setCategory(x)} style={{paddingHorizontal:10,paddingVertical:5,borderRadius:10,backgroundColor:category===x?'rgba(111,118,255,.42)':'rgba(255,255,255,.045)',borderWidth:1,borderTopColor:'rgba(255,255,255,.65)',borderLeftColor:'rgba(171,145,255,.55)',borderRightColor:'rgba(92,228,255,.55)',borderBottomColor:'rgba(79,91,159,.8)'}}>
@@ -1021,8 +1025,9 @@ function AppContent() {
                 </ScrollView>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{alignItems:'center',gap:5,paddingHorizontal:2,paddingTop:4}}>
                   {TOOLS.filter(x=>x[2]===category).map(x=>(
-                    <TouchableOpacity key={x[0]} onPress={()=>chooseTool(x[0])} style={{minWidth:52,height:30,paddingHorizontal:7,alignItems:'center',justifyContent:'center',borderRadius:10,backgroundColor:tool===x[0]?'rgba(76,166,255,.34)':'rgba(255,255,255,.055)',borderWidth:1,borderTopColor:'rgba(255,255,255,.76)',borderLeftColor:'rgba(174,145,255,.66)',borderRightColor:'rgba(91,226,255,.72)',borderBottomColor:'rgba(75,88,155,.9)',shadowColor:tool===x[0]?'#62E8FF':'#8D75FF',shadowOpacity:tool===x[0]?.55:.16,shadowRadius:tool===x[0]?10:5,elevation:tool===x[0]?8:3}}>
-                      <Text numberOfLines={1} style={{color:tool===x[0]?'#FFFFFF':'#DDE8FF',fontSize:7,fontWeight:'900'}}>{x[0]}</Text>
+                    <TouchableOpacity key={x[0]} onPress={()=>chooseTool(x[0])} style={{minWidth:57,height:38,paddingHorizontal:7,alignItems:'center',justifyContent:'center',borderRadius:10,overflow:'hidden',backgroundColor:tool===x[0]?'rgba(55,177,255,.34)':'rgba(20,28,59,.92)',borderWidth:1.2,borderTopColor:'rgba(255,255,255,.96)',borderLeftColor:'rgba(174,145,255,.86)',borderRightColor:'rgba(91,226,255,.92)',borderBottomColor:'rgba(75,88,155,.98)',shadowColor:tool===x[0]?'#62E8FF':'#8D75FF',shadowOpacity:tool===x[0]?.72:.34,shadowRadius:tool===x[0]?13:8,elevation:tool===x[0]?10:6}}>
+                      <Text numberOfLines={1} style={{color:tool===x[0]?'#FFFFFF':'#8FEFFF',fontSize:14,fontWeight:'900',textShadowColor:'#4C8EFF',textShadowRadius:7}}>{x[1]}</Text>
+                      <Text numberOfLines={1} style={{color:tool===x[0]?'#FFFFFF':'#DDE8FF',fontSize:6.5,fontWeight:'900',marginTop:2}}>{x[0]}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
