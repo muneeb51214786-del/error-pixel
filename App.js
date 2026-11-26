@@ -327,6 +327,8 @@ function AppContent() {
   const [creatorApplied,setCreatorApplied]=useState(false);
   const [creatorFollowers,setCreatorFollowers]=useState('');
   const [templateSearch,setTemplateSearch]=useState('');
+  const [likedTemplates,setLikedTemplates]=useState([]);
+  const [templateFeedCategory,setTemplateFeedCategory]=useState('For You');
   const [effectSearch,setEffectSearch]=useState('');
   const [mediaItems,setMediaItems]=useState([]);
   const [mediaFiles,setMediaFiles]=useState([]);
@@ -686,8 +688,8 @@ function AppContent() {
         <Text style={s.smallMuted}>{resolution} · {fps}</Text>
       </View>
       <View style={[s.previewCanvas,desktop&&s.desktopCanvas,desktop&&{
-        height:height<400?30:height<480?38:70,minHeight:height<400?30:height<480?38:60,maxHeight:height<400?34:height<480?42:90,
-        flexGrow:1,marginVertical:2,overflow:'hidden',width:'100%'
+        height:undefined,minHeight:90,maxHeight:undefined,
+        flexGrow:1,flexShrink:1,marginVertical:2,overflow:'hidden',width:'100%'
       }]}>
         {mediaFiles.length>0&&mediaFiles[0].uri ? (
           <Image source={{uri:mediaFiles[0].uri}} resizeMode="contain" style={{width:'100%',height:'100%',position:'absolute'}}/>
@@ -1028,7 +1030,7 @@ function AppContent() {
                 </View>
               </View>
 
-              <View style={{height:58,flexShrink:0,marginTop:3,paddingHorizontal:4,paddingVertical:3,borderRadius:13,backgroundColor:'rgba(19,28,59,.97)',borderWidth:1.3,borderTopColor:'rgba(255,255,255,.86)',borderLeftColor:'#A66BFF',borderRightColor:'#55E8FF',borderBottomColor:'rgba(86,108,172,.9)',shadowColor:'#6DE8FF',shadowOpacity:.32,shadowRadius:13,elevation:10}}>
+              <View style={{height:58,flexShrink:0,marginTop:3,paddingHorizontal:4,paddingVertical:3,borderRadius:11,backgroundColor:'rgba(19,28,59,.97)',borderWidth:1.3,borderTopColor:'rgba(255,255,255,.86)',borderLeftColor:'#A66BFF',borderRightColor:'#55E8FF',borderBottomColor:'rgba(86,108,172,.9)',shadowColor:'#6DE8FF',shadowOpacity:.32,shadowRadius:13,elevation:10}}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{alignItems:'center',gap:5,paddingHorizontal:2}}>
                   {['Edit','Audio','Text','Effects','Transitions','Color','Motion','AI','Photo','Advanced','Output'].map(x=>(
                     <TouchableOpacity key={x} onPress={()=>setCategory(x)} style={{paddingHorizontal:10,paddingVertical:5,borderRadius:10,backgroundColor:category===x?'rgba(111,118,255,.42)':'rgba(255,255,255,.045)',borderWidth:1,borderTopColor:'rgba(255,255,255,.65)',borderLeftColor:'rgba(171,145,255,.55)',borderRightColor:'rgba(92,228,255,.55)',borderBottomColor:'rgba(79,91,159,.8)'}}>
@@ -1038,7 +1040,7 @@ function AppContent() {
                 </ScrollView>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{alignItems:'center',gap:5,paddingHorizontal:2,paddingTop:4}}>
                   {TOOLS.filter(x=>x[2]===category).map(x=>(
-                    <TouchableOpacity key={x[0]} onPress={()=>chooseTool(x[0])} style={{minWidth:57,height:38,paddingHorizontal:7,alignItems:'center',justifyContent:'center',borderRadius:10,overflow:'hidden',backgroundColor:tool===x[0]?'rgba(55,177,255,.34)':'rgba(20,28,59,.92)',borderWidth:1.2,borderTopColor:'rgba(255,255,255,.96)',borderLeftColor:'rgba(174,145,255,.86)',borderRightColor:'rgba(91,226,255,.92)',borderBottomColor:'rgba(75,88,155,.98)',shadowColor:tool===x[0]?'#62E8FF':'#8D75FF',shadowOpacity:tool===x[0]?.72:.34,shadowRadius:tool===x[0]?13:8,elevation:tool===x[0]?10:6}}>
+                    <TouchableOpacity key={x[0]} onPress={()=>chooseTool(x[0])} style={{width:64,minWidth:64,height:38,paddingHorizontal:4,flexShrink:0,alignItems:'center',justifyContent:'center',borderRadius:9,overflow:'hidden',backgroundColor:tool===x[0]?'rgba(55,177,255,.34)':'rgba(20,28,59,.92)',borderWidth:1.2,borderTopColor:'rgba(255,255,255,.96)',borderLeftColor:'rgba(174,145,255,.86)',borderRightColor:'rgba(91,226,255,.92)',borderBottomColor:'rgba(75,88,155,.98)',shadowColor:tool===x[0]?'#62E8FF':'#8D75FF',shadowOpacity:tool===x[0]?.72:.34,shadowRadius:tool===x[0]?13:8,elevation:tool===x[0]?10:6}}>
                       <Text numberOfLines={1} style={{color:tool===x[0]?'#FFFFFF':'#8FEFFF',fontSize:14,fontWeight:'900',textShadowColor:'#4C8EFF',textShadowRadius:7}}>{x[1]}</Text>
                       <Text numberOfLines={1} style={{color:tool===x[0]?'#FFFFFF':'#DDE8FF',fontSize:6.5,fontWeight:'900',marginTop:2}}>{x[0]}</Text>
                     </TouchableOpacity>
@@ -1152,18 +1154,70 @@ function AppContent() {
             </ScrollView>
           )}
           {page==='templates'&&(
-            <ScrollView contentContainerStyle={s.subContent}>
-              <TextInput value={templateSearch} onChangeText={setTemplateSearch} placeholder="Search templates, styles and creator packs..." placeholderTextColor={C.muted} style={s.nameInput}/>
-              <View style={s.hero}><Text style={s.heroTitle}>TEMPLATE MARKETPLACE</Text><Text style={s.heroCopy}>Choose a category, preview a style and start a project. Downloadable template files connect when marketplace storage is enabled.</Text></View>
-              <View style={{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:14}}>{[['🔥','Trending'],['✨','New'],['🎬','Video'],['📱','Reels'],['🎨','Photo'],['🏏','Sports'],['💫','Transitions'],['👑','Creator Packs']].map(([g,n])=><TouchableOpacity key={n} onPress={()=>setLastAction(n+' templates selected')} style={{width:'23%',minWidth:72,paddingVertical:12,alignItems:'center',borderRadius:12,backgroundColor:'#151D35',borderWidth:1,borderColor:'#435078'}}><Text style={{fontSize:20}}>{g}</Text><Text style={{color:C.white,fontSize:10,fontWeight:'800',marginTop:5}}>{n}</Text></TouchableOpacity>)}</View>
-              {[
-                ['TRENDING NOW',[['CITY LIGHTS','▥','#182E68','#A54DFF'],['CRICKET EDIT','♛','#102D58','#0BE2EF'],['NEON PORTRAIT','✦','#35145E','#0A9DCB'],['CINEMATIC','◈','#12384E','#7443C5']]],
-                ['VIDEO TEMPLATES',[['SPORTS INTRO','🏏','#102D58','#0BE2EF'],['TRAVEL REEL','✈','#18385C','#50D9EF'],['BEAT SYNC','♫','#28184C','#B56DFF']]],
-                ['PHOTO & CREATOR PACKS',[['PORTRAIT GLOW','✧','#35145E','#A54DFF'],['DARK MOOD','◉','#17243C','#69CFFF'],['GOLD LUXE','♛','#40301B','#E9D39F']]]
-              ].map(([section,cards])=><View key={section} style={{marginBottom:18}}><Text style={s.sectionTitle}>{section}</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:10}}>{cards.filter(c=>c[0].toLowerCase().includes(templateSearch.toLowerCase())).map(([name,glyph,bg,edge])=><TouchableOpacity key={name} onPress={()=>{setProjectType('video');setProjectName(name+' Project');setPage('editor');setLastAction(name+' template preview selected — template package engine required to apply');}} style={{width:wide?'31%':'47%',minHeight:112,borderRadius:14,overflow:'hidden',alignItems:'center',justifyContent:'center',backgroundColor:bg,borderWidth:1.3,borderColor:edge}}><Text style={{fontSize:36,color:'#FFFFFF'}}>{glyph}</Text><Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900',marginTop:7}}>{name}</Text><Text style={{color:'#B9D6F7',fontSize:8,marginTop:4}}>PREVIEW STYLE</Text></TouchableOpacity>)}</View></View>)}
-              <TouchableOpacity style={s.connectButton} onPress={()=>setLastAction('Template upload requires verified Creator access and connected cloud storage')}><Text style={s.claimText}>＋ UPLOAD TEMPLATE</Text></TouchableOpacity>
-              <Text style={s.statsNote}>These are visible template-style previews, not downloadable project packages yet. Applying editable templates requires the template engine and marketplace storage.</Text>
-            </ScrollView>
+            <View style={{flex:1,minHeight:0,backgroundColor:'#070A16'}}>
+              <View style={{paddingHorizontal:12,paddingTop:8,paddingBottom:7}}>
+                <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
+                  <Text style={{color:'#FFFFFF',fontSize:17,fontWeight:'900'}}>TEMPLATE FEED</Text>
+                  <TouchableOpacity onPress={()=>setModal('import')} style={{paddingHorizontal:12,paddingVertical:7,borderRadius:18,backgroundColor:'#28205A',borderWidth:1,borderColor:'#70E8FF'}}>
+                    <Text style={{color:'#FFFFFF',fontSize:9,fontWeight:'900'}}>＋ UPLOAD</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={{color:'#93A5C9',fontSize:8,marginTop:3}}>Scroll through creator-style previews and choose a category</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:7,paddingTop:9}}>
+                  {['For You','Trending','New','Video','Reels','Sports','Transitions','Photo'].map(name=>(
+                    <TouchableOpacity key={name} onPress={()=>setTemplateFeedCategory(name)} style={{paddingHorizontal:13,paddingVertical:7,borderRadius:18,backgroundColor:templateFeedCategory===name?'rgba(93,213,255,.22)':'rgba(255,255,255,.055)',borderWidth:1,borderColor:templateFeedCategory===name?'#6CEBFF':'rgba(139,157,205,.28)'}}>
+                      <Text style={{color:templateFeedCategory===name?'#FFFFFF':'#B8C6E3',fontSize:8,fontWeight:'900'}}>{name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{alignItems:'center',paddingHorizontal:12,paddingBottom:22,gap:15}}>
+                {[
+                  {name:'CITY LIGHTS',creator:'ERROR EDITX99',tag:'Cinematic · Beat Sync',glyph:'▥',a:'#182E68',b:'#A54DFF',kind:'Video'},
+                  {name:'CRICKET EDIT',creator:'SPORTS CREATOR',tag:'Sports · Velocity',glyph:'♛',a:'#102D58',b:'#0BE2EF',kind:'Sports'},
+                  {name:'NEON PORTRAIT',creator:'CREATIVE PACK',tag:'Portrait · Glow',glyph:'✦',a:'#35145E',b:'#0A9DCB',kind:'Photo'},
+                  {name:'TRAVEL REEL',creator:'REEL STUDIO',tag:'Travel · Transitions',glyph:'✈',a:'#18385C',b:'#50D9EF',kind:'Reels'},
+                  {name:'GOLD LUXE',creator:'CREATOR PACKS',tag:'Luxury · Intro',glyph:'♛',a:'#40301B',b:'#E9D39F',kind:'Transitions'}
+                ].filter(item=>templateFeedCategory==='For You'||templateFeedCategory==='Trending'||templateFeedCategory==='New'||item.kind===templateFeedCategory||templateFeedCategory==='Video'&&item.kind==='Video'||templateFeedCategory==='Transitions'&&item.kind==='Transitions').map((item,index)=>(
+                  <View key={item.name} style={{width:'100%',maxWidth:390,flexDirection:'row',alignItems:'center',gap:9,padding:8,borderRadius:17,backgroundColor:'#11182C',borderWidth:1,borderColor:'rgba(120,185,255,.28)'}}>
+                    <TouchableOpacity activeOpacity={.9} onPress={()=>{setProjectType('video');setProjectName(item.name+' Project');setPage('editor');setLastAction(item.name+' preview selected — editable template package is not connected yet');}} style={{width:205,maxWidth:'72%',aspectRatio:9/16,borderRadius:12,overflow:'hidden',backgroundColor:item.a,borderWidth:1.2,borderColor:item.b,alignItems:'center',justifyContent:'center'}}>
+                      <View style={{position:'absolute',left:0,right:0,top:0,bottom:0,backgroundColor:item.a}}/>
+                      <View style={{position:'absolute',width:175,height:175,borderRadius:90,borderWidth:2,borderColor:item.b,backgroundColor:'rgba(255,255,255,.035)'}}/>
+                      <View style={{position:'absolute',width:130,height:130,borderRadius:65,borderWidth:1,borderColor:'rgba(255,255,255,.35)'}}/>
+                      <Text style={{color:'#FFFFFF',fontSize:64,fontWeight:'900',textShadowColor:item.b,textShadowRadius:22}}>{item.glyph}</Text>
+                      <Text style={{color:'#FFFFFF',fontSize:11,fontWeight:'900',letterSpacing:1.2,marginTop:10}}>{item.name}</Text>
+                      <Text style={{color:'#D9E8FF',fontSize:7,marginTop:5}}>ANIMATED STYLE PREVIEW</Text>
+                      <View style={{position:'absolute',bottom:8,left:8,right:8,alignItems:'center',paddingVertical:7,borderRadius:10,backgroundColor:'rgba(3,7,18,.76)'}}>
+                        <Text style={{color:'#FFFFFF',fontSize:8,fontWeight:'900'}}>▶  USE TEMPLATE</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <View style={{flex:1,alignItems:'center',justifyContent:'center',gap:18}}>
+                      <TouchableOpacity onPress={()=>setLikedTemplates(v=>v.includes(item.name)?v.filter(x=>x!==item.name):[...v,item.name])} style={{alignItems:'center'}}>
+                        <Text style={{color:likedTemplates.includes(item.name)?'#FF6B9D':'#FFFFFF',fontSize:25}}>{likedTemplates.includes(item.name)?'♥':'♡'}</Text>
+                        <Text style={{color:'#DCE7FA',fontSize:7,fontWeight:'800'}}>{likedTemplates.includes(item.name)?'LIKED':'LIKE'}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={()=>setLastAction('Comments for '+item.name+' — comment service is not connected yet')} style={{alignItems:'center'}}>
+                        <Text style={{color:'#FFFFFF',fontSize:23}}>▤</Text>
+                        <Text style={{color:'#DCE7FA',fontSize:7,fontWeight:'800'}}>COMMENT</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={()=>setLastAction(item.name+' shared')} style={{alignItems:'center'}}>
+                        <Text style={{color:'#FFFFFF',fontSize:22}}>↗</Text>
+                        <Text style={{color:'#DCE7FA',fontSize:7,fontWeight:'800'}}>SHARE</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={()=>{setProjectType('video');setProjectName(item.name+' Project');setPage('editor');}} style={{alignItems:'center'}}>
+                        <Text style={{color:'#7CEBFF',fontSize:22}}>＋</Text>
+                        <Text style={{color:'#DCE7FA',fontSize:7,fontWeight:'800'}}>USE</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={{position:'absolute',left:16,bottom:15,maxWidth:195}}>
+                      <Text style={{color:'#FFFFFF',fontSize:8,fontWeight:'900'}}>{item.creator}</Text>
+                      <Text style={{color:'#C4D4F2',fontSize:7,marginTop:3}}>{item.tag}</Text>
+                    </View>
+                  </View>
+                ))}
+                <Text style={{color:'#8999B8',fontSize:8,textAlign:'center',padding:10}}>یہ فیڈ فی الحال نمونہ جاتی اینیمیٹڈ پریویوز دکھاتی ہے۔ حقیقی کریئیٹر ویڈیوز، کمنٹس اور شیئر لنکس کے لیے ویڈیو ہوسٹنگ اور بیک اینڈ کنکشن درکار ہے۔</Text>
+              </ScrollView>
+            </View>
           )}
           {page==='aimodels'&&(
             <ScrollView contentContainerStyle={s.subContent}>
