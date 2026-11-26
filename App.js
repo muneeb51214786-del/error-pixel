@@ -7,6 +7,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import Svg, {Path, Circle, Rect, Polygon} from 'react-native-svg';
 
 const C = {
   bg:'#070A16', panel:'#10172A', panel2:'#19213A',
@@ -153,12 +154,19 @@ function RoundButton({children,onPress,active=false,style}) {
   );
 }
 
-function SocialDock({onOpen}) {
+function BrandSocialIcon({name,size=23}) {
+  if(name==='TikTok') return <Svg width={size} height={size} viewBox="0 0 24 24"><Path d="M15.2 2h3.1c.2 2.1 1.4 3.8 3.7 4.4v3.2a9.2 9.2 0 0 1-3.7-1.1v7.1a6.4 6.4 0 1 1-6.4-6.4c.4 0 .8 0 1.2.1v3.4a3.1 3.1 0 1 0 2.1 3V2Z" fill="#25F4EE" transform="translate(-1 0)"/><Path d="M16.6 2h2.1c.2 2.1 1.2 3.7 3.3 4.4v2.8a8.1 8.1 0 0 1-3.3-1v7.2a6.4 6.4 0 1 1-6.4-6.4c.4 0 .8 0 1.2.1v3.4a3.1 3.1 0 1 0 2.1 3V2Z" fill="#FE2C55" transform="translate(-1 1)"/><Path d="M15.8 2h2.3c.2 2.1 1.3 3.8 3.4 4.4v2.9a8.4 8.4 0 0 1-3.4-1v7.1a6.4 6.4 0 1 1-6.4-6.4c.4 0 .8 0 1.2.1v3.4a3.1 3.1 0 1 0 2.1 3V2Z" fill="#FFFFFF"/></Svg>;
+  if(name==='Instagram') return <Svg width={size} height={size} viewBox="0 0 24 24"><Rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="#F5B3D5" strokeWidth="2.1"/><Circle cx="12" cy="12" r="4.2" fill="none" stroke="#FFFFFF" strokeWidth="2"/><Circle cx="17.6" cy="6.7" r="1.25" fill="#F5B3D5"/></Svg>;
+  if(name==='YouTube') return <Svg width={size} height={size} viewBox="0 0 24 24"><Rect x="2" y="5" width="20" height="14" rx="4.2" fill="#FF2638"/><Path d="M10 8.6 16 12l-6 3.4V8.6Z" fill="#FFFFFF"/></Svg>;
+  return <Svg width={size} height={size} viewBox="0 0 24 24"><Path d="M14.2 21v-8h2.7l.4-3.2h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.2H8V13h2.8v8h3.4Z" fill="#FFFFFF"/><Circle cx="12" cy="12" r="11" fill="#1877F2" opacity=".25"/></Svg>;
+}
+function SocialDock({onOpen,wide=false}) {
   return (
-    <View style={s.socialDock}>
+    <View style={{flexDirection:wide?'column':'row',alignItems:'center',justifyContent:'center',gap:wide?13:10,marginTop:17,paddingVertical:wide?10:12,paddingHorizontal:wide?7:12,borderRadius:22,backgroundColor:'rgba(9,13,34,.88)',borderWidth:1,borderColor:'rgba(153,111,255,.62)',shadowColor:'#9D54FF',shadowOpacity:.36,shadowRadius:18,elevation:12}}>
       {SOCIAL.map(x=>(
-        <TouchableOpacity key={x.name} onPress={()=>onOpen(x.url)} style={s.socialButton}>
-          <Text style={[s.socialIcon,{color:x.color}]}>{x.icon}</Text>
+        <TouchableOpacity key={x.name} accessibilityLabel={'Open '+x.name} onPress={()=>onOpen(x.url)} style={{width:wide?46:54,height:wide?46:48,borderRadius:15,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(26,31,65,.92)',borderWidth:1,borderColor:'rgba(111,220,255,.45)',shadowColor:x.color,shadowOpacity:.35,shadowRadius:9,elevation:5}}>
+          <BrandSocialIcon name={x.name} size={24}/>
+          {!wide&&<Text style={{color:'#DCE7FF',fontSize:7,fontWeight:'800',marginTop:3}}>{x.name}</Text>}
         </TouchableOpacity>
       ))}
     </View>
@@ -709,14 +717,18 @@ function AppContent() {
                 <TouchableOpacity activeOpacity={.92} onPress={()=>{setProjectType('video');setPage('editor');}} style={{minHeight:wide?222:205,marginTop:8,padding:wide?20:16,borderRadius:22,overflow:'hidden',backgroundColor:'#080D26',borderWidth:1.5,borderTopColor:'#FFFFFF',borderLeftColor:'#A84DFF',borderRightColor:'#36E8FF',borderBottomColor:'#5938B7',shadowColor:'#8D35FF',shadowOpacity:.5,shadowRadius:23,elevation:15}}>
                   <View pointerEvents="none" style={{position:'absolute',right:-35,top:-48,width:230,height:230,borderRadius:115,backgroundColor:'rgba(117,35,255,.25)',borderWidth:1,borderColor:'rgba(90,213,255,.45)'}}/>
                   <View pointerEvents="none" style={{position:'absolute',right:55,bottom:-75,width:190,height:190,borderRadius:95,backgroundColor:'rgba(0,190,255,.15)',borderWidth:1,borderColor:'rgba(104,224,255,.3)'}}/>
+                  <View pointerEvents="none" style={{position:'absolute',left:-24,bottom:20,width:190,height:74,transform:[{rotate:'-18deg'}],backgroundColor:'rgba(114,232,255,.045)',borderTopWidth:1,borderBottomWidth:1,borderColor:'rgba(114,232,255,.20)'}}/>
+                  <View pointerEvents="none" style={{position:'absolute',right:18,top:20,width:70,height:70,borderRadius:35,borderWidth:1,borderColor:'rgba(255,255,255,.20)',backgroundColor:'rgba(198,141,255,.08)'}}/>
+                  <View pointerEvents="none" style={{position:'absolute',left:'42%',top:0,bottom:0,width:1,backgroundColor:'rgba(255,255,255,.045)'}}/>
+                  <View pointerEvents="none" style={{position:'absolute',left:14,right:14,bottom:13,height:1,backgroundColor:'rgba(120,222,255,.20)'}}/>
                   <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
                     <Text style={{color:'#69E9FF',fontSize:8,fontWeight:'900',letterSpacing:1.8}}>ERROR PIXEL · CREATIVE STUDIO</Text>
                     <Text style={{color:'#D7B7FF',fontSize:8,fontWeight:'900'}}>START A NEW PROJECT</Text>
                   </View>
                   <View style={{flexDirection:'row',alignItems:'center',flex:1,marginTop:13}}>
                     <View style={{flex:1}}>
-                      <Text style={{color:'#FFFFFF',fontSize:wide?25:22,fontWeight:'900',lineHeight:wide?30:26}}>Start Editing</Text>
-                      <Text style={{color:'#FFFFFF',fontSize:wide?22:19,fontWeight:'900',lineHeight:wide?27:23}}>Your Next Project</Text>
+                      <Text style={{color:'#FFFFFF',fontSize:wide?25:22,fontWeight:'900',fontFamily:'sans-serif-condensed',letterSpacing:.3,lineHeight:wide?30:26}}>Start Editing</Text>
+                      <Text style={{color:'#FFFFFF',fontSize:wide?22:19,fontWeight:'900',fontFamily:'sans-serif-black',letterSpacing:.2,lineHeight:wide?27:23}}>Your Next Project</Text>
                       <Text style={{color:'#CBD9F7',fontSize:10,marginTop:7,lineHeight:15}}>Turn your ideas into stunning videos</Text>
                       <View style={{alignSelf:'flex-start',marginTop:13,paddingHorizontal:15,paddingVertical:9,borderRadius:22,backgroundColor:'#312078',borderWidth:1.5,borderTopColor:'#FFFFFF',borderLeftColor:'#D17BFF',borderRightColor:'#4CEBFF',borderBottomColor:'#5444C8',shadowColor:'#39DFFF',shadowOpacity:.65,shadowRadius:12,elevation:9}}>
                         <Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900'}}>⊕  NEW PROJECT  ›</Text>
@@ -746,7 +758,7 @@ function AppContent() {
                 </View>
 
                 <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:19,marginBottom:10}}>
-                  <View><Text style={{color:'#63E7FF',fontSize:8,fontWeight:'900',letterSpacing:1.5}}>GET INSPIRED</Text><Text style={{color:'#FFFFFF',fontSize:16,fontWeight:'900',marginTop:3}}>Trending Templates</Text></View>
+                  <View><Text style={{color:'#63E7FF',fontSize:8,fontWeight:'900',letterSpacing:1.5}}>GET INSPIRED</Text><Text style={{color:'#FFFFFF',fontSize:16,fontWeight:'900',fontFamily:'sans-serif-condensed',letterSpacing:.4,marginTop:3}}>Trending Templates</Text></View>
                   <TouchableOpacity onPress={()=>setPage('templates')}><Text style={{color:'#73E9FF',fontSize:10,fontWeight:'900'}}>See All ›</Text></TouchableOpacity>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:10,paddingBottom:4}}>
@@ -780,6 +792,12 @@ function AppContent() {
                     <EPLogo size={38}/><View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:11,fontWeight:'900'}}>{p.name}</Text><Text style={{color:'#A6B7D9',fontSize:9,marginTop:3}}>{p.date}</Text></View><Text style={{color:'#8BEAFF',fontSize:9,fontWeight:'900'}}>OPEN ›</Text>
                   </TouchableOpacity>
                 ))}
+                <View style={{marginTop:20,marginBottom:4}}>
+                  <Text style={{color:'#8CEBFF',fontSize:8,fontWeight:'900',letterSpacing:2,textAlign:'center'}}>FOLLOW THE CREATIVE JOURNEY</Text>
+                  <Text style={{color:'#FFFFFF',fontSize:15,fontWeight:'900',fontFamily:'sans-serif-condensed',fontStyle:'italic',textAlign:'center',marginTop:4}}>ERROR PIXEL <Text style={{color:'#C89AFF'}}>SOCIALS</Text></Text>
+                  <SocialDock onOpen={openSocial} wide={wide}/>
+                  <Text style={{color:'#8295BA',fontSize:8,textAlign:'center',marginTop:7,letterSpacing:1}}>TIKTOK · INSTAGRAM · YOUTUBE · FACEBOOK</Text>
+                </View>
                 <View style={{marginTop:14,padding:13,borderRadius:16,backgroundColor:'#171337',borderWidth:1,borderColor:'rgba(167,139,250,.55)',flexDirection:'row',alignItems:'center',gap:11}}>
                   <EPLogo size={42}/><View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900'}}>POWERED BY MUNEEB HASSAN</Text><Text style={{color:'#A9B9D8',fontSize:8,marginTop:4}}>ERROR EDITX99 · CREATOR LEVEL {activeRank.name}</Text></View><Text style={{color:'#C6A8FF',fontSize:20}}>♛</Text>
                 </View>
