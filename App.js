@@ -305,6 +305,7 @@ function AppContent() {
   const [clips,setClips]=useState(1);
   const [playing,setPlaying]=useState(false);
   const [fps,setFps]=useState('60 FPS');
+  const [speed,setSpeed]=useState(1);
   const [playhead,setPlayhead]=useState(50);
   const [keyframes,setKeyframes]=useState([]);
   const [resolution,setResolution]=useState('1080p');
