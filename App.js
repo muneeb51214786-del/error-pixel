@@ -1122,7 +1122,7 @@ function AppContent() {
                 </View>
               </View>
 
-              <View style={{height:Math.max(138,Math.min(158,Math.round(height*.34))),flexShrink:0,marginTop:3,padding:4,borderRadius:10,backgroundColor:'rgba(7,15,34,.97)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A46DFF',borderRightColor:'#55E7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
+              <View style={{height:Math.max(122,Math.min(128,Math.round(height*.30))),flexShrink:0,marginTop:3,padding:4,borderRadius:10,backgroundColor:'rgba(7,15,34,.97)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A46DFF',borderRightColor:'#55E7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
                 <View style={{height:18,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
                   <View style={{flexDirection:'row',gap:9}}>
                     <TouchableOpacity onPress={undo}><Text style={{color:'#EAF2FF',fontSize:13}}>↶</Text></TouchableOpacity>
@@ -1141,7 +1141,7 @@ function AppContent() {
                     {name:'AUDIO',items:mediaFiles.filter(m=>m.type==='audio'||String(m.mimeType||'').startsWith('audio/')),color:'#35D5A4'},
                     {name:'EFFECTS',items:timelineLayers,color:'#D68CFF'}
                   ].map((track,i)=>(
-                    <View key={track.name} style={{height:23,flexDirection:'row',alignItems:'center',borderTopWidth:1,borderTopColor:'rgba(119,153,218,.16)'}}>
+                    <View key={track.name} style={{height:19,flexDirection:'row',alignItems:'center',borderTopWidth:1,borderTopColor:'rgba(119,153,218,.16)'}}>
                       <View style={{width:54,flexDirection:'row',alignItems:'center',gap:4}}>
                         <Text style={{color:track.color,fontSize:8}}>{['▣','▧','♫','✦'][i]}</Text>
                         <Text style={{color:'#DCE7FB',fontSize:6,fontWeight:'800'}}>{track.name}</Text>
@@ -1152,10 +1152,10 @@ function AppContent() {
                         onMoveShouldSetResponder={()=>duration>0}
                         onResponderGrant={e=>{const p=Math.max(0,Math.min(1,e.nativeEvent.locationX/Math.max(1,timelineLaneWidth)));const t=duration*p;setSeekTo(t);setCurrentTime(t);setPlayhead(p*100);}}
                         onResponderMove={e=>{const p=Math.max(0,Math.min(1,e.nativeEvent.locationX/Math.max(1,timelineLaneWidth)));const t=duration*p;setSeekTo(t);setCurrentTime(t);setPlayhead(p*100);}}
-                        style={{flex:1,height:20,justifyContent:'center',borderRadius:4,overflow:'hidden',backgroundColor:'rgba(80,113,173,.12)',borderWidth:1,borderColor:'rgba(102,185,255,.35)'}}>
+                        style={{flex:1,height:15,justifyContent:'center',borderRadius:4,overflow:'hidden',backgroundColor:'rgba(80,113,173,.12)',borderWidth:1,borderColor:'rgba(102,185,255,.35)'}}>
                         <View style={{flexDirection:'row',alignItems:'center',gap:3,paddingHorizontal:3}}>
                           {track.items.length?track.items.map((item,j)=>(
-                            <View key={item.id||item.uri||item.name+j} style={{width:Math.max(70,Math.min(145,(Math.max(320,width-350)-8)/Math.max(1,track.items.length))),height:16,borderRadius:3,justifyContent:'center',paddingHorizontal:4,backgroundColor:track.color,opacity:.88}}>
+                            <View key={item.id||item.uri||item.name+j} style={{width:Math.max(70,Math.min(145,(Math.max(320,width-350)-8)/Math.max(1,track.items.length))),height:13,borderRadius:3,justifyContent:'center',paddingHorizontal:4,backgroundColor:track.color,opacity:.88}}>
                               <Text numberOfLines={1} style={{color:'#07101F',fontSize:6.5,fontWeight:'900'}}>{item.name||item.group||'Clip'}</Text>
                             </View>
                           )):<Text style={{color:'#8CA1C8',fontSize:5.5}}>{i===3?'Select an effect option to add it here':'Import '+track.name.toLowerCase()+' media to add clips'}</Text>}
