@@ -127,21 +127,67 @@ function EPLogo({size=54}) {
 
 function CrystalGlassButton({glyph,label,onPress,active=false,accent='#7CEBFF',small=false}) {
   return (
-    <TouchableOpacity activeOpacity={.82} onPress={onPress}
-      style={{flex:1,minWidth:0,height:small?43:52,alignItems:'center',justifyContent:'center',
-        borderRadius:small?12:15,overflow:'hidden',
-        backgroundColor:active?'rgba(82,196,235,.20)':'rgba(190,211,255,.075)',
-        borderWidth:1,borderTopColor:'rgba(255,255,255,.78)',
-        borderLeftColor:'rgba(205,222,255,.38)',borderRightColor:accent+'99',
-        borderBottomColor:'rgba(95,112,170,.62)',
-        shadowColor:accent,shadowOpacity:active?.38:.16,shadowRadius:10,elevation:active?8:4}}>
-      <View pointerEvents="none" style={{position:'absolute',left:1,right:1,top:1,height:'43%',
-        borderTopLeftRadius:14,borderTopRightRadius:14,
-        backgroundColor:'rgba(255,255,255,.105)',borderBottomWidth:1,borderBottomColor:'rgba(255,255,255,.07)'}}/>
-      <View pointerEvents="none" style={{position:'absolute',left:0,top:0,bottom:0,width:2,backgroundColor:'rgba(255,255,255,.28)'}}/>
-      <Text style={{color:accent,fontSize:small?17:20,fontWeight:'900',textShadowColor:accent,textShadowRadius:8}}>{glyph}</Text>
-      <Text numberOfLines={1} adjustsFontSizeToFit style={{color:'#F5F7FF',fontSize:small?6:7,fontWeight:'900',letterSpacing:.65,marginTop:2}}>{label}</Text>
+    <TouchableOpacity activeOpacity={.78} onPress={onPress}
+      style={{flex:1,minWidth:0,height:small?45:56,alignItems:'center',justifyContent:'center',
+        borderRadius:small?13:17,overflow:'hidden',
+        backgroundColor:active?'rgba(64,204,255,.24)':'rgba(20,29,65,.76)',
+        borderWidth:1.4,borderTopColor:'rgba(255,255,255,.98)',
+        borderLeftColor:'rgba(203,223,255,.72)',borderRightColor:accent,
+        borderBottomColor:'rgba(95,112,170,.92)',
+        shadowColor:accent,shadowOpacity:active?.85:.52,shadowRadius:active?20:13,elevation:active?14:9}}>
+      <View pointerEvents="none" style={{position:'absolute',left:2,right:2,top:2,height:'42%',borderTopLeftRadius:13,borderTopRightRadius:13,backgroundColor:'rgba(255,255,255,.20)',borderBottomWidth:1,borderBottomColor:'rgba(255,255,255,.15)'}}/>
+      <View pointerEvents="none" style={{position:'absolute',left:-18,right:-18,bottom:-24,height:42,backgroundColor:'rgba(98,70,255,.22)',transform:[{rotate:'-12deg'}],borderTopWidth:1,borderColor:'rgba(127,230,255,.42)'}}/>
+      <View pointerEvents="none" style={{position:'absolute',left:0,top:0,bottom:0,width:2,backgroundColor:'rgba(255,255,255,.65)'}}/>
+      <Text style={{color:accent,fontSize:small?18:22,fontWeight:'900',textShadowColor:accent,textShadowRadius:14}}>{glyph}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit style={{color:'#FFFFFF',fontSize:small?7:8,fontWeight:'900',letterSpacing:.8,marginTop:3,textShadowColor:accent,textShadowRadius:5}}>{label}</Text>
     </TouchableOpacity>
+  );
+}
+
+function FogBrandPreview({desktop=false}) {
+  const driftA=useRef(new Animated.Value(0)).current;
+  const driftB=useRef(new Animated.Value(0)).current;
+  const pulse=useRef(new Animated.Value(0)).current;
+  useEffect(()=>{
+    const a=Animated.loop(Animated.sequence([
+      Animated.timing(driftA,{toValue:1,duration:8500,useNativeDriver:true}),
+      Animated.timing(driftA,{toValue:0,duration:8500,useNativeDriver:true})
+    ]));
+    const b=Animated.loop(Animated.sequence([
+      Animated.timing(driftB,{toValue:1,duration:11000,useNativeDriver:true}),
+      Animated.timing(driftB,{toValue:0,duration:11000,useNativeDriver:true})
+    ]));
+    const p=Animated.loop(Animated.sequence([
+      Animated.timing(pulse,{toValue:1,duration:2400,useNativeDriver:true}),
+      Animated.timing(pulse,{toValue:0,duration:2400,useNativeDriver:true})
+    ]));
+    a.start();b.start();p.start();
+    return ()=>{a.stop();b.stop();p.stop();};
+  },[driftA,driftB,pulse]);
+  const moveA=driftA.interpolate({inputRange:[0,1],outputRange:[-42,42]});
+  const moveB=driftB.interpolate({inputRange:[0,1],outputRange:[38,-38]});
+  const glow=pulse.interpolate({inputRange:[0,1],outputRange:[.35,.95]});
+  const scale=pulse.interpolate({inputRange:[0,1],outputRange:[.94,1.05]});
+  return (
+    <View style={{position:'absolute',left:0,right:0,top:0,bottom:0,overflow:'hidden',alignItems:'center',justifyContent:'center',backgroundColor:'#050817'}}>
+      <View pointerEvents="none" style={{position:'absolute',left:0,right:0,top:0,bottom:0,backgroundColor:'#07122D'}}/>
+      <Animated.View pointerEvents="none" style={{position:'absolute',width:'85%',height:'150%',left:'-25%',top:'-25%',borderRadius:999,backgroundColor:'rgba(0,213,255,.16)',transform:[{translateX:moveA},{rotate:'-24deg'}],opacity:.9}}/>
+      <Animated.View pointerEvents="none" style={{position:'absolute',width:'78%',height:'160%',right:'-25%',top:'-25%',borderRadius:999,backgroundColor:'rgba(151,53,255,.22)',transform:[{translateX:moveB},{rotate:'24deg'}],opacity:.85}}/>
+      <Animated.View pointerEvents="none" style={{position:'absolute',width:'110%',height:'70%',bottom:'-45%',borderRadius:999,backgroundColor:'rgba(31,96,255,.18)',transform:[{translateX:moveA}],opacity:.8}}/>
+      <View pointerEvents="none" style={{position:'absolute',left:0,right:0,top:0,bottom:0,backgroundColor:'rgba(3,5,18,.22)',borderWidth:1,borderColor:'rgba(115,224,255,.25)'}}/>
+      <Animated.View style={{alignItems:'center',justifyContent:'center',transform:[{scale}],opacity:glow}}>
+        <View style={{width:desktop?104:126,height:desktop?104:126,alignItems:'center',justifyContent:'center',borderRadius:30,borderWidth:1.5,borderColor:'#75EFFF',backgroundColor:'rgba(11,17,48,.55)',shadowColor:'#28DFFF',shadowOpacity:1,shadowRadius:32,elevation:22}}>
+          <View style={{position:'absolute',width:'82%',height:'82%',borderWidth:1,borderColor:'#B66DFF',borderRadius:23,transform:[{rotate:'45deg'}],shadowColor:'#9E46FF',shadowOpacity:1,shadowRadius:25}}/>
+          <EPLogo size={desktop?84:104}/>
+        </View>
+        <Text style={{color:'#FFFFFF',fontSize:desktop?19:23,fontWeight:'900',fontStyle:'italic',letterSpacing:2,marginTop:10,textShadowColor:'#9C4EFF',textShadowRadius:18}}>ERROR <Text style={{color:'#53E8FF'}}>PIXEL</Text></Text>
+        <Text style={{color:'#D9D7FF',fontSize:desktop?7:9,fontWeight:'800',letterSpacing:3,marginTop:4}}>EDIT · CREATE · INSPIRE</Text>
+        <View style={{marginTop:9,paddingHorizontal:13,paddingVertical:5,borderRadius:20,backgroundColor:'rgba(7,13,37,.65)',borderWidth:1,borderColor:'rgba(105,226,255,.48)'}}>
+          <Text style={{color:'#AEEFFF',fontSize:desktop?6:8,fontWeight:'800',letterSpacing:1.3}}>YOUR CREATIVE PREVIEW</Text>
+        </View>
+      </Animated.View>
+      <Animated.View pointerEvents="none" style={{position:'absolute',left:'8%',right:'8%',height:1,bottom:'16%',backgroundColor:'#70E9FF',opacity:glow,shadowColor:'#4BE8FF',shadowRadius:12,shadowOpacity:1}}/>
+    </View>
   );
 }
 
@@ -633,11 +679,7 @@ function AppContent() {
         {mediaFiles.length>0&&mediaFiles[0].uri ? (
           <Image source={{uri:mediaFiles[0].uri}} resizeMode="contain" style={{width:'100%',height:'100%',position:'absolute'}}/>
         ) : (
-          <View style={{alignItems:'center',justifyContent:'center'}}>
-            <EPLogo size={desktop?48:58}/>
-            <Text style={s.previewBrand}>ERROR PIXEL</Text>
-            <Text style={s.brandSub}>IMPORT MEDIA TO PREVIEW</Text>
-          </View>
+          <FogBrandPreview desktop={desktop}/>
         )}
       </View>
 
