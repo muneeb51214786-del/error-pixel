@@ -46,7 +46,20 @@ jobs:
 
       - name: Build installable release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if ./gradlew assembleRelease --no-daemon; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Gradle dependency download/build failed (attempt $attempt). Retrying after a short delay..."
+              sleep $((attempt * 25))
+            fi
+          done
+          echo "Gradle build failed after 3 attempts."
+          exit 1
 
       - name: Verify APK archive and Android package
         shell: bash
