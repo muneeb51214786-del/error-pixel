@@ -306,6 +306,8 @@ function AppContent() {
   const [playing,setPlaying]=useState(false);
   const [fps,setFps]=useState('60 FPS');
   const [speed,setSpeed]=useState(1);
+  const [selectedProjectId,setSelectedProjectId]=useState(null);
+  const [storageReady,setStorageReady]=useState(false);
   const [playhead,setPlayhead]=useState(50);
   const [keyframes,setKeyframes]=useState([]);
   const [resolution,setResolution]=useState('1080p');
@@ -539,6 +541,9 @@ function AppContent() {
         if(cid)setCreatorId(cid);
         if(pts){const n=Number(pts)||0;setCreatorPoints(n);setCreatorLevel(CREATOR_LEVELS.filter(x=>n>=x.points).slice(-1)[0]?.level||1);}
         if(photos)setPhotoProjects(JSON.parse(photos));
+        const active=await AsyncStorage.getItem('ERROR_PIXEL_ACTIVE_PROJECT');
+        if(active){const saved=JSON.parse(active);if(saved&&saved.id){setSelectedProjectId(saved.id);setProjectName(saved.name||'Untitled Project');setClips(saved.clips==null?1:saved.clips);setTool(saved.tool||'Split');setFps(saved.fps||'60 FPS');setSpeed(saved.speed==null?1:saved.speed);setPlayhead(saved.playhead==null?50:saved.playhead);setKeyframes(saved.keyframes||[]);setResolution(saved.resolution||'1080p');setTrackCount(saved.trackCount||12);setMediaItems(saved.mediaItems||[]);setMediaFiles(saved.mediaFiles||[]);setExportFormat(saved.exportFormat||'MP4');}}
+        setStorageReady(true);
       } catch(e){console.log('Storage init:',e);}
     };
     init();
@@ -554,11 +559,24 @@ function AppContent() {
   };
 
   const saveProject=async()=>{
-    const next=[...projects,{name:projectName,date:new Date().toLocaleDateString()}];
-    setProjects(next);
-    try{await AsyncStorage.setItem('ERROR_PIXEL_PROJECTS',JSON.stringify(next));}
-    catch(e){console.log(e);}
-    setLastAction('Project saved locally');
+    const id=selectedProjectId||('EP-'+Date.now());
+    const snapshot={id,name:projectName||'Untitled Project',date:new Date().toLocaleString(),clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,exportFormat,projectType,updatedAt:Date.now()};
+    try{
+      const next=[...projects.filter(p=>p.id!==id),snapshot];
+      setSelectedProjectId(id);setProjects(next);
+      await AsyncStorage.multiSet([['ERROR_PIXEL_PROJECTS',JSON.stringify(next)],['ERROR_PIXEL_ACTIVE_PROJECT',JSON.stringify(snapshot)],['ERROR_PIXEL_BACKUP',JSON.stringify({version:1,createdAt:Date.now(),project:snapshot})]]);
+      setLastAction('Project and local backup saved');return true;
+    }catch(e){setLastAction('Save failed: '+String(e&&e.message||e));return false;}
+  };
+  const openSavedProject=async p=>{
+    if(!p)return;
+    setSelectedProjectId(p.id||null);setProjectName(p.name||'Untitled Project');
+    setClips(p.clips==null?1:p.clips);setTool(p.tool||'Split');setPlaying(false);
+    setFps(p.fps||'60 FPS');setSpeed(p.speed==null?1:p.speed);setPlayhead(p.playhead==null?50:p.playhead);
+    setKeyframes(p.keyframes||[]);setResolution(p.resolution||'1080p');setTrackCount(p.trackCount||12);
+    setMediaItems(p.mediaItems||[]);setMediaFiles(p.mediaFiles||[]);setExportFormat(p.exportFormat||'MP4');
+    try{await AsyncStorage.setItem('ERROR_PIXEL_ACTIVE_PROJECT',JSON.stringify(p));}catch(e){}
+    setPage('editor');setLastAction('Project restored from device storage');
   };
 
   const menu=[
