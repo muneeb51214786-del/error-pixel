@@ -642,6 +642,27 @@ function AppContent() {
         </View>
         <Text style={s.smallMuted} numberOfLines={1}>{lastAction}</Text>
       </View>
+      {tool==='Speed'&&(
+        <View style={{paddingVertical:8}}>
+          <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
+            <Text style={s.optionText}>PLAYBACK SPEED</Text>
+            <Text style={{color:C.cyan,fontSize:13,fontWeight:'900'}}>{speed.toFixed(1)}×</Text>
+          </View>
+          <View onLayout={e=>setSliderWidth(Math.max(1,e.nativeEvent.layout.width))}
+            onStartShouldSetResponder={()=>true} onMoveShouldSetResponder={()=>true}
+            onResponderGrant={e=>setSpeed(Math.max(.1,Math.min(4,Math.round((e.nativeEvent.locationX/sliderWidth*3.9+.1)*10)/10)))}
+            onResponderMove={e=>setSpeed(Math.max(.1,Math.min(4,Math.round((e.nativeEvent.locationX/sliderWidth*3.9+.1)*10)/10)))}
+            style={{height:28,justifyContent:'center',marginTop:5}}>
+            <View style={{height:6,borderRadius:6,backgroundColor:'#34405D',overflow:'hidden'}}>
+              <View style={{height:6,width:((speed-.1)/3.9*100)+'%',backgroundColor:C.cyan}}/>
+            </View>
+            <View style={{position:'absolute',left:((speed-.1)/3.9*100)+'%',width:18,height:18,borderRadius:10,marginLeft:-9,backgroundColor:C.white,borderWidth:2,borderColor:C.cyan}}/>
+          </View>
+          <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+            <Text style={s.smallMuted}>0.1×</Text><Text style={s.smallMuted}>1×</Text><Text style={s.smallMuted}>2×</Text><Text style={s.smallMuted}>4×</Text>
+          </View>
+        </View>
+      )}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {getToolOptions(tool).map(x=>(
           <TouchableOpacity key={x} style={s.option} onPress={()=>chooseOption(x)}>
@@ -1154,6 +1175,10 @@ function AppContent() {
 
           {page==='projects'&&(
             <ScrollView contentContainerStyle={s.subContent}>
+              <TouchableOpacity style={s.connectButton} onPress={async()=>{try{const raw=await AsyncStorage.getItem('ERROR_PIXEL_BACKUP');if(raw){const b=JSON.parse(raw);if(b&&b.project)await openSavedProject(b.project);else setLastAction('Backup file format is not supported');}else setLastAction('No backup saved yet. Open a project first.');}catch(e){setLastAction('Could not restore local backup');}}}>
+                <Text style={s.claimText}>↻ RESTORE LOCAL BACKUP</Text>
+              </TouchableOpacity>
+              <Text style={s.statsNote}>Projects auto-save on edits and before Back navigation. A backup copy is stored inside this app on this phone.</Text>
               {projects.length===0?(
                 <View style={s.emptyCard}>
                   <EPLogo size={60}/>
