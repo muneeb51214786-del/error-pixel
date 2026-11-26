@@ -9,6 +9,7 @@ on:
       - "App.js"
       - "app.json"
       - "package.json"
+      - "package-lock.json"
       - "eas.json"
       - ".github/workflows/build-android-apk.yml"
 
@@ -17,7 +18,7 @@ permissions:
 
 jobs:
   build-apk:
-    name: Build and verify installable Android APK
+    name: Build installable Android APK locally
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -27,6 +28,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      - name: Set up Java for Android Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
       - name: Install project dependencies
         run: npm install
@@ -34,75 +42,57 @@ jobs:
       - name: Validate Android JavaScript bundle
         run: npx expo export --platform android --output-dir /tmp/error-pixel-export
 
-      - name: Build APK with Expo EAS and wait for completion
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas-cli@latest build --platform android --profile preview --non-interactive --wait
+      - name: Generate native Android project
+        run: npx expo prebuild --platform android --no-install --clean
 
-      - name: Download the actual APK from the completed EAS build
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: Build installable debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Verify APK archive and Android package
         shell: bash
         run: |
           set -euo pipefail
-          BUILD_JSON=$(npx eas-cli@latest build:list --platform android --limit 1 --json)
-          BUILD_URL=$(printf '%s' "$BUILD_JSON" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const v=JSON.parse(s);const a=Array.isArray(v)?v:(v.builds||[]);const b=a[0];const u=b?.artifacts?.buildUrl||b?.artifacts?.applicationArchiveUrl||b?.buildUrl||b?.applicationArchiveUrl;if(!u){console.error('Latest EAS build response did not include an APK download URL.');process.exit(2);}process.stdout.write(u);});")
-          echo "Downloading completed EAS APK directly from its artifact URL."
-          curl --fail --location --retry 3 --retry-delay 2 "$BUILD_URL" --output ./ERROR-PIXEL.apk
-          test -s ./ERROR-PIXEL.apk
-
-      - name: Verify APK file, archive, package and signature
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s ./ERROR-PIXEL.apk
-          APK_SIZE=$(stat -c%s ./ERROR-PIXEL.apk)
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          APK_SIZE=$(stat -c%s "$APK")
           echo "APK size: ${APK_SIZE} bytes"
-          test "${APK_SIZE}" -gt 1000000
-          file ./ERROR-PIXEL.apk
-          unzip -t ./ERROR-PIXEL.apk
-          unzip -l ./ERROR-PIXEL.apk | grep -q 'AndroidManifest.xml'
-          APKSIGNER=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)
-          if [ -z "${APKSIGNER}" ]; then
-            echo "Android apksigner was not found; cannot certify APK signature."
-            exit 1
-          fi
-          "${APKSIGNER}" verify --verbose ./ERROR-PIXEL.apk
+          test "$APK_SIZE" -gt 1000000
+          unzip -t "$APK"
+          unzip -l "$APK" | grep -q 'AndroidManifest.xml'
           AAPT=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -n 1)
-          if [ -n "${AAPT}" ]; then
-            "${AAPT}" dump badging ./ERROR-PIXEL.apk | tee /tmp/error-pixel-badging.txt
+          if [ -n "$AAPT" ]; then
+            "$AAPT" dump badging "$APK" | tee /tmp/error-pixel-badging.txt
             grep -q "package: name='com.erroreditx.errorpixel'" /tmp/error-pixel-badging.txt
           fi
 
-
-      - name: Publish direct APK download link
-        id: publish_apk
+      - name: Publish APK download
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: error-pixel-build-${{ github.run_number }}
-          name: ERROR PIXEL Android Build ${{ github.run_number }}
+          tag_name: error-pixel-apk-${{ github.run_number }}
+          name: ERROR PIXEL Android APK ${{ github.run_number }}
           body: |
-            Verified ERROR PIXEL Android APK.
-            Download ERROR-PIXEL.apk below and install it on your Android device.
-          files: ./ERROR-PIXEL.apk
+            Installable ERROR PIXEL Android debug APK.
+            This build uses Android's debug signing key so it can be installed for testing.
+          files: android/app/build/outputs/apk/debug/app-debug.apk
           fail_on_unmatched_files: true
 
-      - name: Add direct install download link to build summary
+      - name: Add direct APK link to build summary
         shell: bash
         run: |
-          APK_URL="https://github.com/${{ github.repository }}/releases/download/error-pixel-build-${{ github.run_number }}/ERROR-PIXEL.apk"
+          APK_URL="https://github.com/${{ github.repository }}/releases/download/error-pixel-apk-${{ github.run_number }}/app-debug.apk"
           {
-            echo "## ERROR PIXEL — APK ready"
+            echo "## ERROR PIXEL — APK build"
             echo ""
-            echo "[**Download ERROR-PIXEL.apk directly**](${APK_URL})"
+            echo "[**Download the installable APK**](${APK_URL})"
             echo ""
-            echo "This is the direct APK file, not the ZIP artifact."
+            echo "Debug-signed APK for device testing."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload verified APK to GitHub Actions
+      - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ERROR-PIXEL-verified-APK
-          path: ./ERROR-PIXEL.apk
+          name: ERROR-PIXEL-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
