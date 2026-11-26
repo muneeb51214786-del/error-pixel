@@ -44,15 +44,15 @@ jobs:
       - name: Generate native Android project
         run: npx expo prebuild --platform android --no-install --clean
 
-      - name: Build installable debug APK
+      - name: Build installable release APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Verify APK archive and Android package
         shell: bash
         run: |
           set -euo pipefail
-          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          APK="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$APK"
           APK_SIZE=$(stat -c%s "$APK")
           echo "APK size: ${APK_SIZE} bytes"
@@ -71,27 +71,27 @@ jobs:
           tag_name: error-pixel-apk-${{ github.run_number }}
           name: ERROR PIXEL Android APK ${{ github.run_number }}
           body: |
-            Installable ERROR PIXEL Android debug APK.
-            This build uses Android's debug signing key so it can be installed for testing.
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+            Installable ERROR PIXEL Android release APK with the JavaScript bundle packaged for offline launch.
+            This APK is built for direct installation and includes the bundled JavaScript.
+          files: android/app/build/outputs/apk/release/app-release.apk
           fail_on_unmatched_files: true
 
       - name: Add direct APK link to build summary
         shell: bash
         run: |
-          APK_URL="https://github.com/${{ github.repository }}/releases/download/error-pixel-apk-${{ github.run_number }}/app-debug.apk"
+          APK_URL="https://github.com/${{ github.repository }}/releases/download/error-pixel-apk-${{ github.run_number }}/app-release.apk"
           {
             echo "## ERROR PIXEL — APK build"
             echo ""
             echo "[**Download the installable APK**](${APK_URL})"
             echo ""
-            echo "Debug-signed APK for device testing."
+            echo "Release APK with packaged JavaScript bundle."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: ERROR-PIXEL-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
