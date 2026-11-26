@@ -342,6 +342,7 @@ function AppContent() {
   const historyRef=useRef([]);
   const redoRef=useRef([]);
   const clipboardRef=useRef(null);
+  const saveProjectRef=useRef(null);
 
   const today=()=>new Date().toLocaleDateString('en-CA');
 
@@ -499,7 +500,10 @@ function AppContent() {
       if(modal){setModal('');return true;}
       if(drawer){setDrawer(false);return true;}
       if(shortcutPanel){setShortcutPanel(false);return true;}
-      if(page==='editor'||page!=='home'&&page!=='welcome'){setPage('home');return true;}
+      if(page==='editor'||page!=='home'&&page!=='welcome'){
+        if(page==='editor'){if(saveProjectRef.current)saveProjectRef.current().then(()=>setPage('home'));else setPage('home');return true;}
+        setPage('home');return true;
+      }
       // Keep the app on its dashboard instead of letting one Back press exit it.
       return true;
     };
@@ -578,6 +582,14 @@ function AppContent() {
     try{await AsyncStorage.setItem('ERROR_PIXEL_ACTIVE_PROJECT',JSON.stringify(p));}catch(e){}
     setPage('editor');setLastAction('Project restored from device storage');
   };
+
+  saveProjectRef.current=saveProject;
+
+  useEffect(()=>{
+    if(!storageReady||page!=='editor')return;
+    const timer=setTimeout(()=>{saveProject();},700);
+    return ()=>clearTimeout(timer);
+  },[storageReady,page,projectName,clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,exportFormat,projectType]);
 
   const menu=[
     ['Dashboard','home'],['Video Editor','editor'],['Photo Studio','photo'],['My Projects','projects'],['Templates','templates'],['Effects','effects'],['AI Model Library','aimodels'],['Creator Center','creator'],['Import Media','media'],['Membership','membership'],['Help Center','help']
@@ -1152,7 +1164,7 @@ function AppContent() {
                   </TouchableOpacity>
                 </View>
               ):projects.map((p,i)=>(
-                <TouchableOpacity key={i} style={s.projectRow} onPress={()=>setPage('editor')}>
+                <TouchableOpacity key={i} style={s.projectRow} onPress={()=>openSavedProject(p)}>
                   <EPLogo size={42}/>
                   <View style={{flex:1}}>
                     <Text style={s.helpTitle}>{p.name}</Text>
