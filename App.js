@@ -113,12 +113,12 @@ const SHORTCUTS = {
 
 function EPLogo({size=54}) {
   return (
-    <View style={[s.logo,{width:size,height:size,borderRadius:size/2}]}>
-      <View style={[s.logoRing,{width:size*.88,height:size*.88,borderRadius:size}]}/>
-      <View style={[s.logoRing2,{width:size*.70,height:size*.70,borderRadius:size}]}/>
-      <Text style={{color:'#fff',fontWeight:'900',fontSize:size*.34,
-        textShadowColor:C.violet,textShadowRadius:12}}>EP</Text>
-      <View style={[s.logoGlint,{width:size*.19}]}/>
+    <View style={{width:size,height:size,alignItems:'center',justifyContent:'center'}}>
+      <View style={{position:'absolute',width:size*.78,height:size*.78,transform:[{rotate:'45deg'}],borderWidth:2,borderColor:'#47E9FF',borderTopColor:'#C17BFF',borderRightColor:'#8D5BFF',backgroundColor:'rgba(9,18,48,.96)',shadowColor:'#7D45FF',shadowOpacity:.95,shadowRadius:size*.28,elevation:12}}/>
+      <View style={{position:'absolute',width:size*.62,height:size*.62,transform:[{rotate:'45deg'}],borderWidth:1,borderColor:'rgba(193,137,255,.85)',backgroundColor:'rgba(44,31,111,.30)'}}/>
+      <Text style={{position:'absolute',top:size*.02,color:'#EAD8FF',fontSize:size*.22,fontWeight:'900',textShadowColor:'#A34FFF',textShadowRadius:7}}>♛</Text>
+      <Text style={{color:'#63EFFF',fontSize:size*.36,fontWeight:'900',fontStyle:'italic',textShadowColor:'#7C43FF',textShadowRadius:10,marginTop:size*.12}}>EP</Text>
+      <View style={{position:'absolute',top:size*.13,right:size*.12,width:size*.16,height:2,backgroundColor:'#FFFFFF',transform:[{rotate:'-38deg'}]}}/>
     </View>
   );
 }
@@ -671,109 +671,133 @@ function AppContent() {
 
       {page==='home'&&(
         <View style={s.main}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingHorizontal:13,paddingTop:9,paddingBottom:92}}>
-            <View style={{height:48,flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:5}}>
-              <TouchableOpacity onPress={()=>setDrawer(true)} style={{width:34,height:34,alignItems:'center',justifyContent:'center',borderRadius:11,backgroundColor:'rgba(24,35,68,.95)',borderWidth:1,borderColor:'rgba(113,232,255,.45)'}}>
-                <Text style={{color:'#EAF5FF',fontSize:20}}>☰</Text>
-              </TouchableOpacity>
-              <View style={{flexDirection:'row',alignItems:'center',gap:7}}>
-                <EPLogo size={31}/>
-                <Text style={{color:'#FFFFFF',fontSize:15,fontWeight:'900',fontStyle:'italic',letterSpacing:.2}}>ERROR <Text style={{color:'#72E8FF'}}>PIXEL</Text></Text>
-                <View style={{paddingHorizontal:8,paddingVertical:4,borderRadius:10,backgroundColor:'rgba(132,75,255,.23)',borderWidth:1,borderColor:'#B78BFF'}}>
-                  <Text style={{color:'#E8D9FF',fontSize:8,fontWeight:'900'}}>♛ PRO</Text>
-                </View>
-              </View>
-              <TouchableOpacity onPress={()=>setModal('settings')} style={{width:34,height:34,alignItems:'center',justifyContent:'center',borderRadius:11,backgroundColor:'rgba(24,35,68,.95)',borderWidth:1,borderColor:'rgba(177,133,255,.48)'}}>
-                <Text style={{color:'#EAF5FF',fontSize:18}}>⚙</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity activeOpacity={.92} onPress={()=>{setProjectType('video');setPage('editor');}} style={{minHeight:178,marginTop:8,padding:16,borderRadius:20,overflow:'hidden',backgroundColor:'#10132F',borderWidth:1.4,borderTopColor:'#FFFFFF',borderLeftColor:'#B36DFF',borderRightColor:'#61E9FF',borderBottomColor:'#6851C7',shadowColor:'#8B55FF',shadowOpacity:.38,shadowRadius:18,elevation:10}}>
-              <View pointerEvents="none" style={{position:'absolute',right:-24,top:-28,width:190,height:190,borderRadius:95,backgroundColor:'rgba(123,56,255,.22)',borderWidth:1,borderColor:'rgba(119,207,255,.35)'}}/>
-              <View pointerEvents="none" style={{position:'absolute',right:18,bottom:-38,width:135,height:135,borderRadius:68,backgroundColor:'rgba(0,180,255,.12)',borderWidth:1,borderColor:'rgba(101,221,255,.25)'}}/>
-              <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
-                <Text style={{color:'#8BEAFF',fontSize:7,fontWeight:'900',letterSpacing:1.5}}>ERROR PIXEL CREATIVE STUDIO</Text>
-                <Text style={{color:'#D6C2FF',fontSize:8,fontWeight:'900'}}>01 / VIDEO</Text>
-              </View>
-              <View style={{flexDirection:'row',alignItems:'center',flex:1,marginTop:13}}>
-                <View style={{flex:1}}>
-                  <Text style={{color:'#FFFFFF',fontSize:19,fontWeight:'900',lineHeight:23}}>Start Editing</Text>
-                  <Text style={{color:'#FFFFFF',fontSize:16,fontWeight:'800',lineHeight:20}}>Your Next Project</Text>
-                  <Text style={{color:'#C4D0EE',fontSize:9,marginTop:5,lineHeight:14}}>Turn your ideas into stunning videos</Text>
-                  <View style={{alignSelf:'flex-start',marginTop:11,paddingHorizontal:12,paddingVertical:8,borderRadius:20,backgroundColor:'rgba(91,199,255,.23)',borderWidth:1,borderTopColor:'#FFFFFF',borderLeftColor:'#C68BFF',borderRightColor:'#66EFFF',borderBottomColor:'#5269BD'}}>
-                    <Text style={{color:'#FFFFFF',fontSize:9,fontWeight:'900'}}>⊕  NEW PROJECT  ↗</Text>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingHorizontal:wide?26:13,paddingTop:10,paddingBottom:24}}>
+            <View style={{flexDirection:wide?'row':'column',gap:wide?22:0}}>
+              {wide&&(
+                <View style={{width:205,alignItems:'center',paddingTop:28}}>
+                  <View style={{width:124,height:124,alignItems:'center',justifyContent:'center',borderRadius:30,backgroundColor:'#080D25',borderWidth:2,borderColor:'#9C65FF',shadowColor:'#A34DFF',shadowOpacity:.9,shadowRadius:24,elevation:18}}>
+                    <EPLogo size={96}/>
                   </View>
+                  <Text style={{color:'#FFFFFF',fontSize:24,fontWeight:'900',fontStyle:'italic',marginTop:16}}>ERROR</Text>
+                  <Text style={{color:'#32DFFF',fontSize:25,fontWeight:'900',fontStyle:'italic',marginTop:-5}}>PIXEL</Text>
+                  <Text style={{color:'#D5E5FF',fontSize:11,marginTop:5}}>Professional Video Editor</Text>
+                  {['Ultra HD Editing','Advanced Effects','AI Powered Tools','Pro Creative UI','Smooth Performance'].map((v,i)=>(
+                    <View key={v} style={{width:'100%',flexDirection:'row',alignItems:'center',gap:9,marginTop:16}}>
+                      <Text style={{color:'#52EFFF',fontSize:16}}>✓</Text><Text style={{color:'#EAF1FF',fontSize:10}}>{v}</Text>
+                    </View>
+                  ))}
+                  <Text style={{color:'#6BEAFF',fontSize:15,fontStyle:'italic',marginTop:26}}>Edit Beyond Limits</Text>
                 </View>
-                <View style={{width:112,height:112,alignItems:'center',justifyContent:'center'}}>
-                  <View style={{position:'absolute',width:92,height:92,borderRadius:22,transform:[{rotate:'-12deg'}],backgroundColor:'rgba(112,66,255,.22)',borderWidth:1,borderColor:'rgba(181,137,255,.7)'}}/>
-                  <Text style={{color:'#A7EFFF',fontSize:55,textShadowColor:'#6D4DFF',textShadowRadius:18}}>▣</Text>
-                  <Text style={{position:'absolute',bottom:4,right:2,color:'#DCCBFF',fontSize:23}}>✦</Text>
+              )}
+              <View style={{flex:1,minWidth:0}}>
+                <View style={{height:48,flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:5}}>
+                  <TouchableOpacity onPress={()=>setDrawer(true)} style={{width:36,height:36,alignItems:'center',justifyContent:'center',borderRadius:12,backgroundColor:'#10152D',borderWidth:1,borderColor:'#765BCA'}}>
+                    <Text style={{color:'#EAF5FF',fontSize:20}}>☰</Text>
+                  </TouchableOpacity>
+                  <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
+                    <EPLogo size={wide?36:40}/>
+                    <Text style={{color:'#FFFFFF',fontSize:wide?17:19,fontWeight:'900',fontStyle:'italic'}}>ERROR <Text style={{color:'#31DFFF'}}>PIXEL</Text></Text>
+                    <View style={{paddingHorizontal:9,paddingVertical:5,borderRadius:10,backgroundColor:'#24144F',borderWidth:1,borderColor:'#B76BFF'}}>
+                      <Text style={{color:'#E8D9FF',fontSize:9,fontWeight:'900'}}>♛ PRO</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity onPress={()=>setModal('settings')} style={{width:36,height:36,alignItems:'center',justifyContent:'center',borderRadius:12,backgroundColor:'#10152D',borderWidth:1,borderColor:'#42CFF4'}}>
+                    <Text style={{color:'#EAF5FF',fontSize:18}}>⚙</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity activeOpacity={.92} onPress={()=>{setProjectType('video');setPage('editor');}} style={{minHeight:wide?222:205,marginTop:8,padding:wide?20:16,borderRadius:22,overflow:'hidden',backgroundColor:'#080D26',borderWidth:1.5,borderTopColor:'#FFFFFF',borderLeftColor:'#A84DFF',borderRightColor:'#36E8FF',borderBottomColor:'#5938B7',shadowColor:'#8D35FF',shadowOpacity:.5,shadowRadius:23,elevation:15}}>
+                  <View pointerEvents="none" style={{position:'absolute',right:-35,top:-48,width:230,height:230,borderRadius:115,backgroundColor:'rgba(117,35,255,.25)',borderWidth:1,borderColor:'rgba(90,213,255,.45)'}}/>
+                  <View pointerEvents="none" style={{position:'absolute',right:55,bottom:-75,width:190,height:190,borderRadius:95,backgroundColor:'rgba(0,190,255,.15)',borderWidth:1,borderColor:'rgba(104,224,255,.3)'}}/>
+                  <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
+                    <Text style={{color:'#69E9FF',fontSize:8,fontWeight:'900',letterSpacing:1.8}}>ERROR PIXEL · CREATIVE STUDIO</Text>
+                    <Text style={{color:'#D7B7FF',fontSize:8,fontWeight:'900'}}>START A NEW PROJECT</Text>
+                  </View>
+                  <View style={{flexDirection:'row',alignItems:'center',flex:1,marginTop:13}}>
+                    <View style={{flex:1}}>
+                      <Text style={{color:'#FFFFFF',fontSize:wide?25:22,fontWeight:'900',lineHeight:wide?30:26}}>Start Editing</Text>
+                      <Text style={{color:'#FFFFFF',fontSize:wide?22:19,fontWeight:'900',lineHeight:wide?27:23}}>Your Next Project</Text>
+                      <Text style={{color:'#CBD9F7',fontSize:10,marginTop:7,lineHeight:15}}>Turn your ideas into stunning videos</Text>
+                      <View style={{alignSelf:'flex-start',marginTop:13,paddingHorizontal:15,paddingVertical:9,borderRadius:22,backgroundColor:'#312078',borderWidth:1.5,borderTopColor:'#FFFFFF',borderLeftColor:'#D17BFF',borderRightColor:'#4CEBFF',borderBottomColor:'#5444C8',shadowColor:'#39DFFF',shadowOpacity:.65,shadowRadius:12,elevation:9}}>
+                        <Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900'}}>⊕  NEW PROJECT  ›</Text>
+                      </View>
+                    </View>
+                    <View style={{width:wide?180:126,height:wide?150:132,alignItems:'center',justifyContent:'center'}}>
+                      <View style={{position:'absolute',width:wide?130:110,height:wide?130:110,borderRadius:25,transform:[{rotate:'-12deg'}],backgroundColor:'rgba(114,60,255,.20)',borderWidth:1.5,borderColor:'#A56DFF',shadowColor:'#4BDFFF',shadowOpacity:.7,shadowRadius:18,elevation:10}}/>
+                      <Text style={{color:'#D3B9FF',fontSize:wide?68:57,textShadowColor:'#4E45FF',textShadowRadius:20}}>🎬</Text>
+                      <Text style={{position:'absolute',top:7,right:8,color:'#55E9FF',fontSize:27}}>✦</Text>
+                      <Text style={{position:'absolute',bottom:4,left:6,color:'#D2A4FF',fontSize:22}}>✧</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                <View style={{flexDirection:'row',gap:8,marginTop:12}}>
+                  {[
+                    ['▦','Templates',()=>setPage('templates')],
+                    ['▤','Projects',()=>setPage('projects')],
+                    ['✧','AI Tools',()=>{setPage('editor');setTool('AI Video Enhancer');}],
+                    ['•••','More',()=>setDrawer(true)]
+                  ].map(([glyph,label,action],i)=>(
+                    <TouchableOpacity key={label} onPress={action} style={{flex:1,minWidth:0,height:66,alignItems:'center',justifyContent:'center',borderRadius:15,backgroundColor:'#11172F',borderWidth:1.2,borderTopColor:'#FFFFFF',borderLeftColor:i%2?'#A65AFF':'#52DFFF',borderRightColor:i%2?'#51E7FF':'#A65AFF',borderBottomColor:'#403A83',shadowColor:i%2?'#9B55FF':'#37DFFF',shadowOpacity:.3,shadowRadius:12,elevation:7}}>
+                      <Text style={{color:i%2?'#D8B4FF':'#6BEAFF',fontSize:23,fontWeight:'900',textShadowColor:i%2?'#9A4CFF':'#23DFFF',textShadowRadius:9}}>{glyph}</Text>
+                      <Text style={{color:'#F1F4FF',fontSize:9,fontWeight:'900',marginTop:4}}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:19,marginBottom:10}}>
+                  <View><Text style={{color:'#63E7FF',fontSize:8,fontWeight:'900',letterSpacing:1.5}}>GET INSPIRED</Text><Text style={{color:'#FFFFFF',fontSize:16,fontWeight:'900',marginTop:3}}>Trending Templates</Text></View>
+                  <TouchableOpacity onPress={()=>setPage('templates')}><Text style={{color:'#73E9FF',fontSize:10,fontWeight:'900'}}>See All ›</Text></TouchableOpacity>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:10,paddingBottom:4}}>
+                  {[
+                    ['CITY LIGHTS','▥','#182E68','#A54DFF'],
+                    ['CRICKET EDIT','♛','#102D58','#0BE2EF'],
+                    ['NEON PORTRAIT','✦','#35145E','#0A9DCB'],
+                    ['CINEMATIC','◈','#12384E','#7443C5']
+                  ].map(([name,glyph,bg,edge])=>(
+                    <TouchableOpacity key={name} onPress={()=>{setProjectType('video');setPage('editor');}} style={{width:wide?155:122,height:wide?126:112,borderRadius:15,overflow:'hidden',alignItems:'center',justifyContent:'center',backgroundColor:bg,borderWidth:1.3,borderColor:edge,shadowColor:edge,shadowOpacity:.42,shadowRadius:12,elevation:7}}>
+                      <View style={{position:'absolute',width:95,height:95,borderRadius:48,borderWidth:1,borderColor:edge,backgroundColor:'rgba(255,255,255,.035)'}}/>
+                      <Text style={{color:'#FFFFFF',fontSize:42,textShadowColor:edge,textShadowRadius:16}}>{glyph}</Text>
+                      <Text style={{position:'absolute',bottom:9,left:8,color:'#FFFFFF',fontSize:8,fontWeight:'900',letterSpacing:.6}}>{name}</Text>
+                      <View style={{position:'absolute',right:8,bottom:7,width:20,height:20,borderRadius:10,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(0,0,0,.65)',borderWidth:1,borderColor:edge}}><Text style={{color:'#FFFFFF',fontSize:8}}>▶</Text></View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:17,marginBottom:9}}>
+                  <View><Text style={{color:'#62E8FF',fontSize:8,fontWeight:'900',letterSpacing:1.4}}>YOUR CREATIVE SPACE</Text><Text style={{color:'#FFFFFF',fontSize:15,fontWeight:'900',marginTop:3}}>My Projects</Text></View>
+                  <Text style={{color:'#AAB8D6',fontSize:9}}>{projects.length} PROJECTS</Text>
+                </View>
+                {projects.length===0?(
+                  <TouchableOpacity onPress={()=>setPage('editor')} style={{padding:14,borderRadius:16,backgroundColor:'#0E1731',borderWidth:1,borderColor:'rgba(86,211,255,.48)',flexDirection:'row',alignItems:'center',gap:11}}>
+                    <EPLogo size={42}/>
+                    <View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:11,fontWeight:'900'}}>Your projects will appear here</Text><Text style={{color:'#A6B7D9',fontSize:9,marginTop:4}}>Start a new edit and build your first project.</Text></View>
+                    <Text style={{color:'#8BEAFF',fontSize:20}}>›</Text>
+                  </TouchableOpacity>
+                ):projects.slice(-3).reverse().map((p,i)=>(
+                  <TouchableOpacity key={i} onPress={()=>setPage('editor')} style={{padding:13,marginBottom:8,borderRadius:15,backgroundColor:'#0E1731',borderWidth:1,borderColor:'rgba(86,211,255,.42)',flexDirection:'row',alignItems:'center',gap:10}}>
+                    <EPLogo size={38}/><View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:11,fontWeight:'900'}}>{p.name}</Text><Text style={{color:'#A6B7D9',fontSize:9,marginTop:3}}>{p.date}</Text></View><Text style={{color:'#8BEAFF',fontSize:9,fontWeight:'900'}}>OPEN ›</Text>
+                  </TouchableOpacity>
+                ))}
+                <View style={{marginTop:14,padding:13,borderRadius:16,backgroundColor:'#171337',borderWidth:1,borderColor:'rgba(167,139,250,.55)',flexDirection:'row',alignItems:'center',gap:11}}>
+                  <EPLogo size={42}/><View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900'}}>POWERED BY MUNEEB HASSAN</Text><Text style={{color:'#A9B9D8',fontSize:8,marginTop:4}}>ERROR EDITX99 · CREATOR LEVEL {activeRank.name}</Text></View><Text style={{color:'#C6A8FF',fontSize:20}}>♛</Text>
                 </View>
               </View>
-            </TouchableOpacity>
-
-            <View style={{flexDirection:'row',gap:7,marginTop:11}}>
-              {[
-                ['▦','Templates',()=>setPage('templates')],
-                ['▤','Projects',()=>setPage('projects')],
-                ['✧','AI Tools',()=>{setPage('editor');setTool('AI Video Enhancer');}],
-                ['•••','More',()=>setDrawer(true)]
-              ].map(([glyph,label,action],i)=>(
-                <TouchableOpacity key={label} onPress={action} style={{flex:1,minWidth:0,height:59,alignItems:'center',justifyContent:'center',borderRadius:13,backgroundColor:'rgba(22,31,61,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:i%2?'#9D77FF':'#65DFFF',borderRightColor:i%2?'#65DFFF':'#A67AFF',borderBottomColor:'rgba(79,99,170,.8)',shadowColor:'#8B75FF',shadowOpacity:.16,shadowRadius:9,elevation:5}}>
-                  <Text style={{color:i%2?'#D6B7FF':'#80EFFF',fontSize:20,fontWeight:'900'}}>{glyph}</Text>
-                  <Text style={{color:'#F1F4FF',fontSize:8,fontWeight:'800',marginTop:3}}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:18,marginBottom:9}}>
-              <View><Text style={{color:'#8BEAFF',fontSize:7,fontWeight:'900',letterSpacing:1.4}}>GET INSPIRED</Text><Text style={{color:'#FFFFFF',fontSize:15,fontWeight:'900',marginTop:3}}>Trending Templates</Text></View>
-              <TouchableOpacity onPress={()=>setPage('templates')}><Text style={{color:'#8BEAFF',fontSize:9,fontWeight:'800'}}>See All ›</Text></TouchableOpacity>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:9,paddingBottom:3}}>
-              {[
-                ['CITY LIGHTS','▥','#243D83','#A54DFF'],
-                ['CRICKET EDIT','♛','#152D5B','#0BAACB'],
-                ['NEON PORTRAIT','✦','#401B78','#0A9DCB'],
-                ['CINEMATIC','◈','#163D56','#7443C5']
-              ].map(([name,glyph,bg,edge])=>(
-                <TouchableOpacity key={name} onPress={()=>{setProjectType('video');setPage('editor');}} style={{width:116,height:111,borderRadius:13,overflow:'hidden',alignItems:'center',justifyContent:'center',backgroundColor:bg,borderWidth:1,borderColor:edge,shadowColor:edge,shadowOpacity:.25,shadowRadius:9,elevation:5}}>
-                  <Text style={{color:'#FFFFFF',fontSize:37,textShadowColor:edge,textShadowRadius:14}}>{glyph}</Text>
-                  <Text style={{position:'absolute',bottom:8,left:7,color:'#FFFFFF',fontSize:7,fontWeight:'900',letterSpacing:.5}}>{name}</Text>
-                  <View style={{position:'absolute',right:7,bottom:6,width:18,height:18,borderRadius:9,alignItems:'center',justifyContent:'center',backgroundColor:'rgba(0,0,0,.55)'}}><Text style={{color:'#FFFFFF',fontSize:8}}>▶</Text></View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginTop:16,marginBottom:8}}>
-              <View><Text style={{color:'#8BEAFF',fontSize:7,fontWeight:'900',letterSpacing:1.3}}>YOUR CREATIVE SPACE</Text><Text style={{color:'#FFFFFF',fontSize:14,fontWeight:'900',marginTop:3}}>Continue Creating</Text></View>
-              <Text style={{color:'#9AABD0',fontSize:8}}>{projects.length} PROJECTS</Text>
-            </View>
-            {projects.length===0?(
-              <TouchableOpacity onPress={()=>setPage('editor')} style={{padding:13,borderRadius:14,backgroundColor:'rgba(18,29,56,.95)',borderWidth:1,borderColor:'rgba(108,204,255,.32)',flexDirection:'row',alignItems:'center',gap:11}}>
-                <EPLogo size={39}/>
-                <View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900'}}>Your projects will appear here</Text><Text style={{color:'#A6B7D9',fontSize:8,marginTop:3}}>Start a new edit and build your first project.</Text></View>
-                <Text style={{color:'#8BEAFF',fontSize:18}}>›</Text>
-              </TouchableOpacity>
-            ):projects.slice(-3).reverse().map((p,i)=>(
-              <TouchableOpacity key={i} onPress={()=>setPage('editor')} style={{padding:12,marginBottom:7,borderRadius:13,backgroundColor:'rgba(18,29,56,.95)',borderWidth:1,borderColor:'rgba(108,204,255,.32)',flexDirection:'row',alignItems:'center',gap:10}}>
-                <EPLogo size={35}/><View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900'}}>{p.name}</Text><Text style={{color:'#A6B7D9',fontSize:8,marginTop:3}}>{p.date}</Text></View><Text style={{color:'#8BEAFF'}}>OPEN ›</Text>
-              </TouchableOpacity>
-            ))}
-            <View style={{marginTop:13,padding:12,borderRadius:14,backgroundColor:'rgba(25,23,55,.9)',borderWidth:1,borderColor:'rgba(167,139,250,.35)',flexDirection:'row',alignItems:'center',gap:10}}>
-              <EPLogo size={38}/><View style={{flex:1}}><Text style={{color:'#FFFFFF',fontSize:10,fontWeight:'900'}}>POWERED BY MUNEEB HASSAN</Text><Text style={{color:'#A9B9D8',fontSize:8,marginTop:3}}>ERROR EDITX99 · CREATOR LEVEL {activeRank.name}</Text></View><Text style={{color:'#C6A8FF',fontSize:18}}>♛</Text>
             </View>
           </ScrollView>
-          <View style={{height:59,flexDirection:'row',alignItems:'center',justifyContent:'space-around',paddingHorizontal:8,backgroundColor:'rgba(5,9,23,.98)',borderTopWidth:1,borderTopColor:'rgba(103,194,255,.38)'}}>
-            {[
-              ['⌂','Home','home'],['▦','Templates','templates'],['▤','Projects','projects'],['◉','Me','creator']
-            ].map(([glyph,label,target])=>(
-              <TouchableOpacity key={label} onPress={()=>target==='home'?setPage('home'):target==='templates'?setPage('templates'):target==='projects'?setPage('projects'):setPage('creator')} style={{flex:1,alignItems:'center',justifyContent:'center',height:53}}>
-                <Text style={{color:target==='home'?'#79E9FF':'#8798BD',fontSize:20,fontWeight:'900'}}>{glyph}</Text>
-                <Text style={{color:target==='home'?'#8BEAFF':'#A9B8D5',fontSize:8,fontWeight:target==='home'?'900':'600',marginTop:2}}>{label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {!wide&&(
+            <View style={{height:62,flexDirection:'row',alignItems:'center',justifyContent:'space-around',paddingHorizontal:8,backgroundColor:'#070B1C',borderTopWidth:1,borderTopColor:'rgba(103,194,255,.48)'}}>
+              {[
+                ['⌂','Home','home'],['▦','Templates','templates'],['▤','Projects','projects'],['◉','Me','creator']
+              ].map(([glyph,label,target])=>(
+                <TouchableOpacity key={label} onPress={()=>target==='home'?setPage('home'):target==='templates'?setPage('templates'):target==='projects'?setPage('projects'):setPage('creator')} style={{flex:1,alignItems:'center',justifyContent:'center',height:56}}>
+                  <Text style={{color:target==='home'?'#79E9FF':'#8798BD',fontSize:22,fontWeight:'900',textShadowColor:target==='home'?'#28CFFF':'transparent',textShadowRadius:8}}>{glyph}</Text>
+                  <Text style={{color:target==='home'?'#8BEAFF':'#A9B8D5',fontSize:8,fontWeight:target==='home'?'900':'600',marginTop:2}}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
       )}
 
