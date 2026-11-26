@@ -246,8 +246,18 @@ function PreviewCard({item,onPress}) {
   );
 }
 
-function MediaVideoPreview({uri}) {
-  const player = useVideoPlayer({uri}, player => { player.loop = false; });
+function MediaVideoPreview({uri,playing=false,playbackRate=1}) {
+  const player = useVideoPlayer({uri}, player => {
+    player.loop = false;
+    player.muted = false;
+  });
+  useEffect(()=>{
+    try {
+      player.playbackRate = Math.max(0.1,Math.min(4,playbackRate));
+      if(playing) player.play();
+      else player.pause();
+    } catch(e) {}
+  },[player,playing,playbackRate]);
   return (
     <VideoView player={player} style={{width:'100%',height:'100%'}} contentFit="contain" nativeControls />
   );
@@ -751,7 +761,7 @@ function AppContent() {
         flexGrow:1,flexShrink:1,marginVertical:2,overflow:'hidden',width:'100%'
       }]}>
         {mediaFiles.find(file=>file.type==='video'&&file.uri) ? (
-          <MediaVideoPreview uri={mediaFiles.find(file=>file.type==='video'&&file.uri).uri}/>
+          <MediaVideoPreview uri={mediaFiles.find(file=>file.type==='video'&&file.uri).uri} playing={playing} playbackRate={speed}/>
         ) : mediaFiles.find(file=>file.type==='image'&&file.uri) ? (
           <Image source={{uri:mediaFiles.find(file=>file.type==='image'&&file.uri).uri}} resizeMode="contain" style={{width:'100%',height:'100%',position:'absolute'}}/>
         ) : (
