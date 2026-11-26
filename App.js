@@ -455,14 +455,20 @@ function AppContent() {
       if(kind==='audio'){
         const result=await DocumentPicker.getDocumentAsync({type:'audio/*',multiple:true,copyToCacheDirectory:true});
         if(result.canceled)return;
-        assets=(result.assets||[]).map(file=>({name:file.name||'Audio file',uri:file.uri,type:'audio',mimeType:file.mimeType||'audio/*'}));
+        assets=(result.assets||[]).map(file=>({id:String(Date.now())+'-'+Math.random().toString(36).slice(2),name:file.name||'Audio file',uri:file.uri,type:'audio',mimeType:file.mimeType||'audio/*'}));
       }else{
         const permission=await ImagePicker.requestMediaLibraryPermissionsAsync();
         if(!permission.granted){setLastAction('Media library permission was not granted. Allow access in Android settings to import media.');return;}
         const mediaTypes=kind==='video'?['videos']:kind==='image'?['images']:['images','videos'];
         const result=await ImagePicker.launchImageLibraryAsync({mediaTypes,allowsMultipleSelection:true,quality:1,selectionLimit:0});
         if(result.canceled)return;
-        assets=(result.assets||[]).map(file=>({name:file.fileName||file.uri?.split('/').pop()||'Media file',uri:file.uri,type:file.type||kind,mimeType:file.mimeType||null}));
+        assets=(result.assets||[]).map(file=>{
+          const name=file.fileName||file.uri?.split('/').pop()||'Media file';
+          const mime=String(file.mimeType||'').toLowerCase();
+          const ext=String(name).split('.').pop().toLowerCase();
+          const detected=kind==='video'||file.type==='video'||mime.startsWith('video/')||['mp4','mov','m4v','webm','mkv','avi'].includes(ext)?'video':'image';
+          return {id:String(Date.now())+'-'+Math.random().toString(36).slice(2),name,uri:file.uri,type:detected,mimeType:file.mimeType||null};
+        });
       }
       if(!assets.length){setLastAction('No media selected');return;}
       setMediaFiles(current=>[...current,...assets]);
@@ -1032,7 +1038,7 @@ function AppContent() {
                   ))}
                 </View>
 
-                <View style={{width:120,minWidth:105,minHeight:0,padding:5,borderRadius:11,backgroundColor:'rgba(10,19,42,.95)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A77BFF',borderRightColor:'#5DE6FF',borderBottomColor:'rgba(85,110,170,.7)'}}>
+                <View style={{width:88,minWidth:76,minHeight:0,padding:4,borderRadius:11,backgroundColor:'rgba(10,19,42,.95)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A77BFF',borderRightColor:'#5DE6FF',borderBottomColor:'rgba(85,110,170,.7)'}}>
                   <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
                     <Text style={{color:'#F5F8FF',fontSize:9,fontWeight:'900'}}>Media Library</Text>
                     <Text style={{color:'#8CEBFF',fontSize:13}}>⌕</Text>
@@ -1062,7 +1068,7 @@ function AppContent() {
                 <View style={{flex:1,minWidth:0,minHeight:0,gap:3}}>
                   <View style={{flex:1,minHeight:0,padding:5,borderRadius:11,backgroundColor:'rgba(7,15,34,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.65)',borderLeftColor:'#A56BFF',borderRightColor:'#52E8FF',borderBottomColor:'rgba(91,113,179,.7)'}}>
                     <View style={{flex:1,minHeight:0,alignItems:'center',justifyContent:'center',borderRadius:7,backgroundColor:'#030918',borderWidth:1,borderColor:'rgba(105,174,255,.3)',overflow:'hidden'}}>
-                      {mediaFiles.find(x=>x.type==='video'&&x.uri)?(
+                      {mediaFiles.find(x=>(x.type==='video'||String(x.mimeType||'').startsWith('video/'))&&x.uri)?(
                         <MediaVideoPreview
                           uri={mediaFiles.find(x=>x.type==='video'&&x.uri).uri}
                           playing={playing}
@@ -1072,7 +1078,7 @@ function AppContent() {
                           onDurationChange={onPreviewDuration}
                           onEnded={onPreviewEnded}
                         />
-                      ):mediaFiles.find(x=>x.type==='image'&&x.uri)?(
+                      ):mediaFiles.find(x=>(x.type==='image'||String(x.mimeType||'').startsWith('image/'))&&x.uri)?(
                         <Image source={{uri:mediaFiles.find(x=>x.type==='image'&&x.uri).uri}} resizeMode="contain" style={{width:'100%',height:'100%'}}/>
                       ):(
                         <View style={{alignItems:'center',justifyContent:'center'}}>
@@ -1093,7 +1099,7 @@ function AppContent() {
                   </View>
                 </View>
 
-                <View style={{width:150,minWidth:132,minHeight:0,padding:5,borderRadius:11,backgroundColor:'rgba(10,19,42,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#9E7AFF',borderRightColor:'#56E5FF',borderBottomColor:'rgba(85,110,170,.7)'}}>
+                <View style={{width:112,minWidth:98,minHeight:0,padding:4,borderRadius:11,backgroundColor:'rgba(10,19,42,.96)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#9E7AFF',borderRightColor:'#56E5FF',borderBottomColor:'rgba(85,110,170,.7)'}}>
                   <View style={{flexDirection:'row',gap:3,marginBottom:7}}>
                     {['Properties','Effects','Adjustment'].map((x,i)=><TouchableOpacity key={x} onPress={()=>setCategory(x)} style={{flex:1,alignItems:'center',paddingVertical:6,borderRadius:7,backgroundColor:(i===0?'Properties':category)===x?'rgba(82,139,255,.22)':'rgba(255,255,255,.035)',borderBottomWidth:2,borderBottomColor:(i===0?'Properties':category)===x?'#6DEBFF':'transparent'}}><Text style={{color:'#E8F1FF',fontSize:6,fontWeight:'800'}}>{x}</Text></TouchableOpacity>)}
                   </View>
@@ -1116,7 +1122,7 @@ function AppContent() {
                 </View>
               </View>
 
-              <View style={{height:Math.max(104,Math.min(120,Math.round(height*.29))),flexShrink:0,marginTop:3,padding:4,borderRadius:10,backgroundColor:'rgba(7,15,34,.97)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A46DFF',borderRightColor:'#55E7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
+              <View style={{height:Math.max(138,Math.min(158,Math.round(height*.34))),flexShrink:0,marginTop:3,padding:4,borderRadius:10,backgroundColor:'rgba(7,15,34,.97)',borderWidth:1,borderTopColor:'rgba(255,255,255,.6)',borderLeftColor:'#A46DFF',borderRightColor:'#55E7FF',borderBottomColor:'rgba(86,108,172,.7)'}}>
                 <View style={{height:18,flexDirection:'row',alignItems:'center',justifyContent:'space-between'}}>
                   <View style={{flexDirection:'row',gap:9}}>
                     <TouchableOpacity onPress={undo}><Text style={{color:'#EAF2FF',fontSize:13}}>↶</Text></TouchableOpacity>
@@ -1130,12 +1136,12 @@ function AppContent() {
                 </View>
                 <View style={{flex:1,minHeight:0,justifyContent:'space-around'}}>
                   {[
-                    {name:'VIDEO',items:mediaFiles.filter(m=>m.type==='video'),color:'#58AFFF'},
-                    {name:'OVERLAY',items:mediaFiles.filter(m=>m.type==='image'),color:'#A88BFF'},
-                    {name:'AUDIO',items:mediaFiles.filter(m=>m.type==='audio'),color:'#35D5A4'},
+                    {name:'VIDEO',items:mediaFiles.filter(m=>m.type==='video'||String(m.mimeType||'').startsWith('video/')),color:'#58AFFF'},
+                    {name:'OVERLAY',items:mediaFiles.filter(m=>m.type==='image'||String(m.mimeType||'').startsWith('image/')),color:'#A88BFF'},
+                    {name:'AUDIO',items:mediaFiles.filter(m=>m.type==='audio'||String(m.mimeType||'').startsWith('audio/')),color:'#35D5A4'},
                     {name:'EFFECTS',items:timelineLayers,color:'#D68CFF'}
                   ].map((track,i)=>(
-                    <View key={track.name} style={{height:17,flexDirection:'row',alignItems:'center',borderTopWidth:1,borderTopColor:'rgba(119,153,218,.16)'}}>
+                    <View key={track.name} style={{height:23,flexDirection:'row',alignItems:'center',borderTopWidth:1,borderTopColor:'rgba(119,153,218,.16)'}}>
                       <View style={{width:54,flexDirection:'row',alignItems:'center',gap:4}}>
                         <Text style={{color:track.color,fontSize:8}}>{['▣','▧','♫','✦'][i]}</Text>
                         <Text style={{color:'#DCE7FB',fontSize:6,fontWeight:'800'}}>{track.name}</Text>
@@ -1146,11 +1152,11 @@ function AppContent() {
                         onMoveShouldSetResponder={()=>duration>0}
                         onResponderGrant={e=>{const p=Math.max(0,Math.min(1,e.nativeEvent.locationX/Math.max(1,timelineLaneWidth)));const t=duration*p;setSeekTo(t);setCurrentTime(t);setPlayhead(p*100);}}
                         onResponderMove={e=>{const p=Math.max(0,Math.min(1,e.nativeEvent.locationX/Math.max(1,timelineLaneWidth)));const t=duration*p;setSeekTo(t);setCurrentTime(t);setPlayhead(p*100);}}
-                        style={{flex:1,height:15,justifyContent:'center',borderRadius:4,overflow:'hidden',backgroundColor:'rgba(80,113,173,.12)',borderWidth:1,borderColor:'rgba(102,185,255,.35)'}}>
+                        style={{flex:1,height:20,justifyContent:'center',borderRadius:4,overflow:'hidden',backgroundColor:'rgba(80,113,173,.12)',borderWidth:1,borderColor:'rgba(102,185,255,.35)'}}>
                         <View style={{flexDirection:'row',alignItems:'center',gap:3,paddingHorizontal:3}}>
                           {track.items.length?track.items.map((item,j)=>(
-                            <View key={item.id||item.uri||item.name+j} style={{width:Math.max(70,Math.min(145,(Math.max(320,width-350)-8)/Math.max(1,track.items.length))),height:11,borderRadius:3,justifyContent:'center',paddingHorizontal:4,backgroundColor:track.color,opacity:.88}}>
-                              <Text numberOfLines={1} style={{color:'#07101F',fontSize:5.5,fontWeight:'900'}}>{item.name||item.group||'Clip'}</Text>
+                            <View key={item.id||item.uri||item.name+j} style={{width:Math.max(70,Math.min(145,(Math.max(320,width-350)-8)/Math.max(1,track.items.length))),height:16,borderRadius:3,justifyContent:'center',paddingHorizontal:4,backgroundColor:track.color,opacity:.88}}>
+                              <Text numberOfLines={1} style={{color:'#07101F',fontSize:6.5,fontWeight:'900'}}>{item.name||item.group||'Clip'}</Text>
                             </View>
                           )):<Text style={{color:'#8CA1C8',fontSize:5.5}}>{i===3?'Select an effect option to add it here':'Import '+track.name.toLowerCase()+' media to add clips'}</Text>}
                         </View>
