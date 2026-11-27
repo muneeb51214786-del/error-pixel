@@ -1,19 +1,14 @@
 {
   "expo": {
-    "name": "ERROR PIXEL",
-    "slug": "error-pixel",
-    "version": "1.0.2",
-    "orientation": "default",
+    "name": "Enhance Error",
+    "slug": "enhance-error",
+    "version": "1.0.0",
+    "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "android": {
-      "package": "com.erroreditx.errorpixel",
-      "versionCode": 4
-    },
-    "extra": {
-      "eas": {
-        "projectId": "5135197d-0dc7-4ed7-9162-c406dba830bd"
-      }
+      "package": "com.erroreditx.enhanceerror",
+      "versionCode": 1
     }
   }
 }
