@@ -368,6 +368,8 @@ function AppContent() {
   const [mediaItems,setMediaItems]=useState([]);
   const [mediaFiles,setMediaFiles]=useState([]);
   const [timelineLayers,setTimelineLayers]=useState([]);
+  const [timelineClips,setTimelineClips]=useState([]);
+  const [selectedClipId,setSelectedClipId]=useState(null);
   const [currentTime,setCurrentTime]=useState(0);
   const [duration,setDuration]=useState(0);
   const [seekTo,setSeekTo]=useState(0);
@@ -443,11 +445,12 @@ function AppContent() {
   },[saveHistory]);
 
   const deleteClip=useCallback(()=>{
-    if(clips<=0){setLastAction('No clip selected');return;}
-    saveHistory();
-    setClips(v=>Math.max(0,v-1));
-    setLastAction('Clip deleted');
-  },[clips,saveHistory]);
+    if(!timelineClips.length){setLastAction('No timeline clip to delete');return;}
+    const target=selectedClipId||timelineClips[timelineClips.length-1].id;
+    setTimelineClips(v=>v.filter(x=>x.id!==target));
+    setSelectedClipId(null);
+    setLastAction('Selected timeline clip deleted');
+  },[timelineClips,selectedClipId]);
 
   const importMedia=async(kind='all')=>{
     try{
@@ -472,6 +475,17 @@ function AppContent() {
       }
       if(!assets.length){setLastAction('No media selected');return;}
       setMediaFiles(current=>[...current,...assets]);
+      setTimelineClips(current=>{
+        const base=current.length?current.reduce((m,x)=>Math.max(m,x.start+x.duration),0):0;
+        const next=assets.map((asset,index)=>({
+          id:'clip-'+asset.id,assetId:asset.id,trackId:asset.type==='video'?'video-1':asset.type==='audio'?'audio-1':'overlay-1',
+          type:asset.type,name:asset.name,uri:asset.uri,start:base+index*0.05,
+          sourceIn:0,duration:Math.max(1,Number(asset.duration||0)/1000|| (asset.type==='image'?5:asset.type==='audio'?30:15)),
+          sourceOut:Math.max(1,Number(asset.duration||0)/1000|| (asset.type==='image'?5:asset.type==='audio'?30:15)),
+          selected:false,effects:[],keyframes:[]
+        }));
+        return [...current,...next];
+      });
       setMediaItems(current=>[...current,...assets.map(file=>file.name)]);
       setClips(current=>current+assets.filter(file=>file.type==='video').length);
       setLastAction(assets.length+' media file(s) imported successfully');
@@ -600,7 +614,7 @@ function AppContent() {
         if(pts){const n=Number(pts)||0;setCreatorPoints(n);setCreatorLevel(CREATOR_LEVELS.filter(x=>n>=x.points).slice(-1)[0]?.level||1);}
         if(photos)setPhotoProjects(JSON.parse(photos));
         const active=await AsyncStorage.getItem('ERROR_PIXEL_ACTIVE_PROJECT');
-        if(active){const saved=JSON.parse(active);if(saved&&saved.id){setSelectedProjectId(saved.id);setProjectName(saved.name||'Untitled Project');setClips(saved.clips==null?1:saved.clips);setTool(saved.tool||'Split');setFps(saved.fps||'60 FPS');setSpeed(saved.speed==null?1:saved.speed);setPlayhead(saved.playhead==null?50:saved.playhead);setKeyframes(saved.keyframes||[]);setResolution(saved.resolution||'1080p');setTrackCount(saved.trackCount||12);setMediaItems(saved.mediaItems||[]);setMediaFiles(saved.mediaFiles||[]);setExportFormat(saved.exportFormat||'MP4');}}
+        if(active){const saved=JSON.parse(active);if(saved&&saved.id){setSelectedProjectId(saved.id);setProjectName(saved.name||'Untitled Project');setClips(saved.clips==null?1:saved.clips);setTool(saved.tool||'Split');setFps(saved.fps||'60 FPS');setSpeed(saved.speed==null?1:saved.speed);setPlayhead(saved.playhead==null?50:saved.playhead);setKeyframes(saved.keyframes||[]);setResolution(saved.resolution||'1080p');setTrackCount(saved.trackCount||12);setMediaItems(saved.mediaItems||[]);setMediaFiles(saved.mediaFiles||[]);setTimelineClips(saved.timelineClips||[]);setSelectedClipId(saved.selectedClipId||null);setExportFormat(saved.exportFormat||'MP4');}}
         setStorageReady(true);
       } catch(e){console.log('Storage init:',e);}
     };
@@ -618,7 +632,7 @@ function AppContent() {
 
   const saveProject=async()=>{
     const id=selectedProjectId||('EP-'+Date.now());
-    const snapshot={id,name:projectName||'Untitled Project',date:new Date().toLocaleString(),clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,exportFormat,projectType,updatedAt:Date.now()};
+    const snapshot={id,name:projectName||'Untitled Project',date:new Date().toLocaleString(),clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,timelineClips,selectedClipId,exportFormat,projectType,updatedAt:Date.now()};
     try{
       const next=[...projects.filter(p=>p.id!==id),snapshot];
       setSelectedProjectId(id);setProjects(next);
@@ -632,7 +646,7 @@ function AppContent() {
     setClips(p.clips==null?1:p.clips);setTool(p.tool||'Split');setPlaying(false);
     setFps(p.fps||'60 FPS');setSpeed(p.speed==null?1:p.speed);setPlayhead(p.playhead==null?50:p.playhead);
     setKeyframes(p.keyframes||[]);setResolution(p.resolution||'1080p');setTrackCount(p.trackCount||12);
-    setMediaItems(p.mediaItems||[]);setMediaFiles(p.mediaFiles||[]);setExportFormat(p.exportFormat||'MP4');
+    setMediaItems(p.mediaItems||[]);setMediaFiles(p.mediaFiles||[]);setTimelineClips(p.timelineClips||[]);setSelectedClipId(p.selectedClipId||null);setExportFormat(p.exportFormat||'MP4');
     try{await AsyncStorage.setItem('ERROR_PIXEL_ACTIVE_PROJECT',JSON.stringify(p));}catch(e){}
     setPage('editor');setLastAction('Project restored from device storage');
   };
@@ -643,7 +657,7 @@ function AppContent() {
     if(!storageReady||page!=='editor')return;
     const timer=setTimeout(()=>{saveProject();},700);
     return ()=>clearTimeout(timer);
-  },[storageReady,page,projectName,clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,exportFormat,projectType]);
+  },[storageReady,page,projectName,clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,timelineClips,selectedClipId,exportFormat,projectType]);
 
   const menu=[
     ['Dashboard','home'],['Video Editor','editor'],['Photo Studio','photo'],['My Projects','projects'],['Templates','templates'],['Effects','effects'],['AI Model Library','aimodels'],['Creator Center','creator'],['Import Media','media'],['Membership','membership'],['Help Center','help']
