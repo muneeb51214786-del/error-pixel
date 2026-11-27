@@ -9,7 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import {VideoView, useVideoPlayer} from 'expo-video';
 import Svg, {Path, Circle, Rect, Polygon} from 'react-native-svg';
-import {splitTimelineClip,makeTimelineClip} from './editorEngine';
+import {splitTimelineClip,makeTimelineClip,normalizeTimeline,duplicateClip as duplicateTimelineClip,deleteClip as removeTimelineClip,createProjectSnapshot,migrateProject} from './editorEngine';
 
 const C = {
   bg:'#070A16', panel:'#10172A', panel2:'#19213A',
@@ -404,61 +404,78 @@ function AppContent() {
     historyRef.current.push({clips,tool,playing});
     if(historyRef.current.length>40)historyRef.current.shift();
     redoRef.current=[];
-  },[clips,tool,playing]);
+  },[clips,tool,playing,timelineClips,selectedClipId]);
 
   const undo=useCallback(()=>{
     const previous=historyRef.current.pop();
     if(!previous){setLastAction('Nothing to undo');return;}
-    redoRef.current.push({clips,tool,playing});
+    redoRef.current.push({clips,tool,playing,timelineClips,selectedClipId});
+    setTimelineClips(normalizeTimeline(previous.timelineClips||[]));
+    setSelectedClipId(previous.selectedClipId||null);
     setClips(previous.clips);
     setTool(previous.tool);
     setPlaying(previous.playing);
     setLastAction('Undo completed');
-  },[clips,tool,playing]);
+  },[clips,tool,playing,timelineClips,selectedClipId]);
 
   const redo=useCallback(()=>{
     const next=redoRef.current.pop();
     if(!next){setLastAction('Nothing to redo');return;}
-    historyRef.current.push({clips,tool,playing});
+    historyRef.current.push({clips,tool,playing,timelineClips,selectedClipId});
+    setTimelineClips(normalizeTimeline(next.timelineClips||[]));
+    setSelectedClipId(next.selectedClipId||null);
     setClips(next.clips);
     setTool(next.tool);
     setPlaying(next.playing);
     setLastAction('Redo completed');
-  },[clips,tool,playing]);
+  },[clips,tool,playing,timelineClips,selectedClipId]);
 
   const copyClip=useCallback(()=>{
-    clipboardRef.current={clips};
-    setLastAction('Clip copied');
-  },[clips]);
+    const target=timelineClips.find(x=>x.id===selectedClipId)||timelineClips[0];
+    if(!target){setLastAction('Select a timeline clip first');return;}
+    clipboardRef.current=JSON.parse(JSON.stringify(target));
+    setLastAction('Timeline clip copied');
+  },[timelineClips,selectedClipId]);
 
   const pasteClip=useCallback(()=>{
-    if(!clipboardRef.current){setLastAction('Nothing copied yet');return;}
+    if(!clipboardRef.current||!clipboardRef.current.id){setLastAction('Copy a timeline clip first');return;}
     saveHistory();
-    setClips(v=>v+1);
-    setLastAction('Clip pasted');
+    const source=clipboardRef.current;
+    const pasted={...JSON.parse(JSON.stringify(source)),id:source.id+'-paste-'+Date.now().toString(36),start:source.start+source.duration,name:(source.name||'Clip')+' copy'};
+    setTimelineClips(v=>normalizeTimeline([...v,pasted]));
+    setSelectedClipId(pasted.id);
+    setLastAction('Timeline clip pasted');
   },[saveHistory]);
 
   const cutClip=useCallback(()=>{
-    if(clips<=0){setLastAction('No clip selected');return;}
+    const target=timelineClips.find(x=>x.id===selectedClipId);
+    if(!target){setLastAction('Select a timeline clip first');return;}
     saveHistory();
-    clipboardRef.current={clips:1};
-    setClips(v=>Math.max(0,v-1));
-    setLastAction('Clip cut');
-  },[clips,saveHistory]);
+    clipboardRef.current=JSON.parse(JSON.stringify(target));
+    setTimelineClips(v=>removeTimelineClip(v,target.id));
+    setSelectedClipId(null);
+    setLastAction('Timeline clip cut');
+  },[timelineClips,selectedClipId,saveHistory]);
 
   const duplicateClip=useCallback(()=>{
+    const target=timelineClips.find(x=>x.id===selectedClipId);
+    if(!target){setLastAction('Select a timeline clip first');return;}
     saveHistory();
-    setClips(v=>v+1);
-    setLastAction('Clip duplicated');
-  },[saveHistory]);
+    const next=duplicateTimelineClip(timelineClips,target.id);
+    setTimelineClips(next);
+    const created=next.find(x=>!timelineClips.some(old=>old.id===x.id));
+    if(created)setSelectedClipId(created.id);
+    setLastAction('Timeline clip duplicated');
+  },[timelineClips,selectedClipId,saveHistory]);
 
   const deleteClip=useCallback(()=>{
     if(!timelineClips.length){setLastAction('No timeline clip to delete');return;}
     const target=selectedClipId||timelineClips[timelineClips.length-1].id;
-    setTimelineClips(v=>v.filter(x=>x.id!==target));
+    saveHistory();
+    setTimelineClips(v=>removeTimelineClip(v,target));
     setSelectedClipId(null);
     setLastAction('Selected timeline clip deleted');
-  },[timelineClips,selectedClipId]);
+  },[timelineClips,selectedClipId,saveHistory]);
 
   const importMedia=async(kind='all')=>{
     try{
