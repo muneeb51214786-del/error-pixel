@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import {VideoView, useVideoPlayer} from 'expo-video';
 import Svg, {Path, Circle, Rect, Polygon} from 'react-native-svg';
+import {splitTimelineClip} from './editorEngine';
 
 const C = {
   bg:'#070A16', panel:'#10172A', panel2:'#19213A',
@@ -498,8 +499,11 @@ function AppContent() {
     setTool(name);
     setLastAction(name+' selected');
     if(name==='Split'){
-      setClips(v=>v+1);
-      setLastAction('Split action selected — demo timeline');
+      const target=selectedClipId||timelineClips.find(x=>x.type==='video')?.id;
+      if(!target){setLastAction('Import and select a video clip before splitting');return;}
+      const before=timelineClips.length;
+      setTimelineClips(v=>splitTimelineClip(v,target,currentTime));
+      setLastAction('Split attempted at '+currentTime.toFixed(2)+'s. Place the playhead inside the selected clip.');
     }
     if(name==='Export')setModal('export');
     if(name==='Import'){setModal('import');setLastAction('Choose the media type to import');}
@@ -520,10 +524,10 @@ function AppContent() {
       if(option==='Choose audio')return importMedia('audio');
       if(option==='Import folder'){setLastAction('Folder import is not supported yet. Select individual media files.');return;}
     }
-    if(tool==='Split'&&option==='Split at playhead')setClips(v=>v+1);
+    if(tool==='Split'&&option==='Split at playhead'){const target=selectedClipId||timelineClips.find(x=>x.type==='video')?.id;if(target)setTimelineClips(v=>splitTimelineClip(v,target,currentTime));else setLastAction('Select a clip first');}
     if(tool==='Speed'&&option==='Frame Interpolation')setTool('Frame Interpolation');
     if(/120|240/.test(option)&&/FPS/.test(option))setFps(option.split('→').pop().trim());
-    if(option==='Split at playhead'&&tool!=='Split')setClips(v=>v+1);
+    if(option==='Split at playhead'&&tool!=='Split'){const target=selectedClipId||timelineClips.find(x=>x.type==='video')?.id;if(target)setTimelineClips(v=>splitTimelineClip(v,target,currentTime));else setLastAction('Select a clip first');}
     if(tool==='Export'){
       if(option.includes('FPS'))setFps(option);
       else setResolution(option);
@@ -1145,14 +1149,14 @@ function AppContent() {
                     <TouchableOpacity onPress={()=>chooseTool('Split')}><Text style={{color:'#EAF2FF',fontSize:13}}>✂</Text></TouchableOpacity>
                     <TouchableOpacity onPress={()=>{setTool('Import');setModal('import');}}><Text style={{color:'#EAF2FF',fontSize:13}}>⊞</Text></TouchableOpacity>
                   </View>
-                  <Text style={{color:'#8BEAFF',fontSize:6,fontWeight:'900'}}>TIMELINE · {mediaFiles.length} MEDIA · {timelineLayers.length} EFFECTS</Text>
+                  <Text style={{color:'#8BEAFF',fontSize:6,fontWeight:'900'}}>TIMELINE · {timelineClips.length} CLIPS · {timelineLayers.length} EFFECTS</Text>
                   <TouchableOpacity onPress={()=>setTrackCount(v=>Math.min(v+1,20))}><Text style={{color:'#8BEAFF',fontSize:7}}>＋ TRACK</Text></TouchableOpacity>
                 </View>
                 <View style={{flex:1,minHeight:0,justifyContent:'space-around'}}>
                   {[
-                    {name:'VIDEO',items:mediaFiles.filter(m=>m.type==='video'||String(m.mimeType||'').startsWith('video/')),color:'#58AFFF'},
-                    {name:'OVERLAY',items:mediaFiles.filter(m=>m.type==='image'||String(m.mimeType||'').startsWith('image/')),color:'#A88BFF'},
-                    {name:'AUDIO',items:mediaFiles.filter(m=>m.type==='audio'||String(m.mimeType||'').startsWith('audio/')),color:'#35D5A4'},
+                    {name:'VIDEO',trackId:'video-1',items:timelineClips.filter(m=>m.type==='video'),color:'#58AFFF'},
+                    {name:'OVERLAY',trackId:'overlay-1',items:timelineClips.filter(m=>m.type==='image'),color:'#A88BFF'},
+                    {name:'AUDIO',trackId:'audio-1',items:timelineClips.filter(m=>m.type==='audio'),color:'#35D5A4'},
                     {name:'EFFECTS',items:timelineLayers,color:'#D68CFF'}
                   ].map((track,i)=>(
                     <View key={track.name} style={{height:19,flexDirection:'row',alignItems:'center',borderTopWidth:1,borderTopColor:'rgba(119,153,218,.16)'}}>
@@ -1167,11 +1171,11 @@ function AppContent() {
                         onResponderGrant={e=>{const p=Math.max(0,Math.min(1,e.nativeEvent.locationX/Math.max(1,timelineLaneWidth)));const t=duration*p;setSeekTo(t);setCurrentTime(t);setPlayhead(p*100);}}
                         onResponderMove={e=>{const p=Math.max(0,Math.min(1,e.nativeEvent.locationX/Math.max(1,timelineLaneWidth)));const t=duration*p;setSeekTo(t);setCurrentTime(t);setPlayhead(p*100);}}
                         style={{flex:1,height:15,justifyContent:'center',borderRadius:4,overflow:'hidden',backgroundColor:'rgba(80,113,173,.12)',borderWidth:1,borderColor:'rgba(102,185,255,.35)'}}>
-                        <View style={{flexDirection:'row',alignItems:'center',gap:3,paddingHorizontal:3}}>
+                        <View style={{flexDirection:'row',alignItems:'center',gap:3,paddingHorizontal:3,minWidth:'100%'}}>
                           {track.items.length?track.items.map((item,j)=>(
-                            <View key={item.id||item.uri||item.name+j} style={{width:Math.max(70,Math.min(145,(Math.max(320,width-350)-8)/Math.max(1,track.items.length))),height:13,borderRadius:3,justifyContent:'center',paddingHorizontal:4,backgroundColor:track.color,opacity:.88}}>
-                              <Text numberOfLines={1} style={{color:'#07101F',fontSize:6.5,fontWeight:'900'}}>{item.name||item.group||'Clip'}</Text>
-                            </View>
+                            <TouchableOpacity key={item.id} onPress={()=>{setSelectedClipId(item.id);setSeekTo(item.start);setCurrentTime(item.start);setPlayhead(duration>0?item.start/duration*100:0);setLastAction(item.name+' selected on '+track.name+' track');}} style={{width:Math.max(70,Math.min(190,item.duration*9)),height:13,borderRadius:3,justifyContent:'center',paddingHorizontal:4,backgroundColor:track.color,opacity:selectedClipId===item.id?1:.82,borderWidth:selectedClipId===item.id?1:0,borderColor:'#FFFFFF'}}>
+                              <Text numberOfLines={1} style={{color:'#07101F',fontSize:6.5,fontWeight:'900'}}>{item.name||'Clip'}</Text>
+                            </TouchableOpacity>
                           )):<Text style={{color:'#8CA1C8',fontSize:5.5}}>{i===3?'Select an effect option to add it here':'Import '+track.name.toLowerCase()+' media to add clips'}</Text>}
                         </View>
                         <View pointerEvents="none" style={{position:'absolute',left:Math.max(0,Math.min(Math.max(1,timelineLaneWidth-2),playhead/100*timelineLaneWidth)),top:0,bottom:0,width:2,backgroundColor:'#70F0FF',zIndex:5}}/>
