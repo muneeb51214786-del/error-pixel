@@ -1,10 +1,11 @@
-name: Build ERROR PIXEL Android APK
+name: Build Enhance Error Android APK
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+      - enhance-error
     paths:
       - "App.js"
       - "app.json"
@@ -39,7 +40,7 @@ jobs:
         run: npm install
 
       - name: Validate Android JavaScript bundle
-        run: npx expo export --platform android --output-dir /tmp/error-pixel-export
+        run: npx expo export --platform android --output-dir /tmp/enhance-error-export
 
       - name: Generate native Android project
         run: npx expo prebuild --platform android --no-install --clean
@@ -75,14 +76,14 @@ jobs:
           AAPT=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -n 1)
           if [ -n "$AAPT" ]; then
             "$AAPT" dump badging "$APK" | tee /tmp/error-pixel-badging.txt
-            grep -q "package: name='com.erroreditx.errorpixel'" /tmp/error-pixel-badging.txt
+            grep -q "package: name='com.erroreditx.enhanceerror'" /tmp/error-pixel-badging.txt
           fi
 
       - name: Publish APK download
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: error-pixel-apk-${{ github.run_number }}
-          name: ERROR PIXEL Android APK ${{ github.run_number }}
+          tag_name: enhance-error-apk-${{ github.run_number }}
+          name: Enhance Error Android APK ${{ github.run_number }}
           body: |
             Installable ERROR PIXEL Android release APK with the JavaScript bundle packaged for offline launch.
             This APK is built for direct installation and includes the bundled JavaScript.
@@ -94,7 +95,7 @@ jobs:
         run: |
           APK_URL="https://github.com/${{ github.repository }}/releases/download/error-pixel-apk-${{ github.run_number }}/app-release.apk"
           {
-            echo "## ERROR PIXEL — APK build"
+            echo "## Enhance Error — APK build"
             echo ""
             echo "[**Download the installable APK**](${APK_URL})"
             echo ""
@@ -104,7 +105,7 @@ jobs:
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ERROR-PIXEL-APK
+          name: ENHANCE-ERROR-APK
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
