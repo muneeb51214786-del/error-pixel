@@ -77,16 +77,12 @@ export default function App() {
     </View>
     <Section title="FRAME RATE" subtitle="Target output FPS — actual interpolation requires an AI engine">
       <View style={styles.valueLine}><Text style={styles.muted}>Selected output</Text><Text style={styles.value}>{fpsLabel(fps)}</Text></View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.ruler}>
-        {FPS.map(n=><Pressable key={n} onPress={()=>setFps(n)} style={[styles.fpsTick,fps===n&&styles.fpsTickActive]}><Text style={[styles.fpsTickText,fps===n&&styles.fpsTickTextActive]}>{n}</Text></Pressable>)}
-      </ScrollView>
+      <Gauge value={fps} min={24} max={960} step={1} onChange={setFps} leftLabel="24 FPS" rightLabel="960 FPS"/>
       <Text style={styles.helper}>24–240 FPS in 1 FPS steps, plus higher experimental targets. Hardware and source frame rate determine what can really be rendered.</Text>
     </Section>
     <Section title="OUTPUT RESOLUTION" subtitle="Choose target size — upscaling requires a real super-resolution model">
       <View style={styles.valueLine}><Text style={styles.muted}>Target resolution</Text><Text style={styles.value}>{quality}</Text></View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.qualityRuler}>
-        {QUALITIES.map((q,i)=><Pressable key={q.label} onPress={()=>{setQuality(q.label);setQualityIndex(i);}} style={[styles.qualityChip,quality===q.label&&styles.qualityActive]}><Text style={[styles.qualityText,quality===q.label&&styles.qualityTextActive]}>{q.label}</Text><Text style={styles.qualityPixels}>{q.w}×{q.h}</Text></Pressable>)}
-      </ScrollView>
+      <Gauge value={qualityIndex} min={0} max={QUALITIES.length-1} step={1} onChange={i=>{const q=QUALITIES[Math.round(i)];setQualityIndex(Math.round(i));setQuality(q.label);}} leftLabel="144p" rightLabel="16K" display={quality}/>
       <Text style={styles.helper}>16K is a selectable target only. Large outputs need substantial memory, storage and compatible processing hardware.</Text>
     </Section>
     <Section title="AI ENHANCEMENT" subtitle="Enable desired processing stages">
