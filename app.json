@@ -2,13 +2,13 @@
   "expo": {
     "name": "ERROR PIXEL",
     "slug": "error-pixel",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "default",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "android": {
       "package": "com.erroreditx.errorpixel",
-      "versionCode": 3
+      "versionCode": 4
     },
     "extra": {
       "eas": {
