@@ -85,7 +85,7 @@ jobs:
           tag_name: enhance-error-apk-${{ github.run_number }}
           name: Enhance Error Android APK ${{ github.run_number }}
           body: |
-            Installable ERROR PIXEL Android release APK with the JavaScript bundle packaged for offline launch.
+            Installable Enhance Error Android release APK with the JavaScript bundle packaged for offline launch.
             This APK is built for direct installation and includes the bundled JavaScript.
           files: android/app/build/outputs/apk/release/app-release.apk
           fail_on_unmatched_files: true
@@ -93,13 +93,13 @@ jobs:
       - name: Add direct APK link to build summary
         shell: bash
         run: |
-          APK_URL="https://github.com/${{ github.repository }}/releases/download/error-pixel-apk-${{ github.run_number }}/app-release.apk"
+          APK_URL="https://github.com/${{ github.repository }}/releases/download/enhance-error-apk-${{ github.run_number }}/app-release.apk"
           {
             echo "## Enhance Error — APK build"
             echo ""
             echo "[**Download the installable APK**](${APK_URL})"
             echo ""
-            echo "Release APK with packaged JavaScript bundle."
+            echo "Enhance Error release APK with packaged JavaScript bundle."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload APK as workflow artifact
