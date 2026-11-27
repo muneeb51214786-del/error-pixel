@@ -401,7 +401,7 @@ function AppContent() {
   const today=()=>new Date().toLocaleDateString('en-CA');
 
   const saveHistory=useCallback(()=>{
-    historyRef.current.push({clips,tool,playing});
+    historyRef.current.push({clips,tool,playing,timelineClips,selectedClipId});
     if(historyRef.current.length>40)historyRef.current.shift();
     redoRef.current=[];
   },[clips,tool,playing,timelineClips,selectedClipId]);
@@ -642,7 +642,7 @@ function AppContent() {
         if(pts){const n=Number(pts)||0;setCreatorPoints(n);setCreatorLevel(CREATOR_LEVELS.filter(x=>n>=x.points).slice(-1)[0]?.level||1);}
         if(photos)setPhotoProjects(JSON.parse(photos));
         const active=await AsyncStorage.getItem('ERROR_PIXEL_ACTIVE_PROJECT');
-        if(active){const saved=JSON.parse(active);if(saved&&saved.id){setSelectedProjectId(saved.id);setProjectName(saved.name||'Untitled Project');setClips(saved.clips==null?1:saved.clips);setTool(saved.tool||'Split');setFps(saved.fps||'60 FPS');setSpeed(saved.speed==null?1:saved.speed);setPlayhead(saved.playhead==null?50:saved.playhead);setKeyframes(saved.keyframes||[]);setResolution(saved.resolution||'1080p');setTrackCount(saved.trackCount||12);setMediaItems(saved.mediaItems||[]);setMediaFiles(saved.mediaFiles||[]);setTimelineClips(saved.timelineClips||(saved.mediaFiles||[]).map((m,i)=>makeTimelineClip(m,i*0.05)));setSelectedClipId(saved.selectedClipId||null);setExportFormat(saved.exportFormat||'MP4');}}
+        if(active){const saved=migrateProject(JSON.parse(active));if(saved&&saved.id){setSelectedProjectId(saved.id);setProjectName(saved.name||'Untitled Project');setClips(saved.clips==null?1:saved.clips);setTool(saved.tool||'Split');setFps(saved.fps||'60 FPS');setSpeed(saved.speed==null?1:saved.speed);setPlayhead(saved.playhead==null?50:saved.playhead);setKeyframes(saved.keyframes||[]);setResolution(saved.resolution||'1080p');setTrackCount(saved.trackCount||12);setMediaItems(saved.mediaItems||[]);setMediaFiles(saved.mediaFiles||[]);setTimelineClips(saved.timelineClips||(saved.mediaFiles||[]).map((m,i)=>makeTimelineClip(m,i*0.05)));setSelectedClipId(saved.selectedClipId||null);setExportFormat(saved.exportFormat||'MP4');}}
         setStorageReady(true);
       } catch(e){console.log('Storage init:',e);}
     };
@@ -660,7 +660,7 @@ function AppContent() {
 
   const saveProject=async()=>{
     const id=selectedProjectId||('EP-'+Date.now());
-    const snapshot={id,name:projectName||'Untitled Project',date:new Date().toLocaleString(),clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,timelineClips,selectedClipId,exportFormat,projectType,updatedAt:Date.now()};
+    const snapshot={id,name:projectName||'Untitled Project',date:new Date().toLocaleString(),clips,tool,fps,speed,playhead,keyframes,resolution,trackCount,mediaItems,mediaFiles,timelineClips:normalizeTimeline(timelineClips),selectedClipId,exportFormat,projectType,updatedAt:Date.now()};
     try{
       const next=[...projects.filter(p=>p.id!==id),snapshot];
       setSelectedProjectId(id);setProjects(next);
