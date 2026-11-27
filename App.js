@@ -9,7 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import {VideoView, useVideoPlayer} from 'expo-video';
 import Svg, {Path, Circle, Rect, Polygon} from 'react-native-svg';
-import {splitTimelineClip} from './editorEngine';
+import {splitTimelineClip,makeTimelineClip} from './editorEngine';
 
 const C = {
   bg:'#070A16', panel:'#10172A', panel2:'#19213A',
@@ -380,7 +380,14 @@ function AppContent() {
 
 
   const onPreviewTime=useCallback(t=>setCurrentTime(t),[]);
-  const onPreviewDuration=useCallback(t=>setDuration(t),[]);
+  const onPreviewDuration=useCallback(t=>{
+    setDuration(t);
+    setTimelineClips(items=>{
+      const primary=items.find(x=>x.type==='video');
+      if(!primary)return items;
+      return items.map(x=>x.id===primary.id?{...x,duration:t,sourceOut:x.sourceIn+t}:x);
+    });
+  },[]);
   const onPreviewEnded=useCallback(()=>setPlaying(false),[]);
   useEffect(()=>{
     if(duration>0)setPlayhead(Math.max(0,Math.min(100,currentTime/duration*100)));
@@ -618,7 +625,7 @@ function AppContent() {
         if(pts){const n=Number(pts)||0;setCreatorPoints(n);setCreatorLevel(CREATOR_LEVELS.filter(x=>n>=x.points).slice(-1)[0]?.level||1);}
         if(photos)setPhotoProjects(JSON.parse(photos));
         const active=await AsyncStorage.getItem('ERROR_PIXEL_ACTIVE_PROJECT');
-        if(active){const saved=JSON.parse(active);if(saved&&saved.id){setSelectedProjectId(saved.id);setProjectName(saved.name||'Untitled Project');setClips(saved.clips==null?1:saved.clips);setTool(saved.tool||'Split');setFps(saved.fps||'60 FPS');setSpeed(saved.speed==null?1:saved.speed);setPlayhead(saved.playhead==null?50:saved.playhead);setKeyframes(saved.keyframes||[]);setResolution(saved.resolution||'1080p');setTrackCount(saved.trackCount||12);setMediaItems(saved.mediaItems||[]);setMediaFiles(saved.mediaFiles||[]);setTimelineClips(saved.timelineClips||[]);setSelectedClipId(saved.selectedClipId||null);setExportFormat(saved.exportFormat||'MP4');}}
+        if(active){const saved=JSON.parse(active);if(saved&&saved.id){setSelectedProjectId(saved.id);setProjectName(saved.name||'Untitled Project');setClips(saved.clips==null?1:saved.clips);setTool(saved.tool||'Split');setFps(saved.fps||'60 FPS');setSpeed(saved.speed==null?1:saved.speed);setPlayhead(saved.playhead==null?50:saved.playhead);setKeyframes(saved.keyframes||[]);setResolution(saved.resolution||'1080p');setTrackCount(saved.trackCount||12);setMediaItems(saved.mediaItems||[]);setMediaFiles(saved.mediaFiles||[]);setTimelineClips(saved.timelineClips||(saved.mediaFiles||[]).map((m,i)=>makeTimelineClip(m,i*0.05)));setSelectedClipId(saved.selectedClipId||null);setExportFormat(saved.exportFormat||'MP4');}}
         setStorageReady(true);
       } catch(e){console.log('Storage init:',e);}
     };
@@ -650,7 +657,7 @@ function AppContent() {
     setClips(p.clips==null?1:p.clips);setTool(p.tool||'Split');setPlaying(false);
     setFps(p.fps||'60 FPS');setSpeed(p.speed==null?1:p.speed);setPlayhead(p.playhead==null?50:p.playhead);
     setKeyframes(p.keyframes||[]);setResolution(p.resolution||'1080p');setTrackCount(p.trackCount||12);
-    setMediaItems(p.mediaItems||[]);setMediaFiles(p.mediaFiles||[]);setTimelineClips(p.timelineClips||[]);setSelectedClipId(p.selectedClipId||null);setExportFormat(p.exportFormat||'MP4');
+    setMediaItems(p.mediaItems||[]);setMediaFiles(p.mediaFiles||[]);setTimelineClips(p.timelineClips||(p.mediaFiles||[]).map((m,i)=>makeTimelineClip(m,i*0.05)));setSelectedClipId(p.selectedClipId||null);setExportFormat(p.exportFormat||'MP4');
     try{await AsyncStorage.setItem('ERROR_PIXEL_ACTIVE_PROJECT',JSON.stringify(p));}catch(e){}
     setPage('editor');setLastAction('Project restored from device storage');
   };
