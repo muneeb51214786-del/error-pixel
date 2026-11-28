@@ -1,32 +1,54 @@
 # Enhance Error — AI Engine Integration
 
-This branch targets the **Enhance Error** application.
+## Required shared video pipeline
 
-## Engine stack and licensing
+All processing belongs to one project/job and returns one final video. Topaz remains **PENDING** and is excluded from the runnable stack.
 
-| Engine | Intended role | License / terms | Integration state |
-|---|---|---|---|
-| FFmpeg | Decode, encode, scaling, denoise filters, audio/video muxing | LGPL/GPL depending on build configuration and enabled codecs; distribute notices and corresponding source where required | Android Media3 currently performs basic export; FFmpeg worker is not deployed |
-| RIFE | AI frame interpolation (genuine intermediate frames) | Check the exact RIFE implementation and model-weight terms before redistribution; do not assume every fork/weight has identical terms | Not installed or running |
-| Real-ESRGAN | AI super-resolution | Real-ESRGAN code is BSD-3-Clause; separately verify BasicSR, dependencies, and downloaded model-weight terms | Not installed or running |
-| Denoise | Noise reduction | FFmpeg filters can provide non-AI denoise; AI denoise requires a separately licensed model/runtime | UI setting only; not applied by current export |
-| Stabilization | Motion stabilization | FFmpeg vid.stab support has its own LGPL terms; requires a compatible FFmpeg build | UI setting only; not applied by current export |
-| Topaz Video AI | Commercial alternative | Proprietary commercial product; requires a valid license purchased from Topaz and cannot be bundled or sublicensed by this project | Not included |
+1. Decode the source once and inspect its real frame rate, dimensions, duration, scene cuts, and motion.
+2. Apply enabled pre-processing stages (denoise and stabilization) only when their runtimes are available.
+3. For frame interpolation, support selectable engines:
+   - **RIFE** — AI intermediate-frame generation.
+   - **Google FILM** — frame interpolation for large motion; can be recursively scheduled for 2x, 4x, 8x, 16x, and 32x temporal expansion where compute and quality allow.
+   - **DAIN, CAIN, FLAVR** — optional adapters, only when their exact implementations, weights, and licences are verified.
+4. **Selected engine mode:** run the engine the user selected. Do not silently substitute another engine.
+5. **Combined mode:** run available interpolation engines against the same source-frame pairs, compare candidate frames using temporal consistency / occlusion checks, and select or blend candidates. Do not blindly run interpolated output through another interpolator; that can create ghosting and artifacts. If an engine is unavailable, report it and continue only if the user allowed fallback.
+6. Run Real-ESRGAN spatial upscaling on the temporally generated frames (or on source frames before interpolation only if the tested pipeline profile says so).
+7. Encode/mux the final video with FFmpeg, preserving audio sync and reporting the measured output FPS and dimensions.
 
-## Important deployment boundary
+The 32x setting is a temporal expansion target, not a guarantee of quality or speed. The job must calculate output frame count and reject impossible resource requests before processing.
 
-RIFE and Real-ESRGAN are computationally expensive. This Expo Android app does not contain their model weights or an inference runtime. They must run on a compatible GPU worker (or a separately built and tested Android native runtime). A server URL, credentials, model files, and deployment are required before the app can submit jobs and return processed videos.
+## Current repository state (verified from this branch)
 
-Never report an AI operation as complete unless the worker returns a real output video. The current Android Media3 export is a real re-encode/resize only; it is not AI upscaling or frame interpolation.
+| Engine | Role | Current status |
+|---|---|---|
+| Android Media3 VideoEngine | Basic on-device decode/scale/MP4 export | Present; not AI interpolation |
+| RIFE | Frame interpolation | Not installed or running |
+| Google FILM | Frame interpolation; up to 32x planned expansion | Not installed or running |
+| Real-ESRGAN | AI super-resolution | Not installed or running |
+| DAIN / CAIN / FLAVR | Additional interpolation adapters | Not installed or running |
+| FFmpeg worker | Decode, filters, encode and mux | Not deployed |
+| Denoise | Noise reduction | UI control exists; current export does not apply it |
+| Stabilization | Motion correction | UI control exists; current export does not apply it |
+| Topaz Video AI | Proprietary alternative | **PENDING**; excluded until a valid commercial licence is obtained |
 
-## Required next implementation steps
+## Runtime and licensing requirements
 
-1. Provision a GPU worker and install pinned RIFE and Real-ESRGAN implementations with their model weights.
-2. Build FFmpeg with the required codecs and vid.stab support; publish its exact build configuration and license notices.
-3. Expose authenticated upload, job-status, and output-download endpoints.
-4. Configure the app with the worker base URL and a short-lived authentication mechanism. Do not commit API keys or service-role secrets.
-5. Test real source/output files, FPS metadata, resolution, audio sync, and memory limits on representative Android devices.
+RIFE, FILM, Real-ESRGAN and the optional interpolation models require compatible inference runtimes and model weights. The app currently has no GPU worker URL, model files, inference runtime, or deployed job API, so these engines cannot truthfully be marked active yet.
 
-## Resolution and frame-rate limits
+Check the exact source repository, model-weight terms, and dependency licences for every pinned version before redistribution. Do not assume code and checkpoint licences are identical. FFmpeg licensing depends on build flags and enabled codecs; publish the exact build configuration and required notices/source.
 
-The UI may offer 144p–16K and 24–960 FPS targets, but selectable values are not proof that a device or worker can render them. The backend must validate source duration, output dimensions, frame rate, GPU memory, storage, and job limits before processing.
+Topaz is commercial proprietary software. This project cannot issue, invent, or bundle a Topaz licence.
+
+## Backend contract needed before the app can process a real AI job
+
+- Authenticated upload endpoint accepting the source video and a job manifest.
+- Job manifest fields: selected FPS engine or `combined`, target FPS, target dimensions, enabled pre/post-processing stages, and fallback policy.
+- Job status endpoint with stage-level progress and clear unavailable/error states.
+- Output endpoint returning the actual rendered video and measured metadata.
+- GPU worker with pinned model versions, verified weights, memory/duration limits, and reproducible tests.
+
+Never report an AI operation as complete until the worker returns a verified output video. The current Media3 export only re-encodes/resizes; it does not perform RIFE, FILM, Real-ESRGAN, AI denoise, or AI stabilization.
+
+## Resource and output limits
+
+The UI may expose large targets, but selectable values are not proof of capability. Validate source duration, output dimensions, frame count, target FPS, GPU memory, storage, audio sync, and job limits before processing.
