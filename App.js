@@ -120,6 +120,9 @@ export default function App() {
     try{
       let result;
       if(interpolation){
+        if(exportMode==='range'){
+          throw new Error('RIFE GPU processing currently supports the full video only. Range trimming is not yet available in the GPU job pipeline.');
+        }
         if(fpsEngine!=='rife'){
           throw new Error('The selected engine is not deployed yet. RIFE is the only engine currently wired for video processing.');
         }
@@ -135,7 +138,7 @@ export default function App() {
         if(!accessToken){
           throw new Error('Sign in to your Enhance Error account first. RIFE processing requires an authenticated Supabase user session.');
         }
-        const functionUrl=SUPABASE_URL.replace(/\\/$/,'')+'/functions/v1/rife-video';
+        const functionUrl=SUPABASE_URL.replace(/\/+$/,'')+'/functions/v1/rife-video';
         setExportStage('Uploading video to RIFE GPU');
         result=await VideoEngine.interpolateRifeVideo(videoUri,functionUrl,SUPABASE_ANON_KEY,accessToken);
       }else{
