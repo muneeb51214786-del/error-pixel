@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image
@@ -58,9 +59,15 @@ def health():
 
 
 def frame_tensor(frame):
+    height, width = frame.height, frame.width
     array = np.asarray(frame.convert("RGB"), dtype=np.float32)
     array = np.transpose(array, (2, 0, 1)) / 255.0
-    return torch.from_numpy(array).unsqueeze(0).cuda()
+    tensor = torch.from_numpy(array).unsqueeze(0).cuda()
+    pad_h = (32 - height % 32) % 32
+    pad_w = (32 - width % 32) % 32
+    if pad_h or pad_w:
+        tensor = F.pad(tensor, (0, pad_w, 0, pad_h))
+    return tensor, height, width
 
 
 @app.post("/v1/video/rife/2x")
@@ -109,8 +116,10 @@ async def interpolate_video(file: UploadFile = File(...), x_api_key: str | None 
                         following = opened.convert("RGB")
                     if following.size != current.size:
                         raise HTTPException(422, "Variable frame dimensions are not supported.")
-                    midpoint = model.inference(frame_tensor(current), frame_tensor(following), scale=1.0)
-                    array = midpoint[0].detach().float().clamp(0, 1).cpu().numpy()
+                    first_tensor, frame_h, frame_w = frame_tensor(current)
+                    second_tensor, _, _ = frame_tensor(following)
+                    midpoint = model.inference(first_tensor, second_tensor, scale=1.0)
+                    array = midpoint[0, :, :frame_h, :frame_w].detach().float().clamp(0, 1).cpu().numpy()
                     array = np.transpose(array, (1, 2, 0))
                     Image.fromarray((array * 255).round().astype(np.uint8), "RGB").save(
                         output_dir / f"{index * 2 + 1:07d}.png")
