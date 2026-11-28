@@ -66,3 +66,19 @@ This is an integration implementation, not yet a verified production service.
 It still needs a provisioned GPU host, compatible SavedModel, successful health
 check, Android build, and physical end-to-end test. A queued job system,
 progress/cancellation, quotas, and load testing are required before public use.
+
+
+## GitHub APK workflow settings
+
+In the repository Settings → Secrets and variables → Actions, configure:
+
+**Variables**
+- `EXPO_PUBLIC_SUPABASE_URL`
+- `EXPO_PUBLIC_RIFE_WORKER_URL`
+- `EXPO_PUBLIC_FILM_WORKER_URL`
+
+**Secret**
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+The Android APK workflow reads these names at build time. Without them, the
+APK can compile but GPU sign-in and worker requests remain unconfigured.
