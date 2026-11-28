@@ -77,9 +77,10 @@ def probe(path):
 def health():
     return {
         "service": "enhance-error-rife-video",
-        "status": "ready" if torch.cuda.is_available() and MODEL_DIR.is_dir() and any(MODEL_DIR.iterdir()) else "not_ready",
+        "status": "ready" if torch.cuda.is_available() and MODEL_DIR.is_dir() and any(MODEL_DIR.iterdir()) and SUPABASE_URL and SUPABASE_ANON_KEY else "not_ready",
         "cuda_available": torch.cuda.is_available(),
         "model_weights_present": MODEL_DIR.is_dir() and any(MODEL_DIR.iterdir()),
+        "supabase_auth_configured": bool(SUPABASE_URL and SUPABASE_ANON_KEY),
     }
 
 
