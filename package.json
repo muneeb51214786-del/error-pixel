@@ -30,5 +30,10 @@
   "devDependencies": {},
   "engines": {
     "node": ">=20.19.0"
+  },
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
   }
 }
