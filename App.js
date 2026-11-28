@@ -130,7 +130,7 @@ export default function App() {
           throw new Error('The selected engine is not yet implemented for full-video processing. Choose RIFE or Google FILM.');
         }
         if(fpsMultiplier!==2){
-          throw new Error('The current RIFE GPU worker supports 2× interpolation only. Select 2× to continue.');
+          throw new Error('The currently integrated GPU video workers support 2× interpolation only. Select 2× to continue.');
         }
         const selectedWorkerUrl=fpsEngine==='rife'?RIFE_WORKER_URL:FILM_WORKER_URL;
         if(!SUPABASE_ANON_KEY || !selectedWorkerUrl){
