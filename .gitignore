@@ -1,0 +1,11 @@
+# Local secrets and generated Python files
+gpu-backend/.env
+**/__pycache__/
+*.py[cod]
+
+# Local model checkpoints (never commit large model weights)
+gpu-backend/models/
+*.pkl
+*.pth
+*.pt
+*.ckpt
