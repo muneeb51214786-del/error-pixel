@@ -16,8 +16,9 @@ import java.io.File
 class EnhanceErrorVideoEngineModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("EnhanceErrorVideoEngine")
+    Events("onExportProgress")
 
-    AsyncFunction("exportVideo") { inputUri: String, width: Int, height: Int, promise: Promise ->
+    AsyncFunction("exportVideo") { inputUri: String, width: Int, height: Int, startMs: Long, endMs: Long, promise: Promise ->
       try {
         require(width in 144..3840 && height in 144..3840) {
           "Output dimensions must be between 144 and 3840 pixels."
@@ -26,7 +27,12 @@ class EnhanceErrorVideoEngineModule : Module() {
         val output = File(context.cacheDir, "enhance-error-${System.currentTimeMillis()}.mp4")
         val transformer = Transformer.Builder(context)
           .addListener(object : Transformer.Listener {
+            override fun onProgress(composition: androidx.media3.transformer.Composition, progress: Float) {
+              if (progress >= 0f) sendEvent("onExportProgress", mapOf("progress" to progress.coerceIn(0f, 1f), "stage" to "Exporting video"))
+            }
+
             override fun onCompleted(composition: androidx.media3.transformer.Composition, exportResult: ExportResult) {
+              sendEvent("onExportProgress", mapOf("progress" to 1f, "stage" to "Export complete"))
               promise.resolve(mapOf(
                 "uri" to output.absolutePath,
                 "width" to width,
@@ -45,7 +51,16 @@ class EnhanceErrorVideoEngineModule : Module() {
           })
           .build()
 
-        val item = EditedMediaItem.Builder(MediaItem.fromUri(Uri.parse(inputUri)))
+        val mediaBuilder = MediaItem.Builder().setUri(Uri.parse(inputUri))
+        if (endMs > startMs && startMs >= 0L) {
+          mediaBuilder.setClippingConfiguration(
+            MediaItem.ClippingConfiguration.Builder()
+              .setStartPositionMs(startMs)
+              .setEndPositionMs(endMs)
+              .build()
+          )
+        }
+        val item = EditedMediaItem.Builder(mediaBuilder.build())
           .setEffects(Effects(emptyList(), listOf(
             Presentation.createForWidthAndHeight(width, height, Presentation.LAYOUT_SCALE_TO_FIT)
           )))
