@@ -7,6 +7,9 @@ import * as ImagePicker from 'expo-image-picker';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { requireNativeModule } from 'expo-modules-core';
+
+const VideoEngine = requireNativeModule('EnhanceErrorVideoEngine');
 
 const C = { bg:'#070A11', panel:'#101722', panel2:'#151F2D', line:'#273548', cyan:'#32D9F5', blue:'#168DBB', purple:'#B56BFF', text:'#F3F7FF', muted:'#8C9AAF', green:'#37D6B0', warn:'#FFCB70' };
 const FPS = [...Array.from({length:217},(_,i)=>i+24),300,360,480,600,720,960];
@@ -54,9 +57,19 @@ export default function App() {
     AsyncStorage.setItem('enhance-error-recent',JSON.stringify(next)).catch(()=>{});
     setTab('Enhance');
   };
-  const startEnhancement=()=>{
-    if(!videoUri){Alert.alert('Select a video','Choose a video first to preview enhancement settings.');return;}
-    Alert.alert('AI processing engine not connected','Your video is loaded and settings are selectable, but real RIFE frame interpolation and AI super-resolution need a licensed/hosted inference engine. This build will not pretend that changing FPS or resolution has processed your video.');
+  const startEnhancement=async()=>{
+    if(!videoUri){Alert.alert('Select a video','Choose a video first.');return;}
+    if(engineBusy)return;
+    setEngineBusy(true);
+    try{
+      const result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h);
+      const outputUri=result.uri.startsWith('file://')?result.uri:'file://'+result.uri;
+      setVideoUri(outputUri);
+      setVideoName('Enhanced '+videoName);
+      Alert.alert('Video export complete','Your video has been re-encoded on this Android device at '+result.width+' × '+result.height+'. This export changes resolution; FPS interpolation and AI upscaling are not included yet.\n\nSaved in app cache: '+result.uri);
+    }catch(error){
+      Alert.alert('Video export failed',String(error?.message||error||'Unknown native video engine error'));
+    }finally{setEngineBusy(false);}
   };
   const reset=()=>{setFps(60);setQuality('1080p');setQualityIndex(6);setUltra(true);setInterpolation(true);setDenoise(true);setSharpen(true);setStabilize(false);};
   const Home=()=> <ScrollView style={styles.scroller} contentContainerStyle={styles.homeContent} showsVerticalScrollIndicator={true} indicatorStyle="white" nestedScrollEnabled decelerationRate="normal" overScrollMode="always" removeClippedSubviews={false}>
@@ -98,12 +111,12 @@ export default function App() {
       <Toggle title="Video Stabilization" sub="Reduce unwanted camera movement" value={stabilize} onChange={setStabilize}/>
     </Section>
     <Section title="PROCESSING ENGINES" subtitle="Integration status">
-      <Engine name="RIFE Frame Interpolation" detail="Open-source model · inference runtime required" status="Not installed"/>
+      <Engine name="Android Media3 Video Export" detail="On-device decode, scale and MP4 encode" status="Native engine added"/>
       <Engine name="Real-ESRGAN Super Resolution" detail="Open-source model · GPU/NPU runtime required" status="Not installed"/>
       <Engine name="Topaz Video AI" detail="Commercial proprietary software · separate licence required" status="Not licensed"/>
-      <Engine name="FFmpeg Media Pipeline" detail="Media decode/encode backend" status="Not connected"/>
+      <Engine name="Resolution Export" detail="Real Android video re-encoding" status="Media3 ready"/>
     </Section>
-    <View style={styles.actionRow}><Pressable style={styles.resetButton} onPress={reset}><Text style={styles.resetText}>RESET</Text></Pressable><Pressable style={styles.exportButton} onPress={startEnhancement}><Text style={styles.exportText}>START AI ENHANCEMENT  →</Text></Pressable></View>
+    <View style={styles.actionRow}><Pressable style={styles.resetButton} onPress={reset}><Text style={styles.resetText}>RESET</Text></Pressable><Pressable style={styles.exportButton} onPress={startEnhancement}><Text style={styles.exportText}>{engineBusy?'PROCESSING VIDEO…':'EXPORT VIDEO  →'}</Text></Pressable></View>
   </ScrollView>;
   const Toggle=({title,sub,value,onChange})=><View style={styles.toggleRow}><View style={{flex:1}}><Text style={styles.toggleTitle}>{title}</Text><Text style={styles.toggleSub}>{sub}</Text></View><Switch value={value} onValueChange={onChange} trackColor={{false:'#354154',true:'#167F9D'}} thumbColor={value?C.cyan:'#B5C0CF'}/></View>;
   const Engine=({name,detail,status})=><View style={styles.engineRow}><View style={{flex:1}}><Text style={styles.engineName}>{name}</Text><Text style={styles.engineDetail}>{detail}</Text></View><Text style={styles.engineStatus}>{status}</Text></View>;
