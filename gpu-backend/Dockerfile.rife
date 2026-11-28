@@ -1,0 +1,16 @@
+FROM pytorch/pytorch:2.4.1-cuda12.1-cudnn9-runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    RIFE_SOURCE=/opt/ECCV2022-RIFE \
+    RIFE_MODEL_DIR=/models/rife
+
+RUN apt-get update && apt-get install -y --no-install-recommends git ffmpeg libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 https://github.com/hzwer/ECCV2022-RIFE.git ${RIFE_SOURCE}
+
+WORKDIR /app
+COPY requirements-rife.txt ./requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY rife_worker.py ./rife_worker.py
+EXPOSE 8081
+CMD ["uvicorn", "rife_worker:app", "--host", "0.0.0.0", "--port", "8081"]
