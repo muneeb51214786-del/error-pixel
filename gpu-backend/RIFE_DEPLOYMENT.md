@@ -49,12 +49,14 @@ not embed a private server token in the APK.
 
 ## Android app configuration
 
-Set these EAS environment variables for the Android build:
+Set these EAS environment variables for the Android build, or set matching GitHub Actions variables/secrets for the repository APK workflow:
 
 - `EXPO_PUBLIC_SUPABASE_URL` — Supabase project URL.
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY` — the anon/publishable key used by `supabase.js`.
-- `EXPO_PUBLIC_RIFE_WORKER_URL` — HTTPS base URL of the GPU worker, without
+- `EXPO_PUBLIC_RIFE_WORKER_URL` — HTTPS base URL of the RIFE worker, without
   the endpoint path. The app appends `/v1/video/rife/2x`.
+- `EXPO_PUBLIC_FILM_WORKER_URL` — HTTPS base URL of the FILM worker, without
+  the endpoint path. The app appends `/v1/video/film/2x`.
 
 Enable Email authentication in Supabase Auth. The Home screen includes account
 creation and sign-in. RIFE processing requires a valid signed-in user session.
