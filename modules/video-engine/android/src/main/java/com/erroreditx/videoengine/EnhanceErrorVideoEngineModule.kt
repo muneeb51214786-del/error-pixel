@@ -20,6 +20,14 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
 import java.io.FileInputStream
+import java.util.concurrent.TimeUnit
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okio.BufferedSink
+import okio.source
 
 class EnhanceErrorVideoEngineModule : Module() {
   override fun definition() = ModuleDefinition {
@@ -137,6 +145,85 @@ class EnhanceErrorVideoEngineModule : Module() {
         galleryUri?.let { try { appContext.reactContext?.contentResolver?.delete(it, null, null) } catch (_: Throwable) {} }
         promise.reject("VIDEO_EXPORT_FAILED", error.message ?: "Video export failed.", error)
       }
+    }
+
+    AsyncFunction("interpolateRifeVideo") { inputUri: String, functionUrl: String, anonKey: String, accessToken: String, promise: Promise ->
+      Thread {
+        var savedUri: Uri? = null
+        try {
+          require(functionUrl.startsWith("https://")) { "RIFE gateway must use HTTPS." }
+          require(anonKey.isNotBlank() && accessToken.isNotBlank()) { "A Supabase sign-in session is required." }
+          val context = appContext.reactContext ?: error("Android context is unavailable.")
+          val sourceUri = Uri.parse(inputUri)
+          val resolver = context.contentResolver
+          val fileName = "EnhanceError_Source.mp4"
+          val requestBody = object : RequestBody() {
+            override fun contentType() = "application/octet-stream".toMediaType()
+            override fun writeTo(sink: BufferedSink) {
+              val stream = resolver.openInputStream(sourceUri) ?: error("Cannot open selected source video.")
+              stream.source().use { sink.writeAll(it) }
+            }
+          }
+          val multipart = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("file", fileName, requestBody)
+            .build()
+          val request = Request.Builder()
+            .url(functionUrl)
+            .header("apikey", anonKey)
+            .header("Authorization", "Bearer $accessToken")
+            .post(multipart)
+            .build()
+          val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(3, TimeUnit.MINUTES)
+            .readTimeout(13, TimeUnit.MINUTES)
+            .callTimeout(14, TimeUnit.MINUTES)
+            .build()
+
+          sendEvent("onExportProgress", mapOf("progress" to 0.03f, "stage" to "Uploading video to RIFE GPU"))
+          client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+              val detail = response.body?.string()?.take(1800) ?: "RIFE service returned HTTP ${response.code}."
+              error(detail)
+            }
+            val body = response.body ?: error("RIFE service returned an empty response.")
+            val mime = body.contentType()?.toString() ?: ""
+            require(mime.startsWith("video/mp4")) { "RIFE service did not return an MP4 video." }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+              error("Gallery export currently requires Android 10 or newer.")
+            }
+            sendEvent("onExportProgress", mapOf("progress" to 0.82f, "stage" to "Saving RIFE output to Gallery"))
+            val values = ContentValues().apply {
+              put(MediaStore.Video.Media.DISPLAY_NAME, "EnhanceError_RIFE_${System.currentTimeMillis()}.mp4")
+              put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+              put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Enhance Error")
+              put(MediaStore.Video.Media.IS_PENDING, 1)
+            }
+            val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            savedUri = resolver.insert(collection, values) ?: error("Android could not create a Gallery media entry.")
+            val destination = resolver.openOutputStream(savedUri!!, "w")
+              ?: error("Android could not open the Gallery output file.")
+            destination.use { out -> body.byteStream().use { it.copyTo(out) } }
+            val publish = ContentValues().apply { put(MediaStore.Video.Media.IS_PENDING, 0) }
+            if (resolver.update(savedUri!!, publish, null, null) <= 0) {
+              error("The RIFE video was copied but could not be published to Gallery.")
+            }
+            val finalUri = savedUri!!.toString()
+            sendEvent("onExportProgress", mapOf("progress" to 1f, "stage" to "RIFE video saved to Gallery"))
+            promise.resolve(mapOf(
+              "uri" to finalUri,
+              "galleryUri" to finalUri,
+              "engine" to "RIFE",
+              "fpsMultiplier" to 2,
+              "message" to "RIFE 2x video saved to Movies/Enhance Error."
+            ))
+          }
+        } catch (error: Throwable) {
+          savedUri?.let { try { appContext.reactContext?.contentResolver?.delete(it, null, null) } catch (_: Throwable) {} }
+          promise.reject("RIFE_VIDEO_FAILED", error.message ?: "RIFE video processing failed.", error)
+        }
+      }.start()
     }
   }
 }
