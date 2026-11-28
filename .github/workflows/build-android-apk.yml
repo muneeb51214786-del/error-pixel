@@ -8,6 +8,7 @@ on:
       - enhance-error
     paths:
       - "App.js"
+      - "supabase.js"
       - "app.json"
       - "package.json"
       - "package-lock.json"
@@ -22,6 +23,11 @@ jobs:
   build-apk:
     name: Build installable Android APK locally
     runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+      EXPO_PUBLIC_RIFE_WORKER_URL: ${{ vars.EXPO_PUBLIC_RIFE_WORKER_URL }}
+      EXPO_PUBLIC_FILM_WORKER_URL: ${{ vars.EXPO_PUBLIC_FILM_WORKER_URL }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
