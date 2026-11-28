@@ -1,0 +1,4 @@
+project_id = "enhance-error"
+
+[functions.rife-video]
+verify_jwt = true
