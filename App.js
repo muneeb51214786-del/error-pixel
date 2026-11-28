@@ -54,6 +54,10 @@ export default function App() {
   const [recent,setRecent]=useState([]);
   const [fpsSearch,setFpsSearch]=useState(false);
   const [qualityIndex,setQualityIndex]=useState(6);
+  const [authSession,setAuthSession]=useState(null);
+  const [authEmail,setAuthEmail]=useState('');
+  const [authPassword,setAuthPassword]=useState('');
+  const [authBusy,setAuthBusy]=useState(false);
   const player=useVideoPlayer(null,p=>{p.loop=true;});
   useEffect(()=>{ if(videoUri){ try{ player.replaceAsync(videoUri); }catch(e){} } },[videoUri,player]);
   useEffect(()=>{ try{ player.playbackRate=playbackSpeed; }catch(e){} },[playbackSpeed,player]);
@@ -65,6 +69,30 @@ export default function App() {
     return ()=>sub?.remove?.();
   },[]);
   useEffect(()=>{ AsyncStorage.getItem('enhance-error-recent').then(v=>{if(v)setRecent(JSON.parse(v));}).catch(()=>{}); },[]);
+  useEffect(()=>{
+    supabase.auth.getSession().then(({data})=>setAuthSession(data?.session||null)).catch(()=>{});
+    const {data}=supabase.auth.onAuthStateChange((_event,session)=>setAuthSession(session));
+    return ()=>data?.subscription?.unsubscribe?.();
+  },[]);
+  const authenticate=async(mode)=>{
+    if(authBusy)return;
+    if(!authEmail.trim()||!authPassword){Alert.alert('Account details required','Enter your email address and password.');return;}
+    if(authPassword.length<8){Alert.alert('Password too short','Use at least 8 characters.');return;}
+    setAuthBusy(true);
+    try{
+      const result=mode==='signup'
+        ?await supabase.auth.signUp({email:authEmail.trim(),password:authPassword})
+        :await supabase.auth.signInWithPassword({email:authEmail.trim(),password:authPassword});
+      if(result.error)throw result.error;
+      if(mode==='signup'&&!result.data?.session){
+        Alert.alert('Check your email','Your account was created. Complete email confirmation, then sign in.');
+      }else{
+        setAuthPassword('');
+        Alert.alert(mode==='signup'?'Account created':'Signed in','Your account is ready for authenticated GPU processing.');
+      }
+    }catch(error){Alert.alert('Account error',String(error?.message||error));}
+    finally{setAuthBusy(false);}
+  };
   const selectedQuality=useMemo(()=>QUALITIES.find(q=>q.label===quality)||QUALITIES[6],[quality]);
   const pickVideo=async()=>{
     const perm=await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -141,6 +169,9 @@ export default function App() {
       <Feature icon="◇" title="Quality Upscaler" sub="144p to 16K targets" color={C.purple} onPress={()=>setTab('Enhance')}/>
       <Feature icon="⌁" title="Stabilization" sub="Motion correction controls" color={C.cyan} onPress={()=>setTab('Enhance')}/>
     </View>
+    <Section title="ENHANCE ERROR ACCOUNT" subtitle="Required for secure GPU processing">
+      {authSession?<View style={{gap:8}}><Text style={styles.cardTitle}>Signed in</Text><Text style={styles.muted}>{authSession.user?.email||'Enhance Error account'}</Text><Pressable style={styles.importButton} onPress={async()=>{await supabase.auth.signOut();}}><Text style={styles.importText}>SIGN OUT</Text></Pressable></View>:<View style={{gap:9}}><TextInput value={authEmail} onChangeText={setAuthEmail} autoCapitalize="none" keyboardType="email-address" placeholder="Email address" placeholderTextColor={C.muted} style={styles.trimInput}/><TextInput value={authPassword} onChangeText={setAuthPassword} secureTextEntry placeholder="Password (minimum 8 characters)" placeholderTextColor={C.muted} style={styles.trimInput}/><View style={{flexDirection:'row',gap:8}}><Pressable style={[styles.importButton,{flex:1}]} onPress={()=>authenticate('signin')}><Text style={styles.importText}>{authBusy?'PLEASE WAIT':'SIGN IN'}</Text></Pressable><Pressable style={[styles.newButton,{flex:1}]} onPress={()=>authenticate('signup')}><Text style={styles.newButtonText}>CREATE ACCOUNT</Text></Pressable></View><Text style={styles.helper}>Create or sign in to an account to securely access the RIFE GPU service.</Text></View>}
+    </Section>
     <Section title="RECENT PROJECTS" subtitle="On this device">
       {recent.length===0?<Pressable onPress={pickVideo} style={styles.emptyCard}><Text style={styles.emptyIcon}>▣</Text><Text style={styles.cardTitle}>Start your first enhancement</Text><Text style={styles.muted}>Import a video to open the enhancement studio</Text></Pressable>:recent.map((r,i)=><View key={r.uri+i} style={styles.recentRow}><Pressable style={{flex:1,flexDirection:'row',alignItems:'center',gap:12}} onPress={()=>{setVideoUri(r.uri);setVideoName(r.name);setTab('Enhance');}}><View style={styles.recentThumb}><Text style={{color:C.cyan,fontSize:22}}>▶</Text></View><View style={{flex:1}}><Text style={styles.cardTitle} numberOfLines={1}>{r.name}</Text><Text style={styles.muted}>Tap to continue · Local media</Text></View><Text style={{color:C.cyan}}>OPEN ›</Text></Pressable><Pressable onPress={()=>deleteProject(r.uri)} style={{padding:10,marginLeft:6,borderRadius:10,backgroundColor:'#3A1822'}}><Text style={{color:'#FF8A9B',fontWeight:'900'}}>DELETE</Text></Pressable></View>)}
     </Section>
