@@ -1,0 +1,25 @@
+name: RIFE worker checks
+
+on:
+  push:
+    branches: [enhance-error]
+    paths:
+      - "gpu-backend/rife_worker.py"
+      - "gpu-backend/requirements-rife.txt"
+      - ".github/workflows/rife-worker-check.yml"
+  pull_request:
+    branches: [enhance-error]
+    paths:
+      - "gpu-backend/rife_worker.py"
+      - "gpu-backend/requirements-rife.txt"
+
+jobs:
+  python-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile RIFE worker
+        run: python -m py_compile gpu-backend/rife_worker.py
