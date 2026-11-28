@@ -162,6 +162,11 @@ async def interpolate_video(file: UploadFile = File(...), authorization: str | N
              "-shortest", "-movflags", "+faststart", str(output)], timeout=600)
         return FileResponse(
             str(output), media_type="video/mp4", filename="EnhanceError_RIFE_2x.mp4",
+            headers={
+                "X-Source-FPS": str(fps),
+                "X-Output-FPS": str(fps * 2),
+                "X-Output-Frames": str(len(frames) * 2),
+            },
             background=BackgroundTask(shutil.rmtree, str(root), ignore_errors=True)
         )
     except Exception:
