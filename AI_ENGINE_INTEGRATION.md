@@ -23,7 +23,7 @@ The 32x setting is a temporal expansion target, not a guarantee of quality or sp
 |---|---|---|
 | Android Media3 VideoEngine | Basic on-device decode/scale/MP4 export | Present; not AI interpolation |
 | RIFE | Frame interpolation | Full-video 2x worker + Android upload/download path committed; GPU host, checkpoint, EAS environment, and end-to-end test pending |
-| Google FILM | Frame interpolation; up to 32x planned expansion | Single-frame prototype endpoint only; full-video pipeline, authentication, and model deployment pending |
+| Google FILM | Frame interpolation | Full-video 2x worker + Android upload/download path committed; SavedModel, GPU host, and end-to-end test pending |
 | Real-ESRGAN | AI super-resolution | Not installed or running |
 | DAIN / CAIN / FLAVR | Additional interpolation adapters | Not installed or running |
 | FFmpeg worker | Decode, filters, encode and mux | Not deployed |
@@ -33,7 +33,7 @@ The 32x setting is a temporal expansion target, not a guarantee of quality or sp
 
 ## Runtime and licensing requirements
 
-RIFE now has a committed full-video worker and Android integration path, but it is not active until an NVIDIA GPU host, compatible checkpoint, Supabase settings, and physical end-to-end tests are complete. FILM currently has only a single-frame prototype endpoint. Real-ESRGAN and the optional interpolation models still require compatible inference runtimes and model weights; they must not be marked active until implemented and tested.
+RIFE now has a committed full-video worker and Android integration path, but it is not active until an NVIDIA GPU host, compatible checkpoint, Supabase settings, and physical end-to-end tests are complete. FILM now has a full-video 2x worker and Android integration path, but its SavedModel and GPU host are not deployed. Real-ESRGAN and the optional interpolation models still require compatible inference runtimes and model weights; they must not be marked active until implemented and tested.
 
 Check the exact source repository, model-weight terms, and dependency licences for every pinned version before redistribution. Do not assume code and checkpoint licences are identical. FFmpeg licensing depends on build flags and enabled codecs; publish the exact build configuration and required notices/source.
 
