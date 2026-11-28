@@ -6,6 +6,8 @@ on:
     paths:
       - "gpu-backend/rife_worker.py"
       - "gpu-backend/rife_video_worker.py"
+      - "gpu-backend/film_video_worker.py"
+      - "gpu-backend/requirements.txt"
       - "gpu-backend/requirements-rife.txt"
       - ".github/workflows/rife-worker-check.yml"
   pull_request:
@@ -24,4 +26,4 @@ jobs:
         with:
           python-version: "3.11"
       - name: Compile RIFE workers
-        run: python -m py_compile gpu-backend/rife_worker.py gpu-backend/rife_video_worker.py
+        run: python -m py_compile gpu-backend/rife_worker.py gpu-backend/rife_video_worker.py gpu-backend/film_video_worker.py
