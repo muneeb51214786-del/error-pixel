@@ -79,7 +79,7 @@ def load_model():
     global _model
     if _model is not None:
         return _model
-    if not MODEL_PATH.is_dir():
+    if not (MODEL_PATH / "saved_model.pb").is_file():
         raise HTTPException(503, "Google FILM SavedModel is not mounted.")
     if not (FILM_SOURCE / "eval" / "interpolator.py").is_file():
         raise HTTPException(503, "Official Google FILM source is missing.")
@@ -100,8 +100,8 @@ def health():
     gpu_devices = tf.config.list_physical_devices("GPU")
     return {
         "service": "enhance-error-film-video",
-        "status": "ready" if gpu_devices and MODEL_PATH.is_dir() and (FILM_SOURCE / "eval" / "interpolator.py").is_file() and SUPABASE_URL and SUPABASE_ANON_KEY else "not_ready",
-        "model_weights_present": MODEL_PATH.is_dir(),
+        "status": "ready" if gpu_devices and (MODEL_PATH / "saved_model.pb").is_file() and (FILM_SOURCE / "eval" / "interpolator.py").is_file() and SUPABASE_URL and SUPABASE_ANON_KEY else "not_ready",
+        "model_weights_present": (MODEL_PATH / "saved_model.pb").is_file(),
         "model_loaded": _model is not None,
         "gpu_devices": [device.name for device in gpu_devices],
         "supabase_auth_configured": bool(SUPABASE_URL and SUPABASE_ANON_KEY),
