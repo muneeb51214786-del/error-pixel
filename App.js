@@ -142,9 +142,10 @@ export default function App() {
         if(!accessToken){
           throw new Error('Sign in to your Enhance Error account first. RIFE processing requires an authenticated Supabase user session.');
         }
-        const workerUrl=RIFE_WORKER_URL.replace(/\/+$/,'')+'/v1/video/rife/2x';
-        setExportStage('Uploading video to RIFE GPU');
-        result=await VideoEngine.interpolateRifeVideo(videoUri,workerUrl,SUPABASE_ANON_KEY,accessToken);
+        const endpoint=fpsEngine==='rife'?'/v1/video/rife/2x':'/v1/video/film/2x';
+        const workerUrl=selectedWorkerUrl.replace(/\/+$/,'')+endpoint;
+        setExportStage('Uploading video to '+(fpsEngine==='rife'?'RIFE':'Google FILM')+' GPU');
+        result=await VideoEngine.processVideoWithGpuEngine(videoUri,workerUrl,SUPABASE_ANON_KEY,accessToken,fpsEngine.toUpperCase());
       }else{
         result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h,startMs,endMs);
       }
@@ -152,7 +153,7 @@ export default function App() {
         throw new Error('Android did not confirm that the exported video was saved to Gallery.');
       }
       setExportProgress(1);setExportStage('Saved to Gallery');
-      if(result.engine==='RIFE'&&Number(result.outputFps)>0)setFps(Math.round(Number(result.outputFps)));
+      if(result.engine&&Number(result.outputFps)>0)setFps(Math.round(Number(result.outputFps)));
       const outputUri=result.galleryUri;
       const exportedName=(exportMode==='range'?'Trimmed ':'Exported ')+videoName;
       setVideoUri(outputUri);
