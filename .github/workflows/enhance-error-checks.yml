@@ -1,0 +1,55 @@
+name: Enhance Error native and backend checks
+
+on:
+  push:
+    branches: [enhance-error]
+    paths:
+      - "App.js"
+      - "supabase/**"
+      - "modules/video-engine/**"
+      - "gpu-backend/**"
+      - "package.json"
+      - ".github/workflows/enhance-error-checks.yml"
+  pull_request:
+    branches: [enhance-error]
+    paths:
+      - "App.js"
+      - "supabase/**"
+      - "modules/video-engine/**"
+      - "gpu-backend/**"
+      - "package.json"
+
+jobs:
+  backend-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Compile RIFE Python workers
+        run: python -m py_compile gpu-backend/rife_worker.py gpu-backend/rife_video_worker.py
+      - name: Check Supabase Edge Function
+        run: deno check supabase/functions/rife-video/index.ts
+
+  android-native-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.0"
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --no-install
+      - name: Compile Android debug APK
+        run: cd android && ./gradlew :app:assembleDebug --no-daemon
