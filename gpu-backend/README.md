@@ -57,3 +57,20 @@ runtime stacks. See [RIFE_DEPLOYMENT.md](./RIFE_DEPLOYMENT.md), build with
 obtained from the official upstream release and mounted separately; they are
 not stored in this repository. The RIFE endpoint is not yet wired into the
 Android full-video export pipeline.
+
+
+## Full-video interpolation workers
+
+- **RIFE:** `Dockerfile.rife` starts `rife_video_worker:app` on port 8081.
+  See [RIFE_DEPLOYMENT.md](RIFE_DEPLOYMENT.md).
+- **Google FILM:** `Dockerfile` starts `film_video_worker:app` on port 8080.
+  See [FILM_DEPLOYMENT.md](FILM_DEPLOYMENT.md).
+
+Both video workers authenticate Supabase user access tokens, accept bounded
+full-video uploads, preserve source audio, and return 2x MP4 output. Each needs
+its own compatible GPU runtime and model checkpoint. Neither worker is deployed
+by a GitHub commit; a separate NVIDIA GPU host and model weights are required.
+
+DAIN, CAIN, FLAVR, Real-ESRGAN, AI denoise, and AI stabilization remain
+unavailable until their real runtimes, compatible weights, and full-video
+pipelines are implemented and tested. Topaz remains PENDING.
