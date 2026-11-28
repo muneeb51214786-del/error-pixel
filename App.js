@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   SafeAreaView, View, Text, StyleSheet, ScrollView, Pressable, Image,
-  Alert, StatusBar, ActivityIndicator, Switch, Dimensions, Linking, PanResponder, Share
+  Alert, StatusBar, ActivityIndicator, Switch, Dimensions, Linking, PanResponder, Share, TextInput
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
@@ -43,12 +43,24 @@ export default function App() {
   const [sharpen,setSharpen]=useState(true);
   const [stabilize,setStabilize]=useState(false);
   const [engineBusy,setEngineBusy]=useState(false);
+  const [exportProgress,setExportProgress]=useState(0);
+  const [exportStage,setExportStage]=useState('Preparing export');
+  const [exportMode,setExportMode]=useState('full');
+  const [trimStart,setTrimStart]=useState('0');
+  const [trimEnd,setTrimEnd]=useState('');
   const [recent,setRecent]=useState([]);
   const [fpsSearch,setFpsSearch]=useState(false);
   const [qualityIndex,setQualityIndex]=useState(6);
   const player=useVideoPlayer(null,p=>{p.loop=true;});
   useEffect(()=>{ if(videoUri){ try{ player.replaceAsync(videoUri); }catch(e){} } },[videoUri,player]);
   useEffect(()=>{ try{ player.playbackRate=playbackSpeed; }catch(e){} },[playbackSpeed,player]);
+  useEffect(()=>{
+    const sub=VideoEngine.addListener?.('onExportProgress',event=>{
+      setExportProgress(Math.max(0,Math.min(1,Number(event?.progress)||0)));
+      setExportStage(event?.stage||'Exporting video');
+    });
+    return ()=>sub?.remove?.();
+  },[]);
   useEffect(()=>{ AsyncStorage.getItem('enhance-error-recent').then(v=>{if(v)setRecent(JSON.parse(v));}).catch(()=>{}); },[]);
   const selectedQuality=useMemo(()=>QUALITIES.find(q=>q.label===quality)||QUALITIES[6],[quality]);
   const pickVideo=async()=>{
@@ -68,14 +80,21 @@ export default function App() {
   const startEnhancement=async()=>{
     if(!videoUri){Alert.alert('Select a video','Choose a video first.');return;}
     if(engineBusy)return;
-    setEngineBusy(true);
+    const startMs=exportMode==='range'?Math.max(0,Math.round((Number(trimStart)||0)*1000)):0;
+    const endMs=exportMode==='range'?Math.round((Number(trimEnd)||0)*1000):-1;
+    if(exportMode==='range'&&(!Number.isFinite(endMs)||endMs<=startMs)){
+      Alert.alert('Check selected range','Enter an end time greater than the start time, in seconds.');return;
+    }
+    setEngineBusy(true);setExportProgress(0);setExportStage('Preparing video');
     try{
-      const result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h);
+      const result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h,startMs,endMs);
+      setExportProgress(1);setExportStage('Export complete');
       const outputUri=result.uri.startsWith('file://')?result.uri:'file://'+result.uri;
       setVideoUri(outputUri);
-      setVideoName('Enhanced '+videoName);
-      Alert.alert('Video export complete','Your video has been re-encoded on this Android device at '+result.width+' × '+result.height+'. This export changes resolution; FPS interpolation and AI upscaling are not included yet.\n\nSaved in app cache: '+result.uri);
+      setVideoName((exportMode==='range'?'Trimmed ':'Exported ')+videoName);
+      Alert.alert('Export complete','Your '+(exportMode==='range'?'selected video segment':'full video')+' was exported at '+result.width+' × '+result.height+'.');
     }catch(error){
+      setExportStage('Export failed');
       Alert.alert('Video export failed',String(error?.message||error||'Unknown native video engine error'));
     }finally{setEngineBusy(false);}
   };
@@ -111,7 +130,7 @@ export default function App() {
       <WheelGauge values={QUALITIES.map(q=>q.label)} value={quality} onChange={label=>{const i=QUALITIES.findIndex(q=>q.label===label);setQualityIndex(i);setQuality(label);}}/><QuickOptions title="QUICK QUALITY" values={QUALITY_PRESETS} value={quality} onChange={label=>{const i=QUALITIES.findIndex(q=>q.label===label);setQualityIndex(i);setQuality(label);}}/>
       <Text style={styles.helper}>16K is a selectable target only. Large outputs need substantial memory, storage and compatible processing hardware.</Text>
     </Section>
-    <Section title="CLIP EDITING" subtitle="Video actions and playback speed"><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}><Pill label="＋ Split at playhead" active={false} onPress={splitCurrentVideo}/><Pill label="Delete video" active={false} onPress={deleteCurrentVideo}/></View><Text style={styles.helper}>Split markers: {splitMarks.length?splitMarks.map(x=>x.toFixed(2)+'s').join(' · '):'None'}</Text><Text style={styles.toggleTitle}>Playback speed · {playbackSpeed.toFixed(2)}×</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:7}}>{[0.25,0.5,0.75,1,1.25,1.5,2,3,4].map(v=><Pill key={v} label={v+'×'} active={playbackSpeed===v} onPress={()=>setPlaybackSpeed(v)} small/>)}</View><Text style={styles.helper}>Speed currently changes preview playback. Applying speed to the exported video needs the timeline export engine.</Text></Section>
+    <Section title="CLIP EDITING" subtitle="Choose the full video or export only a selected time range"><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}><Pill label="Full video" active={exportMode==='full'} onPress={()=>setExportMode('full')}/><Pill label="Selected range / Cut" active={exportMode==='range'} onPress={()=>setExportMode('range')}/><Pill label="Delete video" active={false} onPress={deleteCurrentVideo}/></View>{exportMode==='range'?<><Text style={styles.toggleTitle}>Trim range · seconds</Text><View style={{flexDirection:'row',gap:10}}><View style={{flex:1}}><Text style={styles.toggleSub}>START</Text><TextInput value={trimStart} onChangeText={setTrimStart} keyboardType="decimal-pad" placeholder="0.0" placeholderTextColor={C.muted} style={styles.trimInput}/></View><View style={{flex:1}}><Text style={styles.toggleSub}>END</Text><TextInput value={trimEnd} onChangeText={setTrimEnd} keyboardType="decimal-pad" placeholder="e.g. 12.5" placeholderTextColor={C.muted} style={styles.trimInput}/></View></View><Text style={styles.helper}>Only the selected time range will be exported as a separate video file. Enter seconds.</Text></>:<Text style={styles.helper}>Full source video selected for export.</Text>}<View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}><Pill label="＋ Mark split at playhead" active={false} onPress={splitCurrentVideo}/></View><Text style={styles.helper}>Split markers: {splitMarks.length?splitMarks.map(x=>x.toFixed(2)+'s').join(' · '):'None'} · Markers are guides only; multi-clip splitting is not yet available.</Text><Text style={styles.toggleTitle}>Playback speed · {playbackSpeed.toFixed(2)}×</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:7}}>{[0.25,0.5,0.75,1,1.25,1.5,2,3,4].map(v=><Pill key={v} label={v+'×'} active={playbackSpeed===v} onPress={()=>setPlaybackSpeed(v)} small/>)}</View><Text style={styles.helper}>Speed currently changes preview playback. Applying speed to the exported video needs the timeline export engine.</Text></Section>
     <Section title="AI ENHANCEMENT" subtitle="Enable desired processing stages">
       <Toggle title="AI Ultra Enhancement" sub="AI detail reconstruction" value={ultra} onChange={setUltra}/>
       <Toggle title="Frame Interpolation" sub="Generate intermediate frames" value={interpolation} onChange={setInterpolation}/>
@@ -142,7 +161,7 @@ export default function App() {
   const Projects=()=> <ScrollView style={styles.scroller} contentContainerStyle={styles.homeContent} showsVerticalScrollIndicator={true} nestedScrollEnabled decelerationRate="normal" overScrollMode="always" removeClippedSubviews={false}><Text style={styles.h1}>Projects</Text><Text style={styles.muted}>Recent videos stored on this device</Text>{recent.length?recent.map((r,i)=><View key={r.uri+i} style={styles.recentRow}><Pressable style={{flex:1,flexDirection:'row',alignItems:'center',gap:10}} onPress={()=>{setVideoUri(r.uri);setVideoName(r.name);setTab('Enhance');}}><View style={styles.recentThumb}><Text style={{color:C.cyan}}>▶</Text></View><Text style={{color:C.text,flex:1}} numberOfLines={1}>{r.name}</Text><Text style={{color:C.cyan}}>EDIT</Text></Pressable><Pressable onPress={()=>deleteProject(r.uri)} style={{padding:10,marginLeft:6,borderRadius:10,backgroundColor:'#3A1822'}}><Text style={{color:'#FF8A9B',fontWeight:'900'}}>DELETE</Text></Pressable></View>):<View style={styles.emptyCard}><Text style={styles.muted}>No projects yet. Import a video to begin.</Text></View>}<Pressable style={styles.newButton} onPress={pickVideo}><Text style={styles.newButtonText}>＋ Import Video</Text></Pressable></ScrollView>;
   const Settings=()=> <ScrollView contentContainerStyle={styles.homeContent}><Text style={styles.h1}>Settings</Text><View style={styles.engineRow}><Text style={styles.engineName}>App</Text><Text style={styles.engineStatus}>Enhance Error 1.0.0</Text></View><View style={styles.engineRow}><Text style={styles.engineName}>Theme</Text><Text style={styles.engineStatus}>Dark · Neon cyan / violet</Text></View><View style={styles.engineRow}><Text style={styles.engineName}>AI processing</Text><Text style={styles.engineStatus}>Backend not connected</Text></View><Text style={styles.helper}>No AI operation will be reported as completed until the processing backend returns a verified output file.</Text></ScrollView>;
   const content=tab==='Home'?<Home/>:tab==='Enhance'?<Enhance/>:tab==='Projects'?<Projects/>:<Settings/>;
-  return <SafeAreaView style={styles.safe}><StatusBar barStyle="light-content" backgroundColor={C.bg}/><View style={styles.header}><View style={styles.headerBrand}><Logo/><View><Text style={styles.headerTitle}>ENHANCE <Text style={{color:C.cyan}}>ERROR</Text></Text><Text style={styles.headerSub}>VIDEO AI STUDIO</Text></View></View><Pressable onPress={pickVideo} style={styles.headerImport}><Text style={{color:C.cyan,fontSize:20}}>＋</Text></Pressable></View><View style={styles.body}>{content}</View><View style={styles.nav}>{[['Home','⌂'],['Projects','▣'],['Enhance','✧'],['Settings','⚙']].map(([name,icon])=><Pressable key={name} onPress={()=>setTab(name)} style={styles.navItem}><Text style={[styles.navIcon,tab===name&&styles.navActive]}>{icon}</Text><Text style={[styles.navText,tab===name&&styles.navActive]}>{name}</Text></Pressable>)}</View>{showWelcome?<View style={styles.welcomeOverlay}><View style={styles.welcomeSmokeOne}/><View style={styles.welcomeSmokeTwo}/><Logo large/><Text style={styles.welcomeApp}>ENHANCE <Text style={{color:C.cyan}}>ERROR</Text></Text><Text style={styles.welcomeTag}>AI VIDEO ENHANCEMENT STUDIO</Text><View style={styles.welcomeLine}/><Text style={styles.welcomeCreator}>ERROR EDITS 99</Text><Text style={styles.welcomePowered}>POWERED BY MUNEEB HASSAN</Text></View>:null}</SafeAreaView>;
+  return <SafeAreaView style={styles.safe}><StatusBar barStyle="light-content" backgroundColor={C.bg}/><View style={styles.header}><View style={styles.headerBrand}><Logo/><View><Text style={styles.headerTitle}>ENHANCE <Text style={{color:C.cyan}}>ERROR</Text></Text><Text style={styles.headerSub}>VIDEO AI STUDIO</Text></View></View><Pressable onPress={pickVideo} style={styles.headerImport}><Text style={{color:C.cyan,fontSize:20}}>＋</Text></Pressable></View><View style={styles.body}>{content}</View><View style={styles.nav}>{[['Home','⌂'],['Projects','▣'],['Enhance','✧'],['Settings','⚙']].map(([name,icon])=><Pressable key={name} onPress={()=>setTab(name)} style={styles.navItem}><Text style={[styles.navIcon,tab===name&&styles.navActive]}>{icon}</Text><Text style={[styles.navText,tab===name&&styles.navActive]}>{name}</Text></Pressable>)}</View>{engineBusy?<View style={styles.exportOverlay}><View style={styles.exportPanel}><ActivityIndicator size="large" color={C.cyan}/><Text style={styles.exportTitle}>{exportStage}</Text><Text style={styles.exportPercent}>{Math.round(exportProgress*100)}%</Text><View style={styles.exportTrack}><View style={[styles.exportFill,{width:(exportProgress*100)+'%'}]}/></View><Text style={styles.exportHint}>Keep the app open while Android processes your video.</Text></View></View>:null}{showWelcome?<View style={styles.welcomeOverlay}><View style={styles.welcomeSmokeOne}/><View style={styles.welcomeSmokeTwo}/><Logo large/><Text style={styles.welcomeApp}>ENHANCE <Text style={{color:C.cyan}}>ERROR</Text></Text><Text style={styles.welcomeTag}>AI VIDEO ENHANCEMENT STUDIO</Text><View style={styles.welcomeLine}/><Text style={styles.welcomeCreator}>ERROR EDITS 99</Text><Text style={styles.welcomePowered}>POWERED BY MUNEEB HASSAN</Text></View>:null}</SafeAreaView>;
 }
 
 const styles=StyleSheet.create({
