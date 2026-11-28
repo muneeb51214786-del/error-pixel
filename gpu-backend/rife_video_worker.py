@@ -62,6 +62,10 @@ def probe(path):
     duration = float(data.get("format", {}).get("duration") or video.get("duration") or 0)
     rate = video.get("avg_frame_rate", "0/1").split("/")
     fps = float(rate[0]) / max(float(rate[1]), 1.0)
+    nominal = video.get("r_frame_rate", "0/1").split("/")
+    nominal_fps = float(nominal[0]) / max(float(nominal[1]), 1.0)
+    if nominal_fps > 0 and abs(nominal_fps - fps) > 0.1:
+        raise HTTPException(422, "Variable-frame-rate video is not supported by this initial worker.")
     if duration <= 0 or duration > MAX_DURATION:
         raise HTTPException(413, "Video duration must be 1–60 seconds on this initial worker.")
     if fps <= 0 or fps > 60:
@@ -144,6 +148,11 @@ async def interpolate_video(file: UploadFile = File(...), authorization: str | N
                     array = np.transpose(array, (1, 2, 0))
                     Image.fromarray((array * 255).round().astype(np.uint8), "RGB").save(
                         output_dir / f"{index * 2 + 1:07d}.png")
+        # Repeat the final source frame once so the 2x output duration matches the source duration.
+        last_output = output_dir / f"{len(frames) * 2 - 1:07d}.png"
+        if not last_output.exists():
+            with Image.open(frames[-1]) as opened:
+                opened.convert("RGB").save(last_output)
 
         output = root / "EnhanceError_RIFE_2x.mp4"
         run(["ffmpeg", "-v", "error", "-framerate", str(fps * 2), "-i",
