@@ -182,19 +182,19 @@ class EnhanceErrorVideoEngineModule : Module() {
             .callTimeout(14, TimeUnit.MINUTES)
             .build()
 
-          sendEvent("onExportProgress", mapOf("progress" to 0.03f, "stage" to "Uploading video to RIFE GPU"))
+          sendEvent("onExportProgress", mapOf("progress" to 0.03f, "stage" to "Uploading video to $engineName GPU"))
           client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-              val detail = response.body?.string()?.take(1800) ?: "RIFE service returned HTTP ${response.code}."
+              val detail = response.body?.string()?.take(1800) ?: "$engineName service returned HTTP ${response.code}."
               error(detail)
             }
-            val body = response.body ?: error("RIFE service returned an empty response.")
+            val body = response.body ?: error("$engineName service returned an empty response.")
             val mime = body.contentType()?.toString() ?: ""
-            require(mime.startsWith("video/mp4")) { "RIFE service did not return an MP4 video." }
+            require(mime.startsWith("video/mp4")) { "$engineName service did not return an MP4 video." }
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
               error("Gallery export currently requires Android 10 or newer.")
             }
-            sendEvent("onExportProgress", mapOf("progress" to 0.82f, "stage" to "Saving RIFE output to Gallery"))
+            sendEvent("onExportProgress", mapOf("progress" to 0.82f, "stage" to "Saving $engineName output to Gallery"))
             val values = ContentValues().apply {
               put(MediaStore.Video.Media.DISPLAY_NAME, "EnhanceError_${engineName}_${System.currentTimeMillis()}.mp4")
               put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
@@ -213,7 +213,7 @@ class EnhanceErrorVideoEngineModule : Module() {
             val finalUri = savedUri!!.toString()
             val outputFps = response.header("X-Output-FPS")?.toDoubleOrNull() ?: 0.0
             val sourceFps = response.header("X-Source-FPS")?.toDoubleOrNull() ?: 0.0
-            sendEvent("onExportProgress", mapOf("progress" to 1f, "stage" to "RIFE video saved to Gallery"))
+            sendEvent("onExportProgress", mapOf("progress" to 1f, "stage" to "$engineName video saved to Gallery"))
             promise.resolve(mapOf(
               "uri" to finalUri,
               "galleryUri" to finalUri,
@@ -226,7 +226,7 @@ class EnhanceErrorVideoEngineModule : Module() {
           }
         } catch (error: Throwable) {
           savedUri?.let { try { appContext.reactContext?.contentResolver?.delete(it, null, null) } catch (_: Throwable) {} }
-          promise.reject("RIFE_VIDEO_FAILED", error.message ?: "RIFE video processing failed.", error)
+          promise.reject("${engineName}_VIDEO_FAILED", error.message ?: "$engineName video processing failed.", error)
         }
       }.start()
     }
