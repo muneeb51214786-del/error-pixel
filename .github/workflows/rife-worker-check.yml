@@ -5,6 +5,7 @@ on:
     branches: [enhance-error]
     paths:
       - "gpu-backend/rife_worker.py"
+      - "gpu-backend/rife_video_worker.py"
       - "gpu-backend/requirements-rife.txt"
       - ".github/workflows/rife-worker-check.yml"
   pull_request:
@@ -21,5 +22,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Compile RIFE worker
-        run: python -m py_compile gpu-backend/rife_worker.py
+      - name: Compile RIFE workers
+        run: python -m py_compile gpu-backend/rife_worker.py gpu-backend/rife_video_worker.py
