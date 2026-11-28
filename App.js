@@ -85,14 +85,22 @@ export default function App() {
     if(exportMode==='range'&&(!Number.isFinite(endMs)||endMs<=startMs)){
       Alert.alert('Check selected range','Enter an end time greater than the start time, in seconds.');return;
     }
-    setEngineBusy(true);setExportProgress(0);setExportStage('Preparing video');
+    setEngineBusy(true);setExportProgress(0.01);setExportStage('Preparing video');
     try{
       const result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h,startMs,endMs);
-      setExportProgress(1);setExportStage('Export complete');
-      const outputUri=result.uri.startsWith('file://')?result.uri:'file://'+result.uri;
+      if(!result?.galleryUri||!String(result.galleryUri).startsWith('content://')){
+        throw new Error('Android did not confirm that the exported video was saved to Gallery.');
+      }
+      setExportProgress(1);setExportStage('Saved to Gallery');
+      const outputUri=result.galleryUri;
+      const exportedName=(exportMode==='range'?'Trimmed ':'Exported ')+videoName;
       setVideoUri(outputUri);
-      setVideoName((exportMode==='range'?'Trimmed ':'Exported ')+videoName);
-      Alert.alert('Export complete','Your '+(exportMode==='range'?'selected video segment':'full video')+' was exported at '+result.width+' × '+result.height+'.');
+      setVideoName(exportedName);
+      const savedItem={name:exportedName,uri:outputUri,date:Date.now()};
+      const next=[savedItem,...recent.filter(x=>x.uri!==outputUri)].slice(0,8);
+      setRecent(next);
+      await AsyncStorage.setItem('enhance-error-recent',JSON.stringify(next));
+      Alert.alert('Saved to Gallery','Your video is saved in Movies/Enhance Error and is available in your phone Gallery. Output: '+result.width+' × '+result.height+'.');
     }catch(error){
       setExportStage('Export failed');
       Alert.alert('Video export failed',String(error?.message||error||'Unknown native video engine error'));
