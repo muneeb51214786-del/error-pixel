@@ -33,6 +33,10 @@ class EnhanceErrorVideoEngineModule : Module() {
           .addListener(object : Transformer.Listener {
             override fun onCompleted(composition: androidx.media3.transformer.Composition, exportResult: ExportResult) {
               finished = true
+              if (!output.exists() || output.length() <= 0L) {
+                promise.reject("VIDEO_EXPORT_EMPTY", "The encoder completed but produced an empty output file.")
+                return
+              }
               sendEvent("onExportProgress", mapOf("progress" to 1f, "stage" to "Export complete"))
               promise.resolve(mapOf(
                 "uri" to output.absolutePath,
@@ -81,9 +85,8 @@ class EnhanceErrorVideoEngineModule : Module() {
                   "stage" to "Exporting video"
                 ))
               }
-              if (state != Transformer.PROGRESS_STATE_UNAVAILABLE && !finished) {
-                progressHandler.postDelayed(this, 250)
-              }
+              // Media3 can report UNAVAILABLE briefly while preparing; keep polling.
+              if (!finished) progressHandler.postDelayed(this, if (state == Transformer.PROGRESS_STATE_UNAVAILABLE) 500 else 250)
             } catch (_: Throwable) {
               if (!finished) progressHandler.postDelayed(this, 500)
             }
