@@ -1,5 +1,6 @@
 """Bounded full-video RIFE 2x processing API; requires CUDA, weights and FFmpeg."""
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -14,7 +15,7 @@ from fastapi.responses import FileResponse
 from PIL import Image
 from starlette.background import BackgroundTask
 
-from rife_worker import MODEL_DIR, authorize, load_model
+from rife_worker import MODEL_DIR, load_model
 
 app = FastAPI(title="Enhance Error RIFE Video Worker", version="0.2.0")
 MAX_UPLOAD = 250 * 1024 * 1024
