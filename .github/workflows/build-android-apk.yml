@@ -12,6 +12,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - "eas.json"
+      - "modules/**"
       - ".github/workflows/build-android-apk.yml"
 
 permissions:
