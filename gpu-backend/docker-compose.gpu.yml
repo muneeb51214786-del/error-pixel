@@ -1,0 +1,32 @@
+services:
+  rife:
+    build:
+      context: .
+      dockerfile: Dockerfile.rife
+    image: enhance-error-rife:0.2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      RIFE_MODEL_DIR: /models/rife
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    volumes:
+      - ${RIFE_WEIGHTS_DIR}:/models/rife:ro
+    gpus: all
+
+  film:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: enhance-error-film:0.2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      FILM_MODEL_PATH: /models/film_net/Style/saved_model
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    volumes:
+      - ${FILM_MODEL_DIR}:/models/film_net/Style/saved_model:ro
+    gpus: all
