@@ -57,3 +57,23 @@ to Android video decoding, frame batching, audio-preserving muxing, or the app's
 export action. A production app integration must securely call a backend job API
 and process the complete video as a queued job; do not embed the API secret in
 the APK. The Android RIFE/NCNN/Vulkan on-device path remains separate work.
+
+
+## Full-video 2x endpoint (initial bounded implementation)
+
+The RIFE container now starts `rife_video_worker:app`. It exposes:
+
+- `POST /v1/video/rife/2x` as multipart form field `file`
+- Header: `X-API-Key: <API_TOKEN>`
+- Returns an MP4 file with inferred midpoint frames and the source audio stream muxed back in.
+
+This first implementation is deliberately bounded: MP4/MOV/MKV/WEBM, maximum 250 MB,
+60 seconds, 1,800 decoded frames, and 1280 pixels on the longest side. It processes
+synchronously and is intended for controlled testing, not public production traffic.
+A production release still needs queued jobs, progress/cancellation, per-user
+authentication and quotas, durable object storage, and deployment behind TLS.
+
+Build and run commands above remain the same. The Android app export button is
+not yet connected to this endpoint, and the endpoint has not yet been tested on
+a provisioned NVIDIA GPU with the selected checkpoint. Do not advertise RIFE as
+available in the APK until those tests pass.
