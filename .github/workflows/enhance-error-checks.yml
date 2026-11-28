@@ -42,7 +42,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20.19.0"
-          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
