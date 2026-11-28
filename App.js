@@ -13,6 +13,7 @@ import { supabase, supabaseConfigured } from './supabase';
 const VideoEngine = requireNativeModule('EnhanceErrorVideoEngine');
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 const RIFE_WORKER_URL = process.env.EXPO_PUBLIC_RIFE_WORKER_URL || '';
+const FILM_WORKER_URL = process.env.EXPO_PUBLIC_FILM_WORKER_URL || '';
 
 const C = { bg:'#070A11', panel:'#101722', panel2:'#151F2D', line:'#273548', cyan:'#32D9F5', blue:'#168DBB', purple:'#B56BFF', text:'#F3F7FF', muted:'#8C9AAF', green:'#37D6B0', warn:'#FFCB70' };
 const FPS = [...Array.from({length:217},(_,i)=>i+24),300,360,480,600,720,960];
@@ -125,14 +126,15 @@ export default function App() {
         if(exportMode==='range'){
           throw new Error('RIFE GPU processing currently supports the full video only. Range trimming is not yet available in the GPU job pipeline.');
         }
-        if(fpsEngine!=='rife'){
-          throw new Error('The selected engine is not deployed yet. RIFE is the only engine currently wired for video processing.');
+        if(!['rife','film'].includes(fpsEngine)){
+          throw new Error('The selected engine is not yet implemented for full-video processing. Choose RIFE or Google FILM.');
         }
         if(fpsMultiplier!==2){
           throw new Error('The current RIFE GPU worker supports 2× interpolation only. Select 2× to continue.');
         }
-        if(!SUPABASE_ANON_KEY || !RIFE_WORKER_URL){
-          throw new Error('Supabase publishable/anon key and RIFE GPU worker URL are not configured in the EAS build environment.');
+        const selectedWorkerUrl=fpsEngine==='rife'?RIFE_WORKER_URL:FILM_WORKER_URL;
+        if(!SUPABASE_ANON_KEY || !selectedWorkerUrl){
+          throw new Error('Supabase publishable/anon key and the selected GPU worker URL are not configured in the EAS build environment.');
         }
         const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
         if(sessionError) throw sessionError;
@@ -159,7 +161,7 @@ export default function App() {
       const next=[savedItem,...recent.filter(x=>x.uri!==outputUri)].slice(0,8);
       setRecent(next);
       await AsyncStorage.setItem('enhance-error-recent',JSON.stringify(next));
-      Alert.alert('Saved to Gallery',result.engine==='RIFE'?'RIFE 2× interpolation is complete at '+Number(result.outputFps||0).toFixed(2)+' FPS. The output is saved in Movies/Enhance Error; source resolution and audio are preserved.':'Your video is saved in Movies/Enhance Error and is available in your phone Gallery. Output: '+result.width+' × '+result.height+'.');
+      Alert.alert('Saved to Gallery',result.engine?result.engine+' 2× interpolation is complete at '+Number(result.outputFps||0).toFixed(2)+' FPS. The output is saved in Movies/Enhance Error; source resolution and audio are preserved.':'Your video is saved in Movies/Enhance Error and is available in your phone Gallery. Output: '+result.width+' × '+result.height+'.');
     }catch(error){
       setExportStage('Export failed');
       Alert.alert('Video export failed',String(error?.message||error||'Unknown native video engine error'));
@@ -181,7 +183,7 @@ export default function App() {
     <Section title="RECENT PROJECTS" subtitle="On this device">
       {recent.length===0?<Pressable onPress={pickVideo} style={styles.emptyCard}><Text style={styles.emptyIcon}>▣</Text><Text style={styles.cardTitle}>Start your first enhancement</Text><Text style={styles.muted}>Import a video to open the enhancement studio</Text></Pressable>:recent.map((r,i)=><View key={r.uri+i} style={styles.recentRow}><Pressable style={{flex:1,flexDirection:'row',alignItems:'center',gap:12}} onPress={()=>{setVideoUri(r.uri);setVideoName(r.name);setTab('Enhance');}}><View style={styles.recentThumb}><Text style={{color:C.cyan,fontSize:22}}>▶</Text></View><View style={{flex:1}}><Text style={styles.cardTitle} numberOfLines={1}>{r.name}</Text><Text style={styles.muted}>Tap to continue · Local media</Text></View><Text style={{color:C.cyan}}>OPEN ›</Text></Pressable><Pressable onPress={()=>deleteProject(r.uri)} style={{padding:10,marginLeft:6,borderRadius:10,backgroundColor:'#3A1822'}}><Text style={{color:'#FF8A9B',fontWeight:'900'}}>DELETE</Text></Pressable></View>)}
     </Section>
-    <SocialRow/><FreeFireCard/><View style={styles.note}><Text style={styles.noteTitle}>ENGINE STATUS</Text><Text style={styles.noteText}>RIFE 2× upload and Gallery-save integration is present; the GPU host and model checkpoint still need deployment. Other AI engines are not active yet.</Text></View>
+    <SocialRow/><FreeFireCard/><View style={styles.note}><Text style={styles.noteTitle}>ENGINE STATUS</Text><Text style={styles.noteText}>RIFE and Google FILM 2× upload and Gallery-save paths are present; GPU hosts and model checkpoints still need deployment. Other AI engines are not active yet.</Text></View>
   </ScrollView>;
   const Feature=({icon,title,sub,color,onPress})=><Pressable onPress={onPress} style={styles.feature}><Text style={[styles.featureIcon,{color}]}>{icon}</Text><Text style={styles.featureTitle}>{title}</Text><Text style={styles.featureSub}>{sub}</Text></Pressable>;
   const Enhance=()=> <ScrollView style={styles.scroller} contentContainerStyle={styles.editorContent} showsVerticalScrollIndicator={true} indicatorStyle="white" nestedScrollEnabled decelerationRate="normal" overScrollMode="always" removeClippedSubviews={false}>
@@ -214,11 +216,11 @@ export default function App() {
           <Text style={{color:fpsEngine===item.id?C.cyan:C.text,fontSize:12,fontWeight:'900'}}>{item.name}{fpsEngine===item.id?'  ✓':''}</Text>
         </Pressable>)}
       </View>
-      <Text style={styles.helper}>{fpsEngine==='rife'?'Selected: RIFE 2× frame interpolation. Requires a deployed GPU worker and signed-in account.':fpsEngine==='film'?'Selected: Google FILM. 32x is a target expansion mode and requires a deployed FILM model/GPU worker.':fpsEngine==='dain'?'Selected: DAIN interpolation adapter. Runtime and licensed model weights are required.':fpsEngine==='cain'?'Selected: CAIN interpolation adapter. Runtime and model weights are required.':fpsEngine==='flavr'?'Selected: FLAVR interpolation adapter. Runtime and model weights are required.':'Selected: Combined mode. Available models will be coordinated in one project after the GPU worker is deployed.'}</Text>
+      <Text style={styles.helper}>{fpsEngine==='rife'?'Selected: RIFE 2× frame interpolation. Requires a deployed GPU worker and signed-in account.':fpsEngine==='film'?'Selected: Google FILM 2× video interpolation. The GPU worker, SavedModel weights, and signed-in account must be configured.':fpsEngine==='dain'?'Selected: DAIN interpolation adapter. Runtime and licensed model weights are required.':fpsEngine==='cain'?'Selected: CAIN interpolation adapter. Runtime and model weights are required.':fpsEngine==='flavr'?'Selected: FLAVR interpolation adapter. Runtime and model weights are required.':'Selected: Combined mode. Available models will be coordinated in one project after the GPU worker is deployed.'}</Text>
     </Section>
     <Section title="PROCESSING ENGINES" subtitle="Integration status">
       <Engine name="RIFE Frame Interpolation" detail="2× video API + Android upload and Gallery-save path added; GPU deployment and weights required" status="Deployment pending"/>
-      <Engine name="Google FILM Interpolation" detail="Selectable up to 32x target · inference runtime and model weights required" status="Adapter slot added"/>
+      <Engine name="Google FILM Interpolation" detail="Full-video 2× worker + Android upload/download path added; SavedModel and GPU deployment required" status="Deployment pending"/>
       <Engine name="DAIN Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
       <Engine name="CAIN Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
       <Engine name="FLAVR Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
