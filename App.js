@@ -150,6 +150,7 @@ export default function App() {
         throw new Error('Android did not confirm that the exported video was saved to Gallery.');
       }
       setExportProgress(1);setExportStage('Saved to Gallery');
+      if(result.engine==='RIFE'&&Number(result.outputFps)>0)setFps(Math.round(Number(result.outputFps)));
       const outputUri=result.galleryUri;
       const exportedName=(exportMode==='range'?'Trimmed ':'Exported ')+videoName;
       setVideoUri(outputUri);
@@ -158,7 +159,7 @@ export default function App() {
       const next=[savedItem,...recent.filter(x=>x.uri!==outputUri)].slice(0,8);
       setRecent(next);
       await AsyncStorage.setItem('enhance-error-recent',JSON.stringify(next));
-      Alert.alert('Saved to Gallery',result.engine==='RIFE'?'RIFE 2× interpolation is complete. The output video is saved in Movies/Enhance Error; source resolution and audio are preserved.':'Your video is saved in Movies/Enhance Error and is available in your phone Gallery. Output: '+result.width+' × '+result.height+'.');
+      Alert.alert('Saved to Gallery',result.engine==='RIFE'?'RIFE 2× interpolation is complete at '+Number(result.outputFps||0).toFixed(2)+' FPS. The output is saved in Movies/Enhance Error; source resolution and audio are preserved.':'Your video is saved in Movies/Enhance Error and is available in your phone Gallery. Output: '+result.width+' × '+result.height+'.');
     }catch(error){
       setExportStage('Export failed');
       Alert.alert('Video export failed',String(error?.message||error||'Unknown native video engine error'));
@@ -180,7 +181,7 @@ export default function App() {
     <Section title="RECENT PROJECTS" subtitle="On this device">
       {recent.length===0?<Pressable onPress={pickVideo} style={styles.emptyCard}><Text style={styles.emptyIcon}>▣</Text><Text style={styles.cardTitle}>Start your first enhancement</Text><Text style={styles.muted}>Import a video to open the enhancement studio</Text></Pressable>:recent.map((r,i)=><View key={r.uri+i} style={styles.recentRow}><Pressable style={{flex:1,flexDirection:'row',alignItems:'center',gap:12}} onPress={()=>{setVideoUri(r.uri);setVideoName(r.name);setTab('Enhance');}}><View style={styles.recentThumb}><Text style={{color:C.cyan,fontSize:22}}>▶</Text></View><View style={{flex:1}}><Text style={styles.cardTitle} numberOfLines={1}>{r.name}</Text><Text style={styles.muted}>Tap to continue · Local media</Text></View><Text style={{color:C.cyan}}>OPEN ›</Text></Pressable><Pressable onPress={()=>deleteProject(r.uri)} style={{padding:10,marginLeft:6,borderRadius:10,backgroundColor:'#3A1822'}}><Text style={{color:'#FF8A9B',fontWeight:'900'}}>DELETE</Text></Pressable></View>)}
     </Section>
-    <SocialRow/><FreeFireCard/><View style={styles.note}><Text style={styles.noteTitle}>ENGINE STATUS</Text><Text style={styles.noteText}>Preview and project controls are available. AI rendering engines are not yet installed or connected in this build.</Text></View>
+    <SocialRow/><FreeFireCard/><View style={styles.note}><Text style={styles.noteTitle}>ENGINE STATUS</Text><Text style={styles.noteText}>RIFE 2× upload and Gallery-save integration is present; the GPU host and model checkpoint still need deployment. Other AI engines are not active yet.</Text></View>
   </ScrollView>;
   const Feature=({icon,title,sub,color,onPress})=><Pressable onPress={onPress} style={styles.feature}><Text style={[styles.featureIcon,{color}]}>{icon}</Text><Text style={styles.featureTitle}>{title}</Text><Text style={styles.featureSub}>{sub}</Text></Pressable>;
   const Enhance=()=> <ScrollView style={styles.scroller} contentContainerStyle={styles.editorContent} showsVerticalScrollIndicator={true} indicatorStyle="white" nestedScrollEnabled decelerationRate="normal" overScrollMode="always" removeClippedSubviews={false}>
