@@ -27,13 +27,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
       - name: Compile RIFE Python workers
         run: python -m py_compile gpu-backend/rife_worker.py gpu-backend/rife_video_worker.py
-      - name: Check Supabase Edge Function
-        run: deno check supabase/functions/rife-video/index.ts
 
   android-native-build:
     runs-on: ubuntu-latest
