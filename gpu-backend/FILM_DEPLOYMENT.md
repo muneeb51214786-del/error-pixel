@@ -82,3 +82,26 @@ In the repository Settings → Secrets and variables → Actions, configure:
 
 The Android APK workflow reads these names at build time. Without them, the
 APK can compile but GPU sign-in and worker requests remain unconfigured.
+
+## Optional one-host deployment
+
+A Compose file is provided at `gpu-backend/docker-compose.gpu.yml`. Create
+`gpu-backend/.env` on the GPU host (do not commit it) with:
+
+```dotenv
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_OR_PUBLISHABLE_KEY
+RIFE_WEIGHTS_DIR=/absolute/path/to/rife-weights
+FILM_MODEL_DIR=/absolute/path/to/film_net/Style/saved_model
+```
+
+From the repository root:
+
+```bash
+docker compose --env-file gpu-backend/.env -f gpu-backend/docker-compose.gpu.yml up --build -d
+```
+
+The Compose file binds ports to localhost for a reverse proxy. Configure HTTPS
+hostnames and route them to ports 8081 (RIFE) and 8080 (FILM). Both models may
+consume substantial GPU memory simultaneously; use separate hosts or adequate
+VRAM if loading both models on one GPU.
