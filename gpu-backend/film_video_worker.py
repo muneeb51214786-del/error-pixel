@@ -96,12 +96,13 @@ def load_model():
 
 @app.get("/health")
 def health():
+    gpu_devices = tf.config.list_physical_devices("GPU")
     return {
         "service": "enhance-error-film-video",
-        "status": "ready" if MODEL_PATH.is_dir() and (FILM_SOURCE / "eval" / "interpolator.py").is_file() and SUPABASE_URL and SUPABASE_ANON_KEY else "not_ready",
+        "status": "ready" if gpu_devices and MODEL_PATH.is_dir() and (FILM_SOURCE / "eval" / "interpolator.py").is_file() and SUPABASE_URL and SUPABASE_ANON_KEY else "not_ready",
         "model_weights_present": MODEL_PATH.is_dir(),
         "model_loaded": _model is not None,
-        "gpu_devices": [device.name for device in tf.config.list_physical_devices("GPU")],
+        "gpu_devices": [device.name for device in gpu_devices],
         "supabase_auth_configured": bool(SUPABASE_URL and SUPABASE_ANON_KEY),
     }
 
