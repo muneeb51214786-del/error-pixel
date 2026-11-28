@@ -13,6 +13,7 @@ import { supabase, supabaseConfigured } from './supabase';
 const VideoEngine = requireNativeModule('EnhanceErrorVideoEngine');
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+const RIFE_WORKER_URL = process.env.EXPO_PUBLIC_RIFE_WORKER_URL || '';
 
 const C = { bg:'#070A11', panel:'#101722', panel2:'#151F2D', line:'#273548', cyan:'#32D9F5', blue:'#168DBB', purple:'#B56BFF', text:'#F3F7FF', muted:'#8C9AAF', green:'#37D6B0', warn:'#FFCB70' };
 const FPS = [...Array.from({length:217},(_,i)=>i+24),300,360,480,600,720,960];
@@ -131,8 +132,8 @@ export default function App() {
         if(fpsMultiplier!==2){
           throw new Error('The current RIFE GPU worker supports 2× interpolation only. Select 2× to continue.');
         }
-        if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
-          throw new Error('Supabase URL and publishable/anon key are not configured in the EAS build environment.');
+        if(!SUPABASE_ANON_KEY || !RIFE_WORKER_URL){
+          throw new Error('Supabase publishable/anon key and RIFE GPU worker URL are not configured in the EAS build environment.');
         }
         const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
         if(sessionError) throw sessionError;
