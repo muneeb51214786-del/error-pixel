@@ -11,7 +11,6 @@ import { requireNativeModule } from 'expo-modules-core';
 import { supabase, supabaseConfigured } from './supabase';
 
 const VideoEngine = requireNativeModule('EnhanceErrorVideoEngine');
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 const RIFE_WORKER_URL = process.env.EXPO_PUBLIC_RIFE_WORKER_URL || '';
 
