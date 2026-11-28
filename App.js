@@ -140,17 +140,23 @@ export default function App() {
     </Section>
     <Section title="FPS ENGINE SELECTION" subtitle="Choose the interpolation engine for this project">
       <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>
-        {[{id:'rife',name:'RIFE'},{id:'film',name:'Google FILM · 32x'},{id:'combined',name:'Combined AI'}].map(item=><Pressable key={item.id} onPress={()=>setFpsEngine(item.id)} style={{paddingHorizontal:13,paddingVertical:11,borderRadius:14,borderWidth:1,borderColor:fpsEngine===item.id?C.cyan:C.line,backgroundColor:fpsEngine===item.id?'rgba(50,217,245,0.13)':C.panel2}}>
+        {[{id:'rife',name:'RIFE'},{id:'film',name:'Google FILM · 32x'},{id:'dain',name:'DAIN'},{id:'cain',name:'CAIN'},{id:'flavr',name:'FLAVR'},{id:'combined',name:'Combined AI'}].map(item=><Pressable key={item.id} onPress={()=>setFpsEngine(item.id)} style={{paddingHorizontal:13,paddingVertical:11,borderRadius:14,borderWidth:1,borderColor:fpsEngine===item.id?C.cyan:C.line,backgroundColor:fpsEngine===item.id?'rgba(50,217,245,0.13)':C.panel2}}>
           <Text style={{color:fpsEngine===item.id?C.cyan:C.text,fontSize:12,fontWeight:'900'}}>{item.name}{fpsEngine===item.id?'  ✓':''}</Text>
         </Pressable>)}
       </View>
-      <Text style={styles.helper}>{fpsEngine==='rife'?'Selected: RIFE frame interpolation. Runtime and model weights are not installed yet.':fpsEngine==='film'?'Selected: Google FILM. 32x is a target expansion mode and requires a deployed FILM model/GPU worker.':'Selected: Combined mode. Available models will be coordinated in one project after the GPU worker is deployed.'}</Text>
+      <Text style={styles.helper}>{fpsEngine==='rife'?'Selected: RIFE frame interpolation. Runtime and model weights are not installed yet.':fpsEngine==='film'?'Selected: Google FILM. 32x is a target expansion mode and requires a deployed FILM model/GPU worker.':fpsEngine==='dain'?'Selected: DAIN interpolation adapter. Runtime and licensed model weights are required.':fpsEngine==='cain'?'Selected: CAIN interpolation adapter. Runtime and model weights are required.':fpsEngine==='flavr'?'Selected: FLAVR interpolation adapter. Runtime and model weights are required.':'Selected: Combined mode. Available models will be coordinated in one project after the GPU worker is deployed.'}</Text>
     </Section>
     <Section title="PROCESSING ENGINES" subtitle="Integration status">
-      <Engine name="RIFE Frame Interpolation" detail="Selectable FPS engine · model/runtime required" status="Not connected"/>
-      <Engine name="Google FILM Interpolation" detail="Selectable up to 32x target · GPU runtime required" status="Not connected"/>
-      <Engine name="Combined FPS Pipeline" detail="Coordinates available interpolation models in one project" status="Worker pending"/>
-      <Engine name="Real-ESRGAN Super Resolution" detail="AI upscaling · GPU/NPU runtime required" status="Not installed"/>
+      <Engine name="RIFE Frame Interpolation" detail="Selectable engine · inference runtime and model weights required" status="Adapter slot added"/>
+      <Engine name="Google FILM Interpolation" detail="Selectable up to 32x target · inference runtime and model weights required" status="Adapter slot added"/>
+      <Engine name="DAIN Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
+      <Engine name="CAIN Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
+      <Engine name="FLAVR Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
+      <Engine name="Combined FPS Pipeline" detail="Coordinates available interpolation models in one project" status="GPU worker pending"/>
+      <Engine name="Real-ESRGAN Super Resolution" detail="AI upscaling · inference runtime and model weights required" status="Adapter slot added"/>
+      <Engine name="FFmpeg Processing" detail="Decode, filters, encode and audio mux · worker build required" status="Worker pending"/>
+      <Engine name="AI Denoise" detail="Control is present · actual AI filter requires runtime" status="Runtime pending"/>
+      <Engine name="AI Stabilization" detail="Control is present · motion analysis/filter requires runtime" status="Runtime pending"/>
       <Engine name="Android Media3 Video Export" detail="On-device decode, scale and MP4 encode" status="Native engine added"/>
       <Engine name="Topaz Video AI" detail="Commercial proprietary software" status="PENDING"/>
     </Section>
