@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from PIL import Image
 from starlette.background import BackgroundTask
 
-from rife_worker import authorize, load_model
+from rife_worker import MODEL_DIR, authorize, load_model
 
 app = FastAPI(title="Enhance Error RIFE Video Worker", version="0.2.0")
 MAX_UPLOAD = 250 * 1024 * 1024
@@ -45,6 +45,16 @@ def probe(path):
     if fps <= 0 or fps > 60:
         raise HTTPException(422, "Source frame rate must be between 1 and 60 FPS.")
     return video, fps
+
+
+@app.get("/health")
+def health():
+    return {
+        "service": "enhance-error-rife-video",
+        "status": "ready" if torch.cuda.is_available() and MODEL_DIR.is_dir() and any(MODEL_DIR.iterdir()) else "not_ready",
+        "cuda_available": torch.cuda.is_available(),
+        "model_weights_present": MODEL_DIR.is_dir() and any(MODEL_DIR.iterdir()),
+    }
 
 
 def frame_tensor(frame):
