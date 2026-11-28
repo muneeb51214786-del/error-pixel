@@ -47,3 +47,13 @@ This service does not contain the Android RIFE native module. RIFE requires its 
 ## Upstream
 
 Google Research FILM: https://github.com/google-research/frame-interpolation (Apache-2.0)
+
+
+## RIFE GPU worker
+
+A separate RIFE worker is provided because RIFE and Google FILM use different
+runtime stacks. See [RIFE_DEPLOYMENT.md](./RIFE_DEPLOYMENT.md), build with
+`Dockerfile.rife`, and run on an NVIDIA GPU host. RIFE model weights must be
+obtained from the official upstream release and mounted separately; they are
+not stored in this repository. The RIFE endpoint is not yet wired into the
+Android full-video export pipeline.
