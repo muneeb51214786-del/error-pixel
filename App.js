@@ -8,8 +8,11 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requireNativeModule } from 'expo-modules-core';
+import { supabase } from './supabase';
 
 const VideoEngine = requireNativeModule('EnhanceErrorVideoEngine');
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 const C = { bg:'#070A11', panel:'#101722', panel2:'#151F2D', line:'#273548', cyan:'#32D9F5', blue:'#168DBB', purple:'#B56BFF', text:'#F3F7FF', muted:'#8C9AAF', green:'#37D6B0', warn:'#FFCB70' };
 const FPS = [...Array.from({length:217},(_,i)=>i+24),300,360,480,600,720,960];
@@ -38,7 +41,7 @@ export default function App() {
   const [quality,setQuality]=useState('1080p');
   const [ultra,setUltra]=useState(true);
   const [interpolation,setInterpolation]=useState(true);
-  const [fpsEngine,setFpsEngine]=useState('combined');
+  const [fpsEngine,setFpsEngine]=useState('rife');
   const [denoise,setDenoise]=useState(true);
   const [sharpen,setSharpen]=useState(true);
   const [stabilize,setStabilize]=useState(false);
@@ -87,7 +90,29 @@ export default function App() {
     }
     setEngineBusy(true);setExportProgress(0.01);setExportStage('Preparing video');
     try{
-      const result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h,startMs,endMs);
+      let result;
+      if(interpolation){
+        if(fpsEngine!=='rife'){
+          throw new Error('The selected engine is not deployed yet. RIFE is the only engine currently wired for video processing.');
+        }
+        if(fpsMultiplier!==2){
+          throw new Error('The current RIFE GPU worker supports 2× interpolation only. Select 2× to continue.');
+        }
+        if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+          throw new Error('Supabase URL and publishable/anon key are not configured in the EAS build environment.');
+        }
+        const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+        if(sessionError) throw sessionError;
+        const accessToken=sessionData?.session?.access_token;
+        if(!accessToken){
+          throw new Error('Sign in to your Enhance Error account first. RIFE processing requires an authenticated Supabase user session.');
+        }
+        const functionUrl=SUPABASE_URL.replace(/\\/$/,'')+'/functions/v1/rife-video';
+        setExportStage('Uploading video to RIFE GPU');
+        result=await VideoEngine.interpolateRifeVideo(videoUri,functionUrl,SUPABASE_ANON_KEY,accessToken);
+      }else{
+        result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h,startMs,endMs);
+      }
       if(!result?.galleryUri||!String(result.galleryUri).startsWith('content://')){
         throw new Error('Android did not confirm that the exported video was saved to Gallery.');
       }
@@ -100,7 +125,7 @@ export default function App() {
       const next=[savedItem,...recent.filter(x=>x.uri!==outputUri)].slice(0,8);
       setRecent(next);
       await AsyncStorage.setItem('enhance-error-recent',JSON.stringify(next));
-      Alert.alert('Saved to Gallery','Your video is saved in Movies/Enhance Error and is available in your phone Gallery. Output: '+result.width+' × '+result.height+'.');
+      Alert.alert('Saved to Gallery',result.engine==='RIFE'?'RIFE 2× interpolation is complete. The output video is saved in Movies/Enhance Error; source resolution and audio are preserved.':'Your video is saved in Movies/Enhance Error and is available in your phone Gallery. Output: '+result.width+' × '+result.height+'.');
     }catch(error){
       setExportStage('Export failed');
       Alert.alert('Video export failed',String(error?.message||error||'Unknown native video engine error'));
@@ -152,10 +177,10 @@ export default function App() {
           <Text style={{color:fpsEngine===item.id?C.cyan:C.text,fontSize:12,fontWeight:'900'}}>{item.name}{fpsEngine===item.id?'  ✓':''}</Text>
         </Pressable>)}
       </View>
-      <Text style={styles.helper}>{fpsEngine==='rife'?'Selected: RIFE frame interpolation. Runtime and model weights are not installed yet.':fpsEngine==='film'?'Selected: Google FILM. 32x is a target expansion mode and requires a deployed FILM model/GPU worker.':fpsEngine==='dain'?'Selected: DAIN interpolation adapter. Runtime and licensed model weights are required.':fpsEngine==='cain'?'Selected: CAIN interpolation adapter. Runtime and model weights are required.':fpsEngine==='flavr'?'Selected: FLAVR interpolation adapter. Runtime and model weights are required.':'Selected: Combined mode. Available models will be coordinated in one project after the GPU worker is deployed.'}</Text>
+      <Text style={styles.helper}>{fpsEngine==='rife'?'Selected: RIFE 2× frame interpolation. Requires a deployed GPU worker and signed-in account.':fpsEngine==='film'?'Selected: Google FILM. 32x is a target expansion mode and requires a deployed FILM model/GPU worker.':fpsEngine==='dain'?'Selected: DAIN interpolation adapter. Runtime and licensed model weights are required.':fpsEngine==='cain'?'Selected: CAIN interpolation adapter. Runtime and model weights are required.':fpsEngine==='flavr'?'Selected: FLAVR interpolation adapter. Runtime and model weights are required.':'Selected: Combined mode. Available models will be coordinated in one project after the GPU worker is deployed.'}</Text>
     </Section>
     <Section title="PROCESSING ENGINES" subtitle="Integration status">
-      <Engine name="RIFE Frame Interpolation" detail="Selectable engine · inference runtime and model weights required" status="Adapter slot added"/>
+      <Engine name="RIFE Frame Interpolation" detail="2× video API + Android upload and Gallery-save path added; GPU deployment and weights required" status="Deployment pending"/>
       <Engine name="Google FILM Interpolation" detail="Selectable up to 32x target · inference runtime and model weights required" status="Adapter slot added"/>
       <Engine name="DAIN Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
       <Engine name="CAIN Interpolation" detail="Optional frame interpolation adapter · runtime and weights required" status="Adapter slot added"/>
