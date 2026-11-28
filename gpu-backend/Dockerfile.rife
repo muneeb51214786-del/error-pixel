@@ -12,5 +12,6 @@ WORKDIR /app
 COPY requirements-rife.txt ./requirements.txt
 RUN python -m pip install --no-cache-dir -r requirements.txt
 COPY rife_worker.py ./rife_worker.py
+COPY rife_video_worker.py ./rife_video_worker.py
 EXPOSE 8081
-CMD ["uvicorn", "rife_worker:app", "--host", "0.0.0.0", "--port", "8081"]
+CMD ["uvicorn", "rife_video_worker:app", "--host", "0.0.0.0", "--port", "8081"]
