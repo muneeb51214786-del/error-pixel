@@ -14,12 +14,19 @@ Deno.serve(async (request) => {
   const workerToken = Deno.env.get("RIFE_WORKER_API_TOKEN");
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const suppliedKey = request.headers.get("apikey");
+  const authorization = request.headers.get("authorization");
 
   if (!workerUrl || !workerToken || !supabaseAnonKey) {
     return Response.json({ error: "RIFE gateway secrets are not configured." }, { status: 503, headers: cors });
   }
-  if (!suppliedKey || suppliedKey !== supabaseAnonKey) {
-    return Response.json({ error: "Invalid application key." }, { status: 401, headers: cors });
+  if (!suppliedKey || suppliedKey !== supabaseAnonKey || !authorization?.startsWith("Bearer ")) {
+    return Response.json({ error: "A valid signed-in user session is required." }, { status: 401, headers: cors });
+  }
+  const authCheck = await fetch(new URL("/auth/v1/user", Deno.env.get("SUPABASE_URL")!), {
+    headers: { apikey: supabaseAnonKey, Authorization: authorization },
+  });
+  if (!authCheck.ok) {
+    return Response.json({ error: "Your session is invalid or expired. Sign in again." }, { status: 401, headers: cors });
   }
 
   let incoming: FormData;
