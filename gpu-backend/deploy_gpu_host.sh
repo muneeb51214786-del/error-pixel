@@ -12,6 +12,7 @@ info() { echo "[Enhance Error GPU] $*"; }
 command -v docker >/dev/null 2>&1 || fail "Docker is not installed."
 docker compose version >/dev/null 2>&1 || fail "Docker Compose v2 is required."
 command -v nvidia-smi >/dev/null 2>&1 || fail "NVIDIA driver tools are missing. Provision an NVIDIA GPU host first."
+command -v curl >/dev/null 2>&1 || fail "curl is required for local health checks."
 nvidia-smi >/dev/null 2>&1 || fail "NVIDIA GPU is not visible to the host."
 docker info 2>/dev/null | grep -qi 'runtimes:.*nvidia\|nvidia' || info "Docker NVIDIA runtime was not detected in docker info; Compose gpus: all may still work with a recent NVIDIA Container Toolkit."
 
@@ -49,7 +50,6 @@ check_health() {
   return 1
 }
 
-command -v curl >/dev/null 2>&1 || fail "curl is required for local health checks."
 check_health rife 8081
 check_health film 8080
 info "Both GPU workers report READY. Configure HTTPS reverse proxy before connecting the Android app."
