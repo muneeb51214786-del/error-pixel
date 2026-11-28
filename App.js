@@ -35,6 +35,7 @@ export default function App() {
   const [quality,setQuality]=useState('1080p');
   const [ultra,setUltra]=useState(true);
   const [interpolation,setInterpolation]=useState(true);
+  const [fpsEngine,setFpsEngine]=useState('combined');
   const [denoise,setDenoise]=useState(true);
   const [sharpen,setSharpen]=useState(true);
   const [stabilize,setStabilize]=useState(false);
@@ -110,11 +111,21 @@ export default function App() {
       <Toggle title="Detail Sharpening" sub="Controlled edge enhancement" value={sharpen} onChange={setSharpen}/>
       <Toggle title="Video Stabilization" sub="Reduce unwanted camera movement" value={stabilize} onChange={setStabilize}/>
     </Section>
+    <Section title="FPS ENGINE SELECTION" subtitle="Choose the interpolation engine for this project">
+      <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>
+        {[{id:'rife',name:'RIFE'},{id:'film',name:'Google FILM · 32x'},{id:'combined',name:'Combined AI'}].map(item=><Pressable key={item.id} onPress={()=>setFpsEngine(item.id)} style={{paddingHorizontal:13,paddingVertical:11,borderRadius:14,borderWidth:1,borderColor:fpsEngine===item.id?C.cyan:C.line,backgroundColor:fpsEngine===item.id?'rgba(50,217,245,0.13)':C.panel2}}>
+          <Text style={{color:fpsEngine===item.id?C.cyan:C.text,fontSize:12,fontWeight:'900'}}>{item.name}{fpsEngine===item.id?'  ✓':''}</Text>
+        </Pressable>)}
+      </View>
+      <Text style={styles.helper}>{fpsEngine==='rife'?'Selected: RIFE frame interpolation. Runtime and model weights are not installed yet.':fpsEngine==='film'?'Selected: Google FILM. 32x is a target expansion mode and requires a deployed FILM model/GPU worker.':'Selected: Combined mode. Available models will be coordinated in one project after the GPU worker is deployed.'}</Text>
+    </Section>
     <Section title="PROCESSING ENGINES" subtitle="Integration status">
+      <Engine name="RIFE Frame Interpolation" detail="Selectable FPS engine · model/runtime required" status="Not connected"/>
+      <Engine name="Google FILM Interpolation" detail="Selectable up to 32x target · GPU runtime required" status="Not connected"/>
+      <Engine name="Combined FPS Pipeline" detail="Coordinates available interpolation models in one project" status="Worker pending"/>
+      <Engine name="Real-ESRGAN Super Resolution" detail="AI upscaling · GPU/NPU runtime required" status="Not installed"/>
       <Engine name="Android Media3 Video Export" detail="On-device decode, scale and MP4 encode" status="Native engine added"/>
-      <Engine name="Real-ESRGAN Super Resolution" detail="Open-source model · GPU/NPU runtime required" status="Not installed"/>
-      <Engine name="Topaz Video AI" detail="Commercial proprietary software · separate licence required" status="Not licensed"/>
-      <Engine name="Resolution Export" detail="Real Android video re-encoding" status="Media3 ready"/>
+      <Engine name="Topaz Video AI" detail="Commercial proprietary software" status="PENDING"/>
     </Section>
     <View style={styles.actionRow}><Pressable style={styles.resetButton} onPress={reset}><Text style={styles.resetText}>RESET</Text></Pressable><Pressable style={styles.exportButton} onPress={startEnhancement}><Text style={styles.exportText}>{engineBusy?'PROCESSING VIDEO…':'EXPORT VIDEO  →'}</Text></Pressable></View>
   </ScrollView>;
