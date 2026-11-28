@@ -8,7 +8,7 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requireNativeModule } from 'expo-modules-core';
-import { supabase } from './supabase';
+import { supabase, supabaseConfigured } from './supabase';
 
 const VideoEngine = requireNativeModule('EnhanceErrorVideoEngine');
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
@@ -70,11 +70,13 @@ export default function App() {
   },[]);
   useEffect(()=>{ AsyncStorage.getItem('enhance-error-recent').then(v=>{if(v)setRecent(JSON.parse(v));}).catch(()=>{}); },[]);
   useEffect(()=>{
+    if(!supabaseConfigured)return;
     supabase.auth.getSession().then(({data})=>setAuthSession(data?.session||null)).catch(()=>{});
     const {data}=supabase.auth.onAuthStateChange((_event,session)=>setAuthSession(session));
     return ()=>data?.subscription?.unsubscribe?.();
   },[]);
   const authenticate=async(mode)=>{
+    if(!supabaseConfigured){Alert.alert('Supabase not configured','Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to the EAS build environment first.');return;}
     if(authBusy)return;
     if(!authEmail.trim()||!authPassword){Alert.alert('Account details required','Enter your email address and password.');return;}
     if(authPassword.length<8){Alert.alert('Password too short','Use at least 8 characters.');return;}
