@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Optional
 
 import httpx
 import numpy as np
@@ -110,8 +111,8 @@ def health():
 @app.post("/v1/video/film/2x")
 async def interpolate_video(
     file: UploadFile = File(...),
-    authorization: str | None = Header(default=None),
-    apikey: str | None = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
+    apikey: Optional[str] = Header(default=None),
 ):
     authorize_user(authorization, apikey)
     suffix = Path(file.filename or "input.mp4").suffix.lower()
