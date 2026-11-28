@@ -68,7 +68,7 @@ def load_model():
             return _model
         if not torch.cuda.is_available():
             raise HTTPException(503, "CUDA GPU is unavailable; RIFE inference requires a supported NVIDIA GPU.")
-        if not MODEL_DIR.is_dir() or not any(MODEL_DIR.iterdir()):
+        if not (MODEL_DIR / "flownet.pkl").is_file():
             raise HTTPException(503, "RIFE model weights are not mounted in RIFE_MODEL_DIR.")
         if not (RIFE_SOURCE / "model" / "RIFE.py").is_file():
             raise HTTPException(503, "Official RIFE source is missing from RIFE_SOURCE.")
@@ -92,7 +92,7 @@ def health():
         "status": "ready" if torch.cuda.is_available() else "gpu_unavailable",
         "engine": "RIFE",
         "cuda_available": torch.cuda.is_available(),
-        "model_weights_present": MODEL_DIR.is_dir() and any(MODEL_DIR.iterdir()) if MODEL_DIR.is_dir() else False,
+        "model_weights_present": (MODEL_DIR / "flownet.pkl").is_file(),
         "model_loaded": _model is not None,
     }
 
