@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Compile RIFE Python workers
-        run: python -m py_compile gpu-backend/rife_worker.py gpu-backend/rife_video_worker.py
+        run: python -m py_compile gpu-backend/rife_worker.py gpu-backend/rife_video_worker.py gpu-backend/film_video_worker.py
 
   android-native-build:
     runs-on: ubuntu-latest
