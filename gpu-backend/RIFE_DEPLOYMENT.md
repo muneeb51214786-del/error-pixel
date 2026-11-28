@@ -77,3 +77,69 @@ Build and run commands above remain the same. The Android app export button is
 not yet connected to this endpoint, and the endpoint has not yet been tested on
 a provisioned NVIDIA GPU with the selected checkpoint. Do not advertise RIFE as
 available in the APK until those tests pass.
+
+
+## Enhance Error app connection
+
+The repository now contains an Android upload/download method and a Supabase Edge Function proxy.
+The mobile app calls `POST /functions/v1/rife-video`; the function forwards the multipart
+video to the private GPU worker using a server-side token. The worker token is never placed
+inside the APK. The app requires a signed-in Supabase Auth user.
+
+### 1. Deploy the GPU worker
+
+Build and run the container using the commands above. The mounted model directory must
+contain the official compatible `flownet.pkl` checkpoint. Confirm that
+`GET https://YOUR_GPU_HOST:8081/health` reports CUDA and model weights as ready.
+Use TLS/reverse proxy in front of the worker; do not expose the raw container port.
+
+### 2. Configure Supabase secrets and deploy the proxy
+
+From the repository root, after linking the correct Supabase project:
+
+```bash
+supabase secrets set RIFE_WORKER_URL=https://YOUR_PRIVATE_GPU_WORKER
+supabase secrets set RIFE_WORKER_API_TOKEN=YOUR_LONG_RANDOM_SERVER_SECRET
+supabase functions deploy rife-video
+```
+
+The worker's `API_TOKEN` and Supabase's `RIFE_WORKER_API_TOKEN` must be identical.
+The Supabase Edge Function also requires a valid signed-in Supabase user session.
+Enable Email authentication in Supabase Auth if email/password sign-in is being used.
+Do not paste service-role keys or worker secrets into the app, GitHub source, or chat.
+
+### 3. Configure the Android build environment
+
+Set these EAS environment variables for the build profile:
+
+- `EXPO_PUBLIC_SUPABASE_URL` — Supabase project URL.
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon/publishable key accepted by the
+  project's Supabase client configuration.
+
+The publishable/anon key is an app identifier, not a server secret. The app's RIFE
+operation requires a signed-in user; create an account or sign in on the Home screen.
+
+### 4. Current RIFE app behavior and limits
+
+- The app's RIFE selection uploads the full video through the authenticated proxy.
+- The current worker returns 2x frame interpolation, preserves the source audio, and
+  saves the returned MP4 into Movies/Enhance Error.
+- Initial worker limits: 250 MB upload, 60 seconds, up to 1,800 source frames, and
+  maximum 1280 pixels on the longest side.
+- The current RIFE path does not yet apply the app's resolution wheel, denoise,
+  stabilization, trim-range, or 4x/8x/16x selections. It explicitly rejects range
+  export and non-2x multiplier requests rather than pretending those options ran.
+- The Supabase Edge Function is a synchronous proxy. Supabase function execution
+  limits may be reached for longer GPU jobs; production release needs a queued job
+  API, progress polling, cancellation, quotas, and durable storage.
+- The Android native upload/download and the GPU inference have not yet been
+  compiled and exercised together on a physical device and NVIDIA GPU.
+
+### 5. Build APK after deployment and tests
+
+```bash
+eas build --platform android --profile preview
+```
+
+Do not distribute the APK as AI-ready until the worker health check, authenticated
+end-to-end video test, audio sync, Gallery save, and Android native build all pass.
