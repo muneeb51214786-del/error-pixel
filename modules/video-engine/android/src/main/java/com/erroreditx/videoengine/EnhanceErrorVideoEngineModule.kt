@@ -210,12 +210,16 @@ class EnhanceErrorVideoEngineModule : Module() {
               error("The RIFE video was copied but could not be published to Gallery.")
             }
             val finalUri = savedUri!!.toString()
+            val outputFps = response.header("X-Output-FPS")?.toDoubleOrNull() ?: 0.0
+            val sourceFps = response.header("X-Source-FPS")?.toDoubleOrNull() ?: 0.0
             sendEvent("onExportProgress", mapOf("progress" to 1f, "stage" to "RIFE video saved to Gallery"))
             promise.resolve(mapOf(
               "uri" to finalUri,
               "galleryUri" to finalUri,
               "engine" to "RIFE",
               "fpsMultiplier" to 2,
+              "outputFps" to outputFps,
+              "sourceFps" to sourceFps,
               "message" to "RIFE 2x video saved to Movies/Enhance Error."
             ))
           }
