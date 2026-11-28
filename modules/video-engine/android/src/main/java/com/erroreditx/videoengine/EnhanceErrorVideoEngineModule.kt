@@ -34,7 +34,7 @@ class EnhanceErrorVideoEngineModule : Module() {
             override fun onCompleted(composition: androidx.media3.transformer.Composition, exportResult: ExportResult) {
               finished = true
               if (!output.exists() || output.length() <= 0L) {
-                promise.reject("VIDEO_EXPORT_EMPTY", "The encoder completed but produced an empty output file.")
+                promise.reject("VIDEO_EXPORT_EMPTY", "The encoder completed but produced an empty output file.", null)
                 return
               }
               sendEvent("onExportProgress", mapOf("progress" to 1f, "stage" to "Export complete"))
