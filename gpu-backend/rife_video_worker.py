@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import httpx
 import torch.nn.functional as F
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
@@ -20,6 +21,25 @@ MAX_UPLOAD = 250 * 1024 * 1024
 MAX_DURATION = 60.0
 MAX_FRAMES = 1800
 MAX_SIDE = 1280
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
+
+
+def authorize_supabase_user(authorization, apikey):
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        raise HTTPException(503, "Supabase authentication is not configured on the GPU worker.")
+    if apikey != SUPABASE_ANON_KEY or not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "A valid signed-in Supabase user session is required.")
+    try:
+        response = httpx.get(
+            f"{SUPABASE_URL}/auth/v1/user",
+            headers={"apikey": SUPABASE_ANON_KEY, "Authorization": authorization},
+            timeout=10.0,
+        )
+    except httpx.HTTPError as exc:
+        raise HTTPException(503, "Supabase authentication service is unavailable.") from exc
+    if response.status_code != 200:
+        raise HTTPException(401, "Supabase session is invalid or expired; sign in again.")
 
 
 def run(command, timeout=300):
@@ -71,8 +91,8 @@ def frame_tensor(frame):
 
 
 @app.post("/v1/video/rife/2x")
-async def interpolate_video(file: UploadFile = File(...), x_api_key: str | None = Header(default=None)):
-    authorize(x_api_key)
+async def interpolate_video(file: UploadFile = File(...), authorization: str | None = Header(default=None), apikey: str | None = Header(default=None)):
+    authorize_supabase_user(authorization, apikey)
     if not torch.cuda.is_available():
         raise HTTPException(503, "CUDA GPU is unavailable.")
     suffix = Path(file.filename or "input.mp4").suffix.lower()
