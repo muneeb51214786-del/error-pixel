@@ -147,11 +147,12 @@ class EnhanceErrorVideoEngineModule : Module() {
       }
     }
 
-    AsyncFunction("interpolateRifeVideo") { inputUri: String, functionUrl: String, anonKey: String, accessToken: String, promise: Promise ->
+    AsyncFunction("processVideoWithGpuEngine") { inputUri: String, workerUrl: String, anonKey: String, accessToken: String, engineName: String, promise: Promise ->
       Thread {
         var savedUri: Uri? = null
         try {
-          require(functionUrl.startsWith("https://")) { "RIFE gateway must use HTTPS." }
+          require(workerUrl.startsWith("https://")) { "GPU worker must use HTTPS." }
+          require(engineName == "RIFE" || engineName == "FILM") { "Unsupported GPU engine." }
           require(anonKey.isNotBlank() && accessToken.isNotBlank()) { "A Supabase sign-in session is required." }
           val context = appContext.reactContext ?: error("Android context is unavailable.")
           val sourceUri = Uri.parse(inputUri)
@@ -169,7 +170,7 @@ class EnhanceErrorVideoEngineModule : Module() {
             .addFormDataPart("file", fileName, requestBody)
             .build()
           val request = Request.Builder()
-            .url(functionUrl)
+            .url(workerUrl)
             .header("apikey", anonKey)
             .header("Authorization", "Bearer $accessToken")
             .post(multipart)
@@ -195,7 +196,7 @@ class EnhanceErrorVideoEngineModule : Module() {
             }
             sendEvent("onExportProgress", mapOf("progress" to 0.82f, "stage" to "Saving RIFE output to Gallery"))
             val values = ContentValues().apply {
-              put(MediaStore.Video.Media.DISPLAY_NAME, "EnhanceError_RIFE_${System.currentTimeMillis()}.mp4")
+              put(MediaStore.Video.Media.DISPLAY_NAME, "EnhanceError_${engineName}_${System.currentTimeMillis()}.mp4")
               put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
               put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Enhance Error")
               put(MediaStore.Video.Media.IS_PENDING, 1)
@@ -216,11 +217,11 @@ class EnhanceErrorVideoEngineModule : Module() {
             promise.resolve(mapOf(
               "uri" to finalUri,
               "galleryUri" to finalUri,
-              "engine" to "RIFE",
+              "engine" to engineName,
               "fpsMultiplier" to 2,
               "outputFps" to outputFps,
               "sourceFps" to sourceFps,
-              "message" to "RIFE 2x video saved to Movies/Enhance Error."
+              "message" to "$engineName 2x video saved to Movies/Enhance Error."
             ))
           }
         } catch (error: Throwable) {
