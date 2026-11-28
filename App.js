@@ -141,9 +141,9 @@ export default function App() {
         if(!accessToken){
           throw new Error('Sign in to your Enhance Error account first. RIFE processing requires an authenticated Supabase user session.');
         }
-        const functionUrl=SUPABASE_URL.replace(/\/+$/,'')+'/functions/v1/rife-video';
+        const workerUrl=RIFE_WORKER_URL.replace(/\/+$/,'')+'/v1/video/rife/2x';
         setExportStage('Uploading video to RIFE GPU');
-        result=await VideoEngine.interpolateRifeVideo(videoUri,functionUrl,SUPABASE_ANON_KEY,accessToken);
+        result=await VideoEngine.interpolateRifeVideo(videoUri,workerUrl,SUPABASE_ANON_KEY,accessToken);
       }else{
         result=await VideoEngine.exportVideo(videoUri,selectedQuality.w,selectedQuality.h,startMs,endMs);
       }
